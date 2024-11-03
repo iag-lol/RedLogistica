@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Aseadores</title>
+    <link rel="stylesheet" href="/css/cleaner.css">
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="/api/googleSheets.js" type="module" defer></script>
+    <script src="/js/cleaner.js" type="module" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+
+</head>
+
+<body>
+    <div class="container">
+        <!-- Estado de Usuario y Conexión -->
+        <section class="user-status-section">
+            <div id="connection-status-section">
+                <p>Estado de conexión: <span id="connection-status">DESCONECTADO</span></p>
+                <p>Usuario: <span id="username-display">Usuario desconocido</span></p>
+            </div>
+        </section>
+
+
+        <div id="task-modal" class="modal" data-task-id="">
+            <div class="modal-content">
+                <span id="close-task-modal" class="close">&times;</span>
+                <h2>Marcar tarea como realizada</h2>
+                <p>¿Deseas marcar esta tarea como realizada?</p>
+                <button id="task-completed-btn" class="button">REALIZADO</button>
+            </div>
+        </div>
+
+        <!-- Tabla de Tareas Asignadas -->
+        <section class="assigned-tasks-section">
+            <h2>Tareas Asignadas</h2>
+            <table id="assigned-tasks-table">
+                <thead>
+                    <tr>
+                        <th>PPU BUS</th>
+                        <th>Tarea</th>
+                        <th>Fecha Límite</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Las tareas asignadas se cargarán aquí -->
+                </tbody>
+            </table>
+        </section><br><br><br><br>
+
+        <!-- Formulario de Registro de Aseo -->
+        <section class="register-aseo-section">
+            <h2>Registrar Aseo</h2>
+            <form id="register-aseo-form">
+                <label for="bus-id">PPU de Bus:</label>
+                <input type="text" id="bus-id" placeholder="Ingrese el PPU del bus" required>
+
+                <label for="aseo-type">Aseo Realizado:</label>
+                <select id="aseo-type" required>
+                    <option value="Barrido">Barrido</option>
+                    <option value="Trapeado">Trapeado</option>
+                    <option value="Barrido y Trapeado">Barrido y Trapeado</option>
+                    <option value="Revisado por ICA">Revisado por ICA</option>
+                    <option value="Progamado por RTG">Progamado por RTG</option>
+                    <option value="Programado por DTPM">Programado por DTPM</option>
+                    <option value="Programado por APPLUS">Programado por APPLUS</option>
+                </select>
+
+                <label for="date">Fecha:</label>
+                <input type="date" id="date" required>
+
+                <button type="submit" class="btn-primary">Registrar Aseo</button>
+            </form>
+        </section><br><br><br><br>
+
+
+        <!-- Tabla de Registros Realizados -->
+        <section class="completed-records-section">
+            <h2>Registros Realizados</h2>
+            <table id="completed-records-table">
+                <thead>
+                    <tr>
+                        <th>PPU BUS</th>
+                        <th>Cleaner</th>
+                        <th>Aseo Realizado</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Los registros se cargarán aquí -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Botón de Buses Pendientes -->
+        <button id="pending-buses-btn" class="btn-secondary">Ver Buses Pendientes</button>
+
+        <!-- Ventana flotante de Buses Pendientes -->
+        <div id="pending-buses-modal" class="modal">
+            <div class="modal-content">
+                <span id="close-modal" class="close-btn">&times;</span>
+                <h2>Buses Pendientes</h2>
+                <table id="pending-buses-table">
+                    <thead>
+                        <tr>
+                            <th>PPU BUS</th>
+                            <th>Motivo</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los datos de buses pendientes se cargarán aquí -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

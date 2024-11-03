@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Supervisor</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    
+    <div class="main-content">
+        <header>
+            <h1>Dashboard del Supervisor</h1>
+            <p>Bienvenido, <span id="supervisor-name">[Nombre Supervisor]</span></p>
+        </header>
+
+        <!-- Resumen de Estadísticas -->
+        <section class="summary-cards">
+            <div class="card">
+                <i class="fas fa-users card-icon"></i>
+                <h3>Total de Empleados</h3>
+                <p id="total-employees">150</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-tasks card-icon"></i>
+                <h3>Tareas Asignadas</h3>
+                <p id="assigned-tasks">45</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-check card-icon"></i>
+                <h3>Tareas Completadas</h3>
+                <p id="completed-tasks">38</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>
