@@ -16,7 +16,7 @@ export function initializeGapiClient() {
                     apiKey: API_KEY,
                     discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"]
                 });
-                initializeOAuth(); // Inicia OAuth
+                initializeOAuth();
                 resolve();
             } catch (error) {
                 console.error("Error inicializando el cliente de Google API:", error);
@@ -27,7 +27,6 @@ export function initializeGapiClient() {
 }
 
 // Inicializar OAuth con Google
-
 function initializeOAuth() {
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
@@ -120,4 +119,44 @@ export async function appendData(range, values) {
     } catch (error) {
         console.error('Error al agregar datos a Google Sheets:', error);
     }
+}
+
+// Función para redirigir según el rol (Supervisor, Planillero, Cleaner, Movilizador)
+export function redirectToRolePage(role) {
+    const baseUrl = '/roles/';
+    switch (role) {
+        case 'Supervisor':
+            window.location.href = `${baseUrl}supervisor.html`;
+            break;
+        case 'Planillero':
+            window.location.href = `${baseUrl}planillero.html`;
+            break;
+        case 'Cleaner':
+            window.location.href = `${baseUrl}cleaner.html`;
+            break;
+        case 'Movilizador':
+            window.location.href = `${baseUrl}movilizador.html`;
+            break;
+        default:
+            alert('Rol no reconocido');
+            break;
+    }
+}
+
+// Cierra sesión y actualiza el estado en Google Sheets
+export async function handleLogout() {
+    const credentials = await loadSheetData('credenciales!A2:D');
+    const username = localStorage.getItem('username');
+    const userIndex = credentials.findIndex(row => row[0] === username);
+
+    if (userIndex !== -1) {
+        const rowToUpdate = `credenciales!D${userIndex + 2}`;
+        await updateSheetData(rowToUpdate, [['DESCONECTADO']]);
+        alert('Sesión cerrada');
+    }
+
+    // Limpiar el nombre de usuario en localStorage
+    localStorage.removeItem('username');
+    localStorage.removeItem('google_access_token'); // Elimina el token de acceso
+    window.location.href = "/login.html"; // Redirigir al usuario a la página de inicio de sesión
 }
