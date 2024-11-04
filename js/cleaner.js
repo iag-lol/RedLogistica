@@ -69,10 +69,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         await registerAseo();
-        // Limpiar campos específicos del formulario después de enviar
-        document.getElementById("bus-id").value = "";
-        document.getElementById("aseo-type").selectedIndex = 0;
-        document.getElementById("date").value = new Date().toISOString().split('T')[0]; // Asigna la fecha actual
+        document.getElementById("bus-id").value = ""; // Limpiar solo el campo de bus-id después de registrar
     });
 
     document.getElementById("pending-buses-btn").addEventListener("click", () => {
@@ -202,7 +199,7 @@ async function registerAseo() {
     loadCompletedRecords();
 
     showAlert('success', 'Registro exitoso', 'Se ha registrado el aseo correctamente.');
-    document.getElementById("register-aseo-form").reset(); // Limpiar el formulario después de enviar
+    document.getElementById("bus-id").value = ""; // Limpiar solo el campo de bus-id después de enviar
 }
 
 async function loadCompletedRecords() {
