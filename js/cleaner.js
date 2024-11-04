@@ -59,6 +59,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         connectionStatus.classList.add('connected');
         await initializeData();
         setInterval(updateAssignedTasks, 5000); // Actualizar tareas cada 5 segundos
+        loadAssignmentAndBreakTime(currentUser); // Cargar asignación y hora de colación
     } else {
         connectionStatus.textContent = 'DESCONECTADO';
         connectionStatus.classList.remove('connected');
@@ -102,6 +103,19 @@ function checkConnectionStatus() {
 
     const username = localStorage.getItem('username');
     usernameElement.textContent = username || 'Usuario desconocido';
+}
+
+async function loadAssignmentAndBreakTime(username) {
+    const cleanerData = await loadSheetData("cleaner!A2:C");
+    const userData = cleanerData.find(row => row[0] === username);
+    
+    if (userData) {
+        document.getElementById("assignment-display").textContent = userData[1];
+        document.getElementById("break-time-display").textContent = userData[2];
+    } else {
+        document.getElementById("assignment-display").textContent = "No asignado";
+        document.getElementById("break-time-display").textContent = "No asignado";
+    }
 }
 
 let lastTaskIds = new Set();
