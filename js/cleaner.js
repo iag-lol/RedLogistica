@@ -193,16 +193,23 @@ async function updateAssignedTasks() {
 
 // Registrar el aseo y limpiar el campo `bus-id`
 async function registerAseo() {
-    const busId = document.getElementById("bus-id").value;
+    const busIdInput = document.getElementById("bus-id");
     const aseoType = document.getElementById("aseo-type").value;
     const date = new Date().toLocaleString(); // Fecha y hora actual
 
-    const values = [[busId, localStorage.getItem("username"), aseoType, date]];
+    const values = [[busIdInput.value, localStorage.getItem("username"), aseoType, date]];
     await appendData("aseo!I2:L", values);
     loadCompletedRecords();
 
-    showAlert('success', 'Registro exitoso', 'Se ha registrado el aseo correctamente.');
-    document.getElementById("bus-id").value = ""; // Limpiar solo el campo de bus-id
+    // Mostrar alerta de éxito y limpiar el campo bus-id
+    Swal.fire({
+        title: 'Registro exitoso',
+        text: 'Se ha registrado el aseo correctamente.',
+        icon: 'success',
+        confirmButtonText: 'OK'
+    }).then(() => {
+        busIdInput.value = ""; // Limpiar solo el campo de bus-id después de la confirmación
+    });
 }
 
 async function loadCompletedRecords() {
