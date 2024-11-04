@@ -69,7 +69,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         await registerAseo();
-        e.target.reset(); // Limpiar el formulario después de enviar
+        // Limpiar campos específicos del formulario después de enviar
+        document.getElementById("bus-id").value = "";
+        document.getElementById("aseo-type").selectedIndex = 0;
+        document.getElementById("date").value = new Date().toISOString().split('T')[0]; // Asigna la fecha actual
     });
 
     document.getElementById("pending-buses-btn").addEventListener("click", () => {
