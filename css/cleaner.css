@@ -1,0 +1,371 @@
+/* Variables de color */
+:root {
+    --primary-color: #224e9d;
+    --secondary-color: #365ac7;
+    --accent-color: #f5f5f5;
+    --background-color: #f0f2f5;
+    --text-color: #333;
+    --white: #ffffff;
+}
+
+/* Reset y estilos básicos */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+}
+
+.container {
+    width: 100%;
+    max-width: 480px;
+    background-color: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Sección de encabezado */
+h2 {
+    font-size: 1.5em;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Estilos de las tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+table thead {
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-weight: 600;
+    text-align: left;
+}
+
+table th, table td {
+    padding: 12px;
+    font-size: 0.9em;
+    word-wrap: break-word;
+}
+
+table tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.3s;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tbody tr:hover {
+    background-color: #eaf3ff;
+}
+
+table th {
+    text-transform: uppercase;
+    font-size: 0.85em;
+}
+
+/* Botones principales */
+.btn-primary, .btn-secondary {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: bold;
+    color: var(--white);
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #888;
+}
+
+.btn-secondary:hover {
+    background-color: #555;
+    transform: translateY(-2px);
+}
+
+/* Formulario de Registro de Aseo */
+.register-aseo-section form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+label {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+input, select {
+    padding: 12px;
+    font-size: 1em;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background-color: var(--white);
+    width: 100%;
+}
+
+input:focus, select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0px 4px 10px rgba(34, 78, 157, 0.2);
+}
+
+select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><path fill="%23224e9d" d="M0 0h140v140H0z"/><path fill="%23FFF" d="M70 93l-27-33h54z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+}
+
+/* Estilos del modal (ventana flotante de Buses Pendientes) */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+/* Estilos para la sección de estado de usuario y conexión */
+.user-status-section {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-status-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+#connection-status-section {
+    font-size: 16px;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Estado de conexión */
+#connection-status-section p {
+    margin: 0;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#connection-status {
+    font-weight: bold;
+    color: #dc3545; /* Color rojo para DESCONECTADO */
+    padding: 2px 8px;
+    border-radius: 5px;
+    background-color: #f8d7da;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+#connection-status.connected {
+    color: #28a745; /* Color verde para CONECTADO */
+    background-color: #d4edda;
+}
+
+/* Estilo para el nombre de usuario */
+#username-display {
+    font-weight: bold;
+    color: #224e9d;
+}
+
+/* Responsivo para pantallas pequeñas */
+@media (max-width: 768px) {
+    .user-status-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #connection-status-section p {
+        font-size: 14px;
+    }
+}
+
+#connection-status.connected {
+    color: green;
+    font-weight: bold;
+}
+
+#connection-status.disconnected {
+    color: red;
+    font-weight: bold;
+}
+
+.modal-content {
+    background-color: var(--white);
+    border-radius: 12px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content h2 {
+    font-size: 1.3em;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.5em;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-btn:hover {
+    color: var(--secondary-color);
+}
+
+/* Responsividad */
+@media (max-width: 480px) {
+    h2 {
+        font-size: 1.3em;
+    }
+
+    table th, table td {
+        font-size: 0.8em;
+        padding: 10px;
+    }
+
+    .btn-primary, .btn-secondary {
+        font-size: 0.9em;
+        padding: 10px;
+    }
+
+    .modal-content {
+        width: 100%;
+        max-width: 350px;
+        padding: 15px;
+    }
+}
+
+/* Animación de entrada para el modal */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+    border-radius: 8px;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.button {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+}

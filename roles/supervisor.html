@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Supervisor - RedLog</title>
+    <link rel="stylesheet" href="../css/supervisor.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Script de la API de Google -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="../js/supervisor.js" defer></script>
+    
+</head>
+
+<body>
+    <!-- Sidebar de navegación principal -->
+    <nav class="sidebar">
+        <div class="logo">
+            <h2>RedLog</h2>
+        </div>
+        <ul class="menu">
+            <li><a href="/dashboard.html" target="content-frame"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            </li>
+            <li><a href="/roles/tareas.html" target="content-frame"><i class="fas fa-tasks"></i> Asignación de
+                    Tareas</a></li>
+            <li><a href="/roles/tasks.html" target="content-frame"><i class="fas fa-chart-bar"></i> Resumen de
+                    Actividad</a></li>
+            <li><a href="/roles/reports.html" target="content-frame"><i class="fas fa-file-alt"></i> Reportes</a></li>
+            <li><a href="/roles/aseo.html" target="content-frame"><i class="fas fa-broom"></i> Aseo</a></li>
+            <li><a href="/roles/petroleo.html" target="content-frame"><i class="fas fa-gas-pump"></i> Petróleo</a></li>
+            <li><a href="/index.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <header>
+            <h1>Bienvenido, <span id="supervisor-name">Supervisor</span></h1>
+            <p>Panel de supervisión del personal</p>
+        </header>
+
+        <!-- Sección de estadísticas generales -->
+        <section class="dashboard-overview">
+            <div class="stat-card">
+                <h3>Total de Empleados</h3>
+                <p id="total-empleados">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Tareas Asignadas</h3>
+                <p id="tareas-asignadas">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Tareas Completadas</h3>
+                <p id="tareas-completadas">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Buses en Servicio</h3>
+                <p id="buses-servicio">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Buses en Mantenimiento</h3>
+                <p id="buses-mantenimiento">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Reportes Pendientes</h3>
+                <p id="reportes-pendientes">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Incidentes Reportados</h3>
+                <p id="incidentes-reportados">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Asistencias de Hoy</h3>
+                <p id="asistencias-hoy">-</p>
+            </div>
+        </section>
+
+        <!-- Sección de gráficos -->
+        <section class="charts-section">
+            <div class="chart-container">
+                <h3>Distribución de Tareas por Estado</h3>
+                <canvas id="tareasChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Asistencias del Personal</h3>
+                <canvas id="asistenciasChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Incidentes Mensuales</h3>
+                <canvas id="incidentesChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Buses en Mantenimiento por Mes</h3>
+                <canvas id="mantenimientoChart"></canvas>
+            </div>
+        </section>
+    </div>
+    <script src="/js/supervisor.js" defer></script>
+</body>
+
+</html>
