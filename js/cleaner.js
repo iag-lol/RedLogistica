@@ -195,7 +195,13 @@ async function updateAssignedTasks() {
 async function registerAseo() {
     const busIdInput = document.getElementById("bus-id");
     const aseoType = document.getElementById("aseo-type").value;
-    const date = new Date().toLocaleString(); // Fecha y hora actual
+    
+    // Configuración de fecha y hora en formato 24 horas (sin "a.m." o "p.m.")
+    const date = new Intl.DateTimeFormat('es-ES', {
+        dateStyle: 'short',
+        timeStyle: 'medium',
+        hour12: false // Formato 24 horas
+    }).format(new Date());
 
     const values = [[busIdInput.value, localStorage.getItem("username"), aseoType, date]];
     await appendData("aseo!I2:L", values);
