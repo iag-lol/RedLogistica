@@ -47,7 +47,7 @@ async function handleLogin(event) {
 }
 
 function redirectToRolePage(role) {
-    const baseUrl = '/roles/';
+    const baseUrl = '/RedLogistica/roles/';
     switch (role) {
         case 'Supervisor':
             window.location.href = `${baseUrl}supervisor.html`;
