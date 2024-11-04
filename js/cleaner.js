@@ -69,7 +69,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         await registerAseo();
-        document.getElementById("bus-id").value = ""; // Limpiar solo el campo de bus-id después de registrar
     });
 
     document.getElementById("pending-buses-btn").addEventListener("click", () => {
@@ -87,6 +86,7 @@ async function initializeData() {
     await loadCompletedRecords();
 }
 
+// Función para verificar el estado de conexión y actualizar visualmente
 function checkConnectionStatus() {
     const statusElement = document.getElementById('connection-status');
     const usernameElement = document.getElementById('username-display');
@@ -105,6 +105,7 @@ function checkConnectionStatus() {
     usernameElement.textContent = username || 'Usuario desconocido';
 }
 
+// Cargar asignación y hora de colación desde Google Sheets
 async function loadAssignmentAndBreakTime(username) {
     const cleanerData = await loadSheetData("cleaner!A2:C");
     const userData = cleanerData.find(row => row[0] === username);
@@ -120,6 +121,7 @@ async function loadAssignmentAndBreakTime(username) {
 
 let lastTaskIds = new Set();
 
+// Cargar tareas asignadas para el usuario
 async function loadAssignedTasks() {
     const tasksTable = document.getElementById("assigned-tasks-table").querySelector("tbody");
     const assignedTasks = await loadSheetData("aseo!A2:F");
@@ -128,7 +130,7 @@ async function loadAssignedTasks() {
     const userTasks = assignedTasks.filter(task => task[0] === currentUser);
     const newTaskIds = new Set(userTasks.map(task => task[1])); // IDs actuales de tareas
 
-    // Comprobar si hay tareas nuevas sin borrar todas las filas
+    // Mostrar nuevas tareas sin borrar toda la tabla
     userTasks.forEach(task => {
         if (!lastTaskIds.has(task[1])) {
             const tr = document.createElement("tr");
@@ -137,25 +139,24 @@ async function loadAssignedTasks() {
                 td.textContent = task[i];
                 tr.appendChild(td);
             });
-            // Agregar evento para abrir modal de confirmación
             tr.addEventListener("click", () => openTaskModal(task));
             tasksTable.appendChild(tr);
             showPersistentAlert('info', 'Nueva Asignación', 'Tienes nuevas tareas asignadas.');
         }
     });
 
-    // Eliminar las filas de tareas que ya no están en la hoja
+    // Quitar tareas que ya no están
     Array.from(tasksTable.rows).forEach(row => {
-        const taskId = row.cells[0].textContent; // Obtener ID de la fila actual
+        const taskId = row.cells[0].textContent;
         if (!newTaskIds.has(taskId)) {
-            row.remove(); // Eliminar fila si ya no existe en los datos actuales
+            row.remove();
         }
     });
 
-    lastTaskIds = newTaskIds; // Actualizar IDs de tareas
+    lastTaskIds = newTaskIds;
 }
 
-// Función para abrir el modal de confirmación de tarea realizada
+// Abrir modal de tarea realizada
 function openTaskModal(task) {
     Swal.fire({
         title: 'Confirmación de Tarea',
@@ -175,31 +176,33 @@ function openTaskModal(task) {
     });
 }
 
-// Función para eliminar la tarea de la hoja de Google Sheets
+// Borrar tarea de Google Sheets
 async function deleteTask(taskId) {
     const assignedTasks = await loadSheetData("aseo!A2:F");
-    const rowIndex = assignedTasks.findIndex(row => row[1] === taskId) + 2; // Obtener el índice de la fila
+    const rowIndex = assignedTasks.findIndex(row => row[1] === taskId) + 2;
     if (rowIndex > 1) {
         const range = `aseo!A${rowIndex}:F${rowIndex}`;
-        await updateSheetData(range, [['', '', '', '', '', '']]); // Limpiar la fila específica
+        await updateSheetData(range, [['', '', '', '', '', '']]);
     }
 }
 
+// Actualizar tareas
 async function updateAssignedTasks() {
     await loadAssignedTasks();
 }
 
+// Registrar el aseo y limpiar el campo `bus-id`
 async function registerAseo() {
     const busId = document.getElementById("bus-id").value;
     const aseoType = document.getElementById("aseo-type").value;
-    const date = document.getElementById("date").value;
+    const date = new Date().toLocaleString(); // Fecha y hora actual
 
     const values = [[busId, localStorage.getItem("username"), aseoType, date]];
     await appendData("aseo!I2:L", values);
     loadCompletedRecords();
 
     showAlert('success', 'Registro exitoso', 'Se ha registrado el aseo correctamente.');
-    document.getElementById("bus-id").value = ""; // Limpiar solo el campo de bus-id después de enviar
+    document.getElementById("bus-id").value = ""; // Limpiar solo el campo de bus-id
 }
 
 async function loadCompletedRecords() {
