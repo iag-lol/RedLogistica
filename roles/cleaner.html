@@ -6,26 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma de Aseadores</title>
     <link rel="stylesheet" href="/RedLogistica/css/cleaner.css">
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="/RedLogistica/api/googleSheets.js" type="module" defer></script>
-<script src="/RedLogistica/js/cleaner.js" type="module" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
-
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="/RedLogistica/api/googleSheets.js" type="module" defer></script>
+    <script src="/RedLogistica/js/cleaner.js" type="module" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
     <div class="container">
-        <!-- Estado de Usuario y Conexión -->
+      
         <section class="user-status-section">
             <div id="connection-status-section">
                 <p>Estado de conexión: <span id="connection-status">DESCONECTADO</span></p>
                 <p>Usuario: <span id="username-display">Usuario desconocido</span></p>
+                <p>Asignación: <span id="assignment-display">N/A</span></p>
+                <p>Hora de Colación: <span id="break-time-display">N/A</span></p>
             </div>
         </section>
-
 
         <div id="task-modal" class="modal" data-task-id="">
             <div class="modal-content">
@@ -36,7 +35,6 @@
             </div>
         </div>
 
-        <!-- Tabla de Tareas Asignadas -->
         <section class="assigned-tasks-section">
             <h2>Tareas Asignadas</h2>
             <table id="assigned-tasks-table">
@@ -48,12 +46,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Las tareas asignadas se cargarán aquí -->
                 </tbody>
             </table>
         </section><br><br><br><br>
 
-        <!-- Formulario de Registro de Aseo -->
         <section class="register-aseo-section">
             <h2>Registrar Aseo</h2>
             <form id="register-aseo-form">
@@ -78,8 +74,6 @@
             </form>
         </section><br><br><br><br>
 
-
-        <!-- Tabla de Registros Realizados -->
         <section class="completed-records-section">
             <h2>Registros Realizados</h2>
             <table id="completed-records-table">
@@ -92,15 +86,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Los registros se cargarán aquí -->
                 </tbody>
             </table>
         </section>
 
-        <!-- Botón de Buses Pendientes -->
         <button id="pending-buses-btn" class="btn-secondary">Ver Buses Pendientes</button>
 
-        <!-- Ventana flotante de Buses Pendientes -->
         <div id="pending-buses-modal" class="modal">
             <div class="modal-content">
                 <span id="close-modal" class="close-btn">&times;</span>
@@ -114,7 +105,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Los datos de buses pendientes se cargarán aquí -->
                     </tbody>
                 </table>
             </div>
