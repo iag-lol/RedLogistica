@@ -11,6 +11,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById("reviewStockBtn").addEventListener("click", openStockModal);
     document.getElementById("downloadSummaryBtn").addEventListener("click", downloadPDF);
     document.getElementById("closeStockModalBtn").addEventListener("click", closeStockModal);
+    document.getElementById("registerTruckBtn").addEventListener("click", openTruckModal);
+    document.getElementById("closeTruckModalBtn").addEventListener("click", closeTruckModal);
+    document.getElementById("register-truck-form").addEventListener("submit", registerTruckDelivery);
 
     // Cargar datos iniciales
     await loadInventory();
@@ -19,6 +22,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Configurar eventos para formularios
     document.getElementById("add-supply-form").addEventListener("submit", registerSupplyEntry);
     document.getElementById("remove-supply-form").addEventListener("submit", registerSupplyExit);
+
+    // Actualizar contadores
+    updateCounters();
 });
 
 // Verificar y actualizar el estado de conexión
@@ -39,19 +45,74 @@ function closeStockModal() {
     document.getElementById("stockModal").style.display = "none";
 }
 
-// Función para cargar datos de stock desde Google Sheets
+// Función para abrir la ventana modal de descarga de camión
+function openTruckModal() {
+    document.getElementById("truckModal").style.display = "flex";
+}
+
+// Función para cerrar la ventana modal de descarga de camión
+function closeTruckModal() {
+    document.getElementById("truckModal").style.display = "none";
+}
+
+// Función para registrar la descarga de camión
+async function registerTruckDelivery(e) {
+    e.preventDefault();
+    const invoiceNumber = document.getElementById("invoice-number").value;
+    const truckItems = document.getElementById("truck-items").value.split(",").map(item => item.trim());
+    const date = new Date().toLocaleString();
+
+    const values = truckItems.map(item => [invoiceNumber, item, date]);
+    await appendData("bodega!I2:K", values);
+    alert("Descarga de camión registrada exitosamente");
+    e.target.reset();
+    closeTruckModal();
+}
+
+// Función para cargar datos de stock desde Google Sheets y combinar registros duplicados
 async function loadStockData() {
     const stockTableBody = document.getElementById("stock-table-body");
     stockTableBody.innerHTML = '';
     const stockData = await loadSheetData("bodega!A2:E");
 
+    const combinedStock = {};
     stockData.forEach(item => {
+        const [name, quantity] = item;
+        combinedStock[name] = (combinedStock[name] || 0) + parseInt(quantity);
+    });
+
+    Object.keys(combinedStock).forEach(name => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${name}</td>
+            <td>${combinedStock[name]}</td>
+        `;
+        stockTableBody.appendChild(row);
+    });
+}
+
+// Función para filtrar stock por mes
+function filterStockByMonth() {
+    const month = document.getElementById("monthFilter").value;
+    if (month) {
+        const filteredData = stockData.filter(item => {
+            const itemDate = new Date(item[2]);
+            return itemDate.getMonth() === parseInt(month) - 1;
+        });
+        displayFilteredStock(filteredData);
+    }
+}
+
+// Función para mostrar datos filtrados en la tabla de stock
+function displayFilteredStock(filteredData) {
+    const stockTableBody = document.getElementById("stock-table-body");
+    stockTableBody.innerHTML = '';
+    filteredData.forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${item[0]}</td>
             <td>${item[1]}</td>
             <td>${item[2]}</td>
-            <td>${item[3]}</td>
         `;
         stockTableBody.appendChild(row);
     });
@@ -83,6 +144,14 @@ function downloadPDF() {
     doc.save("Resumen_Stock.pdf");
 }
 
+// Función para actualizar los contadores
+async function updateCounters() {
+    const inventoryData = await loadSheetData("bodega!A2:D");
+    const truckData = await loadSheetData("bodega!I2:K");
+    document.getElementById("total-inventory").textContent = inventoryData.length + " artículos";
+    document.getElementById("truck-deliveries").textContent = truckData.length + " entregas";
+}
+
 // Función para registrar ingreso de insumos en Google Sheets
 async function registerSupplyEntry(e) {
     e.preventDefault();
@@ -95,6 +164,7 @@ async function registerSupplyEntry(e) {
         const values = [[itemName, itemQuantity, itemCategory, date]];
         await appendData("bodega!A2:D", values);
         await loadInventory();
+        updateCounters();
         alert("Ingreso registrado exitosamente");
         e.target.reset();
     }
@@ -112,6 +182,7 @@ async function registerSupplyExit(e) {
         const values = [[itemName, itemQuantity, personReceiving, date]];
         await appendData("bodega!E2:H", values);
         await loadDeliveries();
+        updateCounters();
         alert("Egreso registrado exitosamente");
         e.target.reset();
     }
@@ -123,7 +194,7 @@ async function loadInventory() {
     const tableBody = document.getElementById("ingreso-table-body");
     tableBody.innerHTML = '';
 
-    inventoryData.forEach(item => {
+    inventoryData.slice(0, 10).forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${item[0]}</td>
@@ -141,7 +212,7 @@ async function loadDeliveries() {
     const tableBody = document.getElementById("egreso-table-body");
     tableBody.innerHTML = '';
 
-    deliveryData.forEach(item => {
+    deliveryData.slice(0, 10).forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${item[0]}</td>
