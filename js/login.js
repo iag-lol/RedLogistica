@@ -61,11 +61,24 @@ function redirectToRolePage(role) {
         case 'Movilizador':
             window.location.href = `${baseUrl}movilizador.html`;
             break;
+        case 'Bodega': 
+            window.location.href = `${baseUrl}bodega.html`;
+            break;
         default:
             alert('Rol no reconocido');
             break;
     }
 }
+
+// Llama a la función de redirección con el rol almacenado en localStorage
+document.addEventListener("DOMContentLoaded", function () {
+    const role = localStorage.getItem('role');
+    if (role) {
+        redirectToRolePage(role);
+    } else {
+        console.warn('No se encontró rol en localStorage');
+    }
+});
 
 // Cierra sesión y actualiza el estado en Google Sheets
 export async function handleLogout() {
