@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Bodega - Aseo</title>
+    <link rel="stylesheet" href="/css/bodega.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://apis.google.com/js/api.js" async defer onload="initializeGapi()"></script>
+    <script src="/js/googleSheets.js" defer type="module"></script>
+    <script src="/js/login.js" defer type="module"></script>
+    <script src="/js/bodega.js" defer type="module"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Encabezado de usuario y conexión -->
+        <header class="header">
+            <h1>Bienvenido, <span id="username"></span></h1>
+            <p>Estado de conexión: <span id="connection-status">Desconectado</span></p>
+        </header>
+
+        <!-- Resumen de bodega e inventario -->
+        <section class="summary">
+            <div class="card">
+                <i class="fas fa-boxes card-icon"></i>
+                <h2>Inventario Total</h2>
+                <p id="total-inventory">0 artículos</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-truck card-icon"></i>
+                <h2>Descargas de Camión</h2>
+                <p id="truck-deliveries">0 entregas</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-exclamation-triangle card-icon"></i>
+                <h2>Alertas de Stock Bajo</h2>
+                <p id="low-stock-alerts">0 alertas</p>
+            </div>
+        </section>
+
+        <!-- Botones de funciones -->
+        <section class="actions">
+            <button class="btn-primary" onclick="openStockModal()">Revisar Stock</button>
+            <button class="btn-secondary" onclick="downloadPDF()">Descargar Resumen en PDF</button>
+        </section>
+
+        <!-- Modal de stock -->
+        <div id="stockModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeStockModal()">&times;</span>
+                <h2>Resumen de Stock</h2>
+                <input type="month" id="monthFilter" onchange="filterStockByMonth()" placeholder="Filtrar por Mes">
+                <table id="stock-table" class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Cantidad Ingreso</th>
+                            <th>Cantidad Egreso</th>
+                            <th>Stock Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-table-body">
+                        <!-- Filas generadas dinámicamente -->
+                    </tbody>
+                </table>
+                <button onclick="downloadPDF()" class="btn-secondary">Descargar Resumen en PDF</button>
+            </div>
+        </div>
+
+        <!-- Formularios de Ingreso y Egreso de Insumos -->
+        <section class="form-sections">
+            <!-- Formulario de Ingreso de Insumos -->
+            <div class="form-section">
+                <h2>Ingreso de Insumos</h2>
+                <form id="add-supply-form">
+                    <label for="ingreso-item-name">Nombre del Insumo</label>
+                    <input type="text" id="ingreso-item-name" placeholder="Ej. Detergente">
+                    <label for="ingreso-item-quantity">Cantidad</label>
+                    <input type="number" id="ingreso-item-quantity" placeholder="Ej. 100">
+                    <label for="ingreso-item-category">Categoría</label>
+                    <select id="ingreso-item-category">
+                        <option value="Limpieza">Limpieza</option>
+                        <option value="Higiene">Higiene</option>
+                        <option value="Seguridad">Seguridad</option>
+                    </select>
+                    <button type="submit" class="btn-primary">Registrar Ingreso</button>
+                </form>
+            </div>
+
+            <!-- Formulario de Egreso de Insumos -->
+            <div class="form-section">
+                <h2>Egreso de Insumos</h2>
+                <form id="remove-supply-form">
+                    <label for="egreso-item-name">Nombre del Insumo</label>
+                    <input type="text" id="egreso-item-name" placeholder="Ej. Detergente">
+                    <label for="egreso-item-quantity">Cantidad</label>
+                    <input type="number" id="egreso-item-quantity" placeholder="Ej. 50">
+                    <label for="person-receiving">Entregado a</label>
+                    <input type="text" id="person-receiving" placeholder="Nombre del destinatario">
+                    <button type="submit" class="btn-primary">Registrar Egreso</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Tabla de registros de ingreso de insumos -->
+        <section class="table-section">
+            <h2>Registros de Ingreso</h2>
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Artículo</th>
+                        <th>Cantidad</th>
+                        <th>Categoría</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody id="ingreso-table-body">
+                    <!-- Aquí se cargarán los datos de ingreso -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Tabla de registros de egreso de insumos -->
+        <section class="table-section">
+            <h2>Registros de Egreso</h2>
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Artículo</th>
+                        <th>Cantidad</th>
+                        <th>Entregado a</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody id="egreso-table-body">
+                    <!-- Aquí se cargarán los datos de egreso -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+</body>
+</html>
