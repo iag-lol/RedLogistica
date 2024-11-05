@@ -1,45 +1,44 @@
+// Configuración de Google API
+const CLIENT_ID = '739966027132-j4ngpj7la2hpmkhil8l3d74dpbec1eq1.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyAqybdPUUYkIbeGBMxc39hMdaRrOhikD8s';
+const SPREADSHEET_ID = '1jzTdEoshxRpuf9kHXI5vQLRtoCsSA-Uw-48JX8LxXaU';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+
 import { initializeGapiClient, loadSheetData, appendData, isUserAuthenticated } from '/RedLogistica/api/googleSheets.js';
 
 document.addEventListener("DOMContentLoaded", async function () {
-    // Inicializar Google API y autenticación
-    await initializeGapiClient();
+    try {
+        // Inicializar Google API y autenticación
+        await initializeGapiClient();
 
-    // Mostrar el estado de conexión y el usuario
-    checkConnectionStatus();
+        // Verificar y actualizar el estado de conexión
+        checkConnectionStatus();
 
-    // Configuración de eventos para botones
-    document.getElementById("reviewStockBtn").addEventListener("click", openStockModal);
-    document.getElementById("downloadSummaryBtn").addEventListener("click", downloadPDF);
-    document.getElementById("closeStockModalBtn").addEventListener("click", closeStockModal);
-    document.getElementById("registerTruckDeliveryBtn").addEventListener("click", openTruckDeliveryModal);
-    document.getElementById("submitTruckDeliveryBtn").addEventListener("click", registerTruckDelivery);
+        // Configurar eventos para botones
+        document.getElementById("reviewStockBtn").addEventListener("click", openStockModal);
+        document.getElementById("downloadSummaryBtn").addEventListener("click", downloadPDF);
+        document.getElementById("closeStockModalBtn").addEventListener("click", closeStockModal);
 
-    // Cargar datos iniciales
-    await loadInventory();
-    await loadDeliveries();
-    await updateSummaryCounters();
+        // Cargar datos iniciales de las tablas y actualizar contadores
+        await loadInventory();
+        await loadDeliveries();
+        await updateSummaryCounters();
 
-    // Configurar eventos para formularios
-    document.getElementById("add-supply-form").addEventListener("submit", registerSupplyEntry);
-    document.getElementById("remove-supply-form").addEventListener("submit", registerSupplyExit);
+        // Configurar eventos para formularios
+        document.getElementById("add-supply-form").addEventListener("submit", registerSupplyEntry);
+        document.getElementById("remove-supply-form").addEventListener("submit", registerSupplyExit);
+    } catch (error) {
+        console.error('Error durante la inicialización:', error);
+        alert("Error en la autenticación. Verifique su conexión y reinicie la aplicación.");
+    }
 });
 
 // Verificar y actualizar el estado de conexión
 function checkConnectionStatus() {
     const connectionStatus = document.getElementById("connection-status");
-    connectionStatus.textContent = isUserAuthenticated() ? "Conectado" : "Desconectado";
-    connectionStatus.classList.toggle("connected", isUserAuthenticated());
-}
-
-// Actualizar contadores de resumen
-async function updateSummaryCounters() {
-    const inventoryData = await loadSheetData("bodega!A2:D");
-    const deliveryData = await loadSheetData("bodega!E2:H");
-    const lowStockCount = inventoryData.filter(item => parseInt(item[1], 10) < 5).length;
-
-    document.getElementById("total-inventory").textContent = `${inventoryData.length} artículos`;
-    document.getElementById("truck-deliveries").textContent = `${deliveryData.length} entregas`;
-    document.getElementById("low-stock-alerts").textContent = `${lowStockCount} alertas`;
+    const isConnected = isUserAuthenticated();
+    connectionStatus.textContent = isConnected ? "Conectado" : "Desconectado";
+    connectionStatus.classList.toggle("connected", isConnected);
 }
 
 // Función para abrir la ventana modal de stock
@@ -83,36 +82,6 @@ async function loadStockData() {
             <td>${quantityIn}</td>
             <td>${quantityOut}</td>
             <td>${currentStock}</td>
-        `;
-        stockTableBody.appendChild(row);
-    });
-}
-
-// Función para filtrar el stock por mes
-function filterStockByMonth() {
-    const month = document.getElementById("monthFilter").value;
-    if (month) {
-        displayFilteredStock(month);
-    }
-}
-
-async function displayFilteredStock(month) {
-    const stockTableBody = document.getElementById("stock-table-body");
-    stockTableBody.innerHTML = '';
-    const stockData = await loadSheetData("bodega!A2:E");
-
-    const filteredData = stockData.filter(item => {
-        const itemDate = new Date(item[3]);
-        return itemDate.toISOString().slice(0, 7) === month;
-    });
-
-    filteredData.forEach(item => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${item[0]}</td>
-            <td>${item[1]}</td>
-            <td>${item[2]}</td>
-            <td>${item[3]}</td>
         `;
         stockTableBody.appendChild(row);
     });
@@ -180,30 +149,6 @@ async function registerSupplyExit(e) {
     }
 }
 
-// Modal de descarga de camión y función de registro
-function openTruckDeliveryModal() {
-    document.getElementById("truckDeliveryModal").style.display = "block";
-}
-
-function closeTruckDeliveryModal() {
-    document.getElementById("truckDeliveryModal").style.display = "none";
-}
-
-async function registerTruckDelivery(e) {
-    e.preventDefault();
-    const itemName = document.getElementById("truck-item-name").value;
-    const itemQuantity = document.getElementById("truck-item-quantity").value;
-    const date = new Date().toLocaleString();
-
-    if (itemName && itemQuantity) {
-        const values = [[itemName, itemQuantity, date]];
-        await appendData("bodega!I2:K", values);
-        closeTruckDeliveryModal();
-        alert("Descarga de camión registrada exitosamente");
-        await updateSummaryCounters();
-    }
-}
-
 // Función para cargar el inventario desde Google Sheets
 async function loadInventory() {
     const inventoryData = await loadSheetData("bodega!A2:D");
@@ -238,4 +183,15 @@ async function loadDeliveries() {
         `;
         tableBody.appendChild(row);
     });
+}
+
+// Actualizar contadores de resumen
+async function updateSummaryCounters() {
+    const inventoryData = await loadSheetData("bodega!A2:D");
+    const deliveryData = await loadSheetData("bodega!E2:H");
+    const lowStockCount = inventoryData.filter(item => parseInt(item[1], 10) < 5).length;
+
+    document.getElementById("total-inventory").textContent = `${inventoryData.length} artículos`;
+    document.getElementById("truck-deliveries").textContent = `${deliveryData.length} entregas`;
+    document.getElementById("low-stock-alerts").textContent = `${lowStockCount} alertas`;
 }
