@@ -1,16 +1,23 @@
-import { loadSheetData, appendData } from './googleSheets.js';
+import { initializeGapiClient, loadSheetData, appendData, isUserAuthenticated } from './googleSheets.js';
 import { getUserInfo } from './login.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const userInfo = getUserInfo();
-    document.getElementById('username').textContent = userInfo.name;
-    document.getElementById('connection-status').textContent = userInfo.role;
+    await initializeGapiClient();
 
-    document.getElementById('reviewStockBtn').addEventListener('click', openStockModal);
-    document.getElementById('downloadSummaryBtn').addEventListener('click', downloadPDF);
+    if (isUserAuthenticated()) {
+        const userInfo = getUserInfo();
+        document.getElementById('username').textContent = userInfo.name;
+        document.getElementById('connection-status').textContent = userInfo.role;
 
-    await loadInventory();
-    await loadDeliveries();
+        document.getElementById('reviewStockBtn').addEventListener('click', openStockModal);
+        document.getElementById('downloadSummaryBtn').addEventListener('click', downloadPDF);
+
+        await loadInventory();
+        await loadDeliveries();
+    } else {
+        console.error("Usuario no autenticado. Redireccionando al inicio de sesión.");
+        window.location.href = '/login.html';
+    }
 });
 
 // Función para abrir la ventana modal de stock
