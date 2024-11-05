@@ -1,150 +1,162 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Bodega - Aseo</title>
-    <link rel="stylesheet" href="https://iag-lol.github.io/RedLogistica/css/bodega.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script src="https://iag-lol.github.io/RedLogistica/js/googleSheets.js" type="module" defer></script>
-    <script src="https://iag-lol.github.io/RedLogistica/js/login.js" type="module" defer></script>
-    <script src="https://iag-lol.github.io/RedLogistica/js/bodega.js" type="module" defer></script>
-</head>
+import { loadSheetData, appendData, initializeGapiClient, isUserAuthenticated } from '/RedLogistica/api/googleSheets.js';
+import { getUserInfo } from '/RedLogistica/js/login.js';
 
-<body>
-    <div class="container">
-        <!-- Encabezado de usuario y conexión -->
-        <header class="header">
-            <h1>Bienvenido, <span id="username"></span></h1>
-            <p>Estado de conexión: <span id="connection-status">Desconectado</span></p>
-        </header>
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Inicializar cliente de Google API y autenticación
+        await initializeGapiClient();
 
-        <!-- Resumen de bodega e inventario -->
-        <section class="summary">
-            <div class="card">
-                <i class="fas fa-boxes card-icon"></i>
-                <h2>Inventario Total</h2>
-                <p id="total-inventory">0 artículos</p>
-            </div>
-            <div class="card">
-                <i class="fas fa-truck card-icon"></i>
-                <h2>Descargas de Camión</h2>
-                <p id="truck-deliveries">0 entregas</p>
-            </div>
-            <div class="card">
-                <i class="fas fa-exclamation-triangle card-icon"></i>
-                <h2>Alertas de Stock Bajo</h2>
-                <p id="low-stock-alerts">0 alertas</p>
-            </div>
-        </section>
+        const userInfo = getUserInfo();
+        document.getElementById('username').textContent = userInfo.name || 'Usuario';
+        document.getElementById('connection-status').textContent = isUserAuthenticated() ? 'Conectado' : 'Desconectado';
 
-        <!-- Botones de funciones -->
-        <section class="actions">
-            <button id="reviewStockBtn" class="btn-primary">Revisar Stock</button>
-            <button id="downloadSummaryBtn" class="btn-secondary">Descargar Resumen en PDF</button>
-        </section>
-
-        <!-- Modal de stock -->
-        <div id="stockModal" class="modal">
-            <div class="modal-content">
-                <span id="closeStockModalBtn" class="close">&times;</span>
-                <h2>Resumen de Stock</h2>
-                <input type="month" id="monthFilter" placeholder="Filtrar por Mes">
-                <table id="stock-table" class="styled-table">
-                    <thead>
-                        <tr>
-                            <th>Artículo</th>
-                            <th>Cantidad Ingreso</th>
-                            <th>Cantidad Egreso</th>
-                            <th>Stock Actual</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stock-table-body">
-                        <!-- Filas generadas dinámicamente -->
-                    </tbody>
-                </table>
-                <button id="downloadPDFBtn" class="btn-secondary">Descargar Resumen en PDF</button>
-            </div>
-        </div>
-
-        <!-- Formularios de Ingreso y Egreso de Insumos -->
-        <section class="form-sections">
-            <!-- Formulario de Ingreso de Insumos -->
-            <div class="form-section">
-                <h2>Ingreso de Insumos</h2>
-                <form id="add-supply-form">
-                    <label for="ingreso-item-name">Nombre del Insumo</label>
-                    <input type="text" id="ingreso-item-name" placeholder="Ej. Detergente">
-                    <label for="ingreso-item-quantity">Cantidad</label>
-                    <input type="number" id="ingreso-item-quantity" placeholder="Ej. 100">
-                    <label for="ingreso-item-category">Categoría</label>
-                    <select id="ingreso-item-category">
-                        <option value="Limpieza">Limpieza</option>
-                        <option value="Higiene">Higiene</option>
-                        <option value="Seguridad">Seguridad</option>
-                    </select>
-                    <button type="submit" class="btn-primary">Registrar Ingreso</button>
-                </form>
-            </div>
-
-            <!-- Formulario de Egreso de Insumos -->
-            <div class="form-section">
-                <h2>Egreso de Insumos</h2>
-                <form id="remove-supply-form">
-                    <label for="egreso-item-name">Nombre del Insumo</label>
-                    <input type="text" id="egreso-item-name" placeholder="Ej. Detergente">
-                    <label for="egreso-item-quantity">Cantidad</label>
-                    <input type="number" id="egreso-item-quantity" placeholder="Ej. 50">
-                    <label for="person-receiving">Entregado a</label>
-                    <input type="text" id="person-receiving" placeholder="Nombre del destinatario">
-                    <button type="submit" class="btn-primary">Registrar Egreso</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- Tabla de registros de ingreso de insumos -->
-        <section class="table-section">
-            <h2>Registros de Ingreso</h2>
-            <table class="styled-table">
-                <thead>
-                    <tr>
-                        <th>Artículo</th>
-                        <th>Cantidad</th>
-                        <th>Categoría</th>
-                        <th>Fecha</th>
-                    </tr>
-                </thead>
-                <tbody id="ingreso-table-body">
-                    <!-- Aquí se cargarán los datos de ingreso -->
-                </tbody>
-            </table>
-        </section>
-
-        <!-- Tabla de registros de egreso de insumos -->
-        <section class="table-section">
-            <h2>Registros de Egreso</h2>
-            <table class="styled-table">
-                <thead>
-                    <tr>
-                        <th>Artículo</th>
-                        <th>Cantidad</th>
-                        <th>Entregado a</th>
-                        <th>Fecha</th>
-                    </tr>
-                </thead>
-                <tbody id="egreso-table-body">
-                    <!-- Aquí se cargarán los datos de egreso -->
-                </tbody>
-            </table>
-        </section>
-    </div>
-
-    <script>
-        // Añadir eventos de click a los botones
+        // Configurar eventos de botones
         document.getElementById('reviewStockBtn').addEventListener('click', openStockModal);
         document.getElementById('downloadSummaryBtn').addEventListener('click', downloadPDF);
         document.getElementById('closeStockModalBtn').addEventListener('click', closeStockModal);
-    </script>
-</body>
+
+        // Cargar datos iniciales
+        await loadInventory();
+        await loadDeliveries();
+    } catch (error) {
+        console.error('Error durante la inicialización:', error);
+    }
+});
+
+// Función para abrir el modal de stock
+function openStockModal() {
+    document.getElementById('stockModal').style.display = 'flex';
+    loadStockData();
+}
+
+// Función para cerrar el modal de stock
+function closeStockModal() {
+    document.getElementById('stockModal').style.display = 'none';
+}
+
+// Función para cargar datos de stock desde Google Sheets
+async function loadStockData() {
+    try {
+        const stockTableBody = document.getElementById('stock-table-body');
+        stockTableBody.innerHTML = '';
+        const stockData = await loadSheetData('bodega!A2:E'); // Asegúrate de que este rango corresponda con tu hoja de cálculo
+
+        stockData.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item[0]}</td>
+                <td>${item[1]}</td>
+                <td>${item[2]}</td>
+                <td>${item[3]}</td>
+            `;
+            stockTableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error al cargar datos de stock:', error);
+    }
+}
+
+// Función para descargar el resumen en PDF
+function downloadPDF() {
+    const doc = new jsPDF();
+    doc.text("Resumen de Stock", 14, 20);
+
+    const stockTable = document.getElementById('stock-table');
+    const rows = [];
+
+    for (let i = 1; i < stockTable.rows.length; i++) {
+        const cells = stockTable.rows[i].cells;
+        const rowData = [];
+        for (let j = 0; j < cells.length; j++) {
+            rowData.push(cells[j].textContent);
+        }
+        rows.push(rowData);
+    }
+
+    doc.autoTable({
+        head: [['Artículo', 'Cantidad Ingreso', 'Cantidad Egreso', 'Stock Actual']],
+        body: rows,
+        startY: 30,
+    });
+
+    doc.save("Resumen_Stock.pdf");
+}
+
+// Función para registrar ingreso de insumos en Google Sheets con fecha y hora automáticas
+document.getElementById('add-supply-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const itemName = document.getElementById('ingreso-item-name').value;
+    const itemQuantity = document.getElementById('ingreso-item-quantity').value;
+    const itemCategory = document.getElementById('ingreso-item-category').value;
+    const date = new Date().toLocaleString();
+
+    if (itemName && itemQuantity && itemCategory) {
+        const values = [[itemName, itemQuantity, itemCategory, date]];
+        await appendData('bodega!A2:D', values); // Ajusta el rango según tu hoja de cálculo
+        await loadInventory();
+        alert('Ingreso registrado exitosamente');
+        e.target.reset();
+    }
+});
+
+// Función para registrar egreso de insumos en Google Sheets con fecha y hora automáticas
+document.getElementById('remove-supply-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const itemName = document.getElementById('egreso-item-name').value;
+    const itemQuantity = document.getElementById('egreso-item-quantity').value;
+    const personReceiving = document.getElementById('person-receiving').value;
+    const date = new Date().toLocaleString();
+
+    if (itemName && itemQuantity && personReceiving) {
+        const values = [[itemName, itemQuantity, personReceiving, date]];
+        await appendData('bodega!E2:H', values); // Ajusta el rango según tu hoja de cálculo
+        await loadDeliveries();
+        alert('Egreso registrado exitosamente');
+        e.target.reset();
+    }
+});
+
+// Función para cargar el inventario desde Google Sheets
+async function loadInventory() {
+    try {
+        const inventoryData = await loadSheetData('bodega!A2:D');
+        const tableBody = document.getElementById('ingreso-table-body');
+        tableBody.innerHTML = '';
+
+        inventoryData.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item[0]}</td>
+                <td>${item[1]}</td>
+                <td>${item[2]}</td>
+                <td>${item[3]}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error al cargar el inventario:', error);
+    }
+}
+
+// Función para cargar los registros de egreso desde Google Sheets
+async function loadDeliveries() {
+    try {
+        const deliveryData = await loadSheetData('bodega!E2:H');
+        const tableBody = document.getElementById('egreso-table-body');
+        tableBody.innerHTML = '';
+
+        deliveryData.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item[0]}</td>
+                <td>${item[1]}</td>
+                <td>${item[2]}</td>
+                <td>${item[3]}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error al cargar los registros de egreso:', error);
+    }
+}
 </html>
