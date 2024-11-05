@@ -209,5 +209,5 @@ async function loadDeliveries() {
     } catch (error) {
         console.error('Error al cargar los registros de egreso:', error);
     }
-}
+
 }
