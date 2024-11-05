@@ -143,7 +143,7 @@ export async function appendData(range, values) {
 
 // Redireccionar según el rol
 export function redirectToRolePage(role) {
-    const baseUrl = '/roles/';
+    const baseUrl = '/RedLogistica/roles/';
     switch (role) {
         case 'Supervisor':
             window.location.href = `${baseUrl}supervisor.html`;
@@ -156,6 +156,9 @@ export function redirectToRolePage(role) {
             break;
         case 'Movilizador':
             window.location.href = `${baseUrl}movilizador.html`;
+            break;
+        case 'Bodeguero':  // Añadido para redirigir a bodega.html
+            window.location.href = `${baseUrl}bodega.html`;
             break;
         default:
             alert('Rol no reconocido');
