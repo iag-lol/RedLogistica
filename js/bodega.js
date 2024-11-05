@@ -1,44 +1,31 @@
-// Configuración de Google API
-const CLIENT_ID = '739966027132-j4ngpj7la2hpmkhil8l3d74dpbec1eq1.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyAqybdPUUYkIbeGBMxc39hMdaRrOhikD8s';
-const SPREADSHEET_ID = '1jzTdEoshxRpuf9kHXI5vQLRtoCsSA-Uw-48JX8LxXaU';
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
-
 import { initializeGapiClient, loadSheetData, appendData, isUserAuthenticated } from '/RedLogistica/api/googleSheets.js';
 
 document.addEventListener("DOMContentLoaded", async function () {
-    try {
-        // Inicializar Google API y autenticación
-        await initializeGapiClient();
+    // Inicializar Google API y autenticación
+    await initializeGapiClient();
 
-        // Verificar y actualizar el estado de conexión
-        checkConnectionStatus();
+    // Mostrar el estado de conexión y el usuario
+    checkConnectionStatus();
 
-        // Configurar eventos para botones
-        document.getElementById("reviewStockBtn").addEventListener("click", openStockModal);
-        document.getElementById("downloadSummaryBtn").addEventListener("click", downloadPDF);
-        document.getElementById("closeStockModalBtn").addEventListener("click", closeStockModal);
+    // Configuración de eventos para botones
+    document.getElementById("reviewStockBtn").addEventListener("click", openStockModal);
+    document.getElementById("downloadSummaryBtn").addEventListener("click", downloadPDF);
+    document.getElementById("closeStockModalBtn").addEventListener("click", closeStockModal);
 
-        // Cargar datos iniciales de las tablas y actualizar contadores
-        await loadInventory();
-        await loadDeliveries();
-        await updateSummaryCounters();
+    // Cargar datos iniciales
+    await loadInventory();
+    await loadDeliveries();
 
-        // Configurar eventos para formularios
-        document.getElementById("add-supply-form").addEventListener("submit", registerSupplyEntry);
-        document.getElementById("remove-supply-form").addEventListener("submit", registerSupplyExit);
-    } catch (error) {
-        console.error('Error durante la inicialización:', error);
-        alert("Error en la autenticación. Verifique su conexión y reinicie la aplicación.");
-    }
+    // Configurar eventos para formularios
+    document.getElementById("add-supply-form").addEventListener("submit", registerSupplyEntry);
+    document.getElementById("remove-supply-form").addEventListener("submit", registerSupplyExit);
 });
 
 // Verificar y actualizar el estado de conexión
 function checkConnectionStatus() {
     const connectionStatus = document.getElementById("connection-status");
-    const isConnected = isUserAuthenticated();
-    connectionStatus.textContent = isConnected ? "Conectado" : "Desconectado";
-    connectionStatus.classList.toggle("connected", isConnected);
+    connectionStatus.textContent = isUserAuthenticated() ? "Conectado" : "Desconectado";
+    connectionStatus.classList.toggle("connected", isUserAuthenticated());
 }
 
 // Función para abrir la ventana modal de stock
@@ -52,36 +39,19 @@ function closeStockModal() {
     document.getElementById("stockModal").style.display = "none";
 }
 
-// Función para cargar datos de stock desde Google Sheets y combinar duplicados
+// Función para cargar datos de stock desde Google Sheets
 async function loadStockData() {
     const stockTableBody = document.getElementById("stock-table-body");
     stockTableBody.innerHTML = '';
     const stockData = await loadSheetData("bodega!A2:E");
 
-    const combinedStock = {};
-
     stockData.forEach(item => {
-        const name = item[0];
-        const quantityIn = parseInt(item[1], 10);
-        const quantityOut = parseInt(item[2], 10);
-
-        if (combinedStock[name]) {
-            combinedStock[name].quantityIn += quantityIn;
-            combinedStock[name].quantityOut += quantityOut;
-        } else {
-            combinedStock[name] = { quantityIn, quantityOut };
-        }
-    });
-
-    Object.keys(combinedStock).forEach(name => {
-        const { quantityIn, quantityOut } = combinedStock[name];
-        const currentStock = quantityIn - quantityOut;
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td>${name}</td>
-            <td>${quantityIn}</td>
-            <td>${quantityOut}</td>
-            <td>${currentStock}</td>
+            <td>${item[0]}</td>
+            <td>${item[1]}</td>
+            <td>${item[2]}</td>
+            <td>${item[3]}</td>
         `;
         stockTableBody.appendChild(row);
     });
@@ -127,7 +97,6 @@ async function registerSupplyEntry(e) {
         await loadInventory();
         alert("Ingreso registrado exitosamente");
         e.target.reset();
-        await updateSummaryCounters();
     }
 }
 
@@ -145,7 +114,6 @@ async function registerSupplyExit(e) {
         await loadDeliveries();
         alert("Egreso registrado exitosamente");
         e.target.reset();
-        await updateSummaryCounters();
     }
 }
 
@@ -155,7 +123,7 @@ async function loadInventory() {
     const tableBody = document.getElementById("ingreso-table-body");
     tableBody.innerHTML = '';
 
-    inventoryData.slice(-10).forEach(item => {
+    inventoryData.forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${item[0]}</td>
@@ -173,7 +141,7 @@ async function loadDeliveries() {
     const tableBody = document.getElementById("egreso-table-body");
     tableBody.innerHTML = '';
 
-    deliveryData.slice(-10).forEach(item => {
+    deliveryData.forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${item[0]}</td>
@@ -183,15 +151,4 @@ async function loadDeliveries() {
         `;
         tableBody.appendChild(row);
     });
-}
-
-// Actualizar contadores de resumen
-async function updateSummaryCounters() {
-    const inventoryData = await loadSheetData("bodega!A2:D");
-    const deliveryData = await loadSheetData("bodega!E2:H");
-    const lowStockCount = inventoryData.filter(item => parseInt(item[1], 10) < 5).length;
-
-    document.getElementById("total-inventory").textContent = `${inventoryData.length} artículos`;
-    document.getElementById("truck-deliveries").textContent = `${deliveryData.length} entregas`;
-    document.getElementById("low-stock-alerts").textContent = `${lowStockCount} alertas`;
 }
