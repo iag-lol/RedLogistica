@@ -4,17 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Bodega - Aseo</title>
-
     <link rel="stylesheet" href="/RedLogistica/css/bodega.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    
-   <script src="https://apis.google.com/js/api.js" async defer></script>
+
+    <!-- Google API y autenticación -->
+    <script src="https://apis.google.com/js/api.js" async defer></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-      
+
+    <!-- Módulos personalizados -->
     <script src="/RedLogistica/api/googleSheets.js" type="module" defer></script>
     <script src="/RedLogistica/js/login.js" type="module" defer></script>
     <script src="/RedLogistica/js/bodega.js" type="module" defer></script>
 
+    <!-- Librería SweetAlert2 para alertas -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
@@ -48,16 +50,16 @@
 
         <!-- Botones de funciones -->
         <section class="actions">
-            <button class="btn-primary" onclick="openStockModal()">Revisar Stock</button>
-            <button class="btn-secondary" onclick="downloadPDF()">Descargar Resumen en PDF</button>
+            <button id="reviewStockBtn" class="btn-primary">Revisar Stock</button>
+            <button id="downloadSummaryBtn" class="btn-secondary">Descargar Resumen en PDF</button>
         </section>
 
         <!-- Modal de stock -->
         <div id="stockModal" class="modal">
             <div class="modal-content">
-                <span class="close" onclick="closeStockModal()">&times;</span>
+                <span id="closeStockModalBtn" class="close">&times;</span>
                 <h2>Resumen de Stock</h2>
-                <input type="month" id="monthFilter" onchange="filterStockByMonth()" placeholder="Filtrar por Mes">
+                <input type="month" id="monthFilter" placeholder="Filtrar por Mes">
                 <table id="stock-table" class="styled-table">
                     <thead>
                         <tr>
@@ -71,7 +73,7 @@
                         <!-- Filas generadas dinámicamente -->
                     </tbody>
                 </table>
-                <button onclick="downloadPDF()" class="btn-secondary">Descargar Resumen en PDF</button>
+                <button id="downloadPDFBtn" class="btn-secondary">Descargar Resumen en PDF</button>
             </div>
         </div>
 
@@ -146,5 +148,18 @@
             </table>
         </section>
     </div>
+
+    <!-- Script adicional para la funcionalidad de los botones y modales -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const reviewStockBtn = document.getElementById('reviewStockBtn');
+            const downloadSummaryBtn = document.getElementById('downloadSummaryBtn');
+            const closeStockModalBtn = document.getElementById('closeStockModalBtn');
+
+            if (reviewStockBtn) reviewStockBtn.addEventListener('click', openStockModal);
+            if (downloadSummaryBtn) downloadSummaryBtn.addEventListener('click', downloadPDF);
+            if (closeStockModalBtn) closeStockModalBtn.addEventListener('click', closeStockModal);
+        });
+    </script>
 </body>
 </html>
