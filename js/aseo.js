@@ -456,8 +456,8 @@ document.addEventListener("DOMContentLoaded", function () {
             "Isaac Maguiña": 0,
             "Axis Maurice": 0,
             "Vitel Desrosiers": 0,
-            "Veronica Ortiz": 0
-            "Tamara Sepulveda": 0
+            "Veronica Ortiz": 0,
+            "Tamara Sepulveda": 0,
             "Ayleen Tabilo": 0
         };
 
