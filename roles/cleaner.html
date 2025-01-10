@@ -5,27 +5,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma de Aseadores</title>
+    <!-- Enlace a los estilos CSS -->
     <link rel="stylesheet" href="/RedLogistica/css/cleaner.css">
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="/RedLogistica/api/googleSheets.js" type="module" defer></script>
-    <script src="/RedLogistica/js/cleaner.js" type="module" defer></script>
+    <!-- Librerías externas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- Scripts JavaScript -->
+    <script src="/RedLogistica/api/googleSheets.js" type="module" defer></script>
+    <script src="/RedLogistica/js/cleaner.js" type="module" defer></script>
 </head>
 
 <body>
     <div class="container">
-      
+        <!-- Sección de Estado de Usuario y Conexión -->
         <section class="user-status-section">
             <div id="connection-status-section">
-                <p>Estado de conexión: <span id="connection-status">DESCONECTADO</span></p>
+                <p>Estado de conexión: <span id="connection-status" class="disconnected">DESCONECTADO</span></p>
                 <p>Usuario: <span id="username-display">Usuario desconocido</span></p>
                 <p>Asignación: <span id="assignment-display">N/A</span></p>
                 <p>Hora de Colación: <span id="break-time-display">N/A</span></p>
             </div>
         </section>
 
+        <!-- Modal para Marcar Tarea como Realizada -->
         <div id="task-modal" class="modal" data-task-id="">
             <div class="modal-content">
                 <span id="close-task-modal" class="close">&times;</span>
@@ -35,6 +38,7 @@
             </div>
         </div>
 
+        <!-- Sección de Tareas Asignadas -->
         <section class="assigned-tasks-section">
             <h2>Tareas Asignadas</h2>
             <table id="assigned-tasks-table">
@@ -46,10 +50,13 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- Datos se cargarán dinámicamente aquí -->
                 </tbody>
             </table>
-        </section><br><br><br><br>
+            <div id="assignment-pagination" class="pagination"></div>
+        </section>
 
+        <!-- Sección de Registro de Aseo -->
         <section class="register-aseo-section">
             <h2>Registrar Aseo</h2>
             <form id="register-aseo-form">
@@ -58,12 +65,13 @@
 
                 <label for="aseo-type">Aseo Realizado:</label>
                 <select id="aseo-type" required>
+                    <option value="" disabled selected>Seleccione un tipo de aseo</option>
                     <option value="Barrido">Barrido</option>
                     <option value="Trapeado">Trapeado</option>
                     <option value="Barrido y Trapeado">Barrido y Trapeado</option>
-                    <option value="Buses por Inspeccion">Buses por Inspeccion</option>
+                    <option value="Buses por Inspección">Buses por Inspección</option>
                     <option value="Revisado por ICA">Revisado por ICA</option>
-                    <option value="Progamado por RTG">Progamado por RTG</option>
+                    <option value="Programado por RTG">Programado por RTG</option>
                     <option value="Programado por DTPM">Programado por DTPM</option>
                     <option value="Programado por APPLUS">Programado por APPLUS</option>
                 </select>
@@ -73,8 +81,9 @@
 
                 <button type="submit" class="btn-primary">Registrar Aseo</button>
             </form>
-        </section><br><br><br><br>
+        </section>
 
+        <!-- Sección de Registros Realizados -->
         <section class="completed-records-section">
             <h2>Registros Realizados</h2>
             <table id="completed-records-table">
@@ -87,12 +96,16 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- Datos se cargarán dinámicamente aquí -->
                 </tbody>
             </table>
+            <div id="completed-records-pagination" class="pagination"></div>
         </section>
 
+        <!-- Botón para Ver Buses Pendientes -->
         <button id="pending-buses-btn" class="btn-secondary">Ver Buses Pendientes</button>
 
+        <!-- Modal para Buses Pendientes -->
         <div id="pending-buses-modal" class="modal">
             <div class="modal-content">
                 <span id="close-modal" class="close-btn">&times;</span>
@@ -106,11 +119,27 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <!-- Datos se cargarán dinámicamente aquí -->
                     </tbody>
                 </table>
+                <div id="pending-buses-pagination" class="pagination"></div>
             </div>
         </div>
+
+        <!-- Contadores -->
+        <section class="counters-section">
+            <p>Total de Tareas Asignadas: <span id="total-tasks-count">0</span></p>
+            <p>Total de Aseos Realizados: <span id="total-attendance-count">0</span></p>
+        </section>
+
+        <!-- Gráficos -->
+        <section class="charts-section">
+            <canvas id="taskChart" width="400" height="200"></canvas>
+            <canvas id="attendanceChart" width="400" height="200"></canvas>
+            <canvas id="aseadoresChart" width="400" height="200"></canvas>
+        </section>
     </div>
 </body>
 
 </html>
+
