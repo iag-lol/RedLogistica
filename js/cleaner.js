@@ -1,6 +1,6 @@
 // cleaner.js
 
-import { initializeGapiClient, loadSheetData, appendData, isUserAuthenticated, updateSheetData } from '../api/googleSheets.js';
+import { initializeGapiClient, loadSheetData, appendData, isUserAuthenticated, updateSheetData } from './googleSheets.js';
 
 // Función para reproducir sonido
 function playSound(soundPath) {
@@ -40,7 +40,6 @@ function showPersistentAlert(type, title, message) {
             color = '#17a2b8';
     }
 
-    
     Swal.fire({
         title: title,
         text: message,
@@ -67,7 +66,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (currentUser) {
         usernameDisplay.textContent = currentUser.toUpperCase(); // Convertir a mayúsculas
     } else {
-        usernameDisplay.textContent = "Usuario no identificado";
+        usernameDisplay.textContent = "USUARIO NO IDENTIFICADO";
     }
 
     await initializeGapiClient();
@@ -107,6 +106,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 async function initializeData() {
     await loadAssignedTasks();
     await loadCompletedRecords();
+    initializeChartsAndCounters();
+    initializePagination();
+    setupTableObservers();
 }
 
 // Función para verificar el estado de conexión y actualizar visualmente
@@ -171,14 +173,6 @@ async function loadAssignedTasks() {
         }
     });
 
-    // Quitar tareas que ya no están (opcional, dependiendo de la lógica)
-    // Array.from(tasksTable.rows).forEach(row => {
-    //     const taskId = row.dataset.taskId;
-    //     if (!newTaskIds.has(taskId)) {
-    //         row.remove();
-    //     }
-    // });
-
     lastTaskIds = newTaskIds;
 
     // Actualizar gráficos y contadores
@@ -219,8 +213,8 @@ async function markTaskAsCompleted(task) {
     });
     completedRecordsTable.appendChild(tr);
 
-    // Eliminar la tarea de Google Sheets (marcar como realizada)
-    await updateSheetData(`aseo!D${task.rowNumber}`, [["Realizado"]]); // Asumiendo que la columna D es el estado
+    // Actualizar el estado de la tarea en Google Sheets (columna D)
+    await updateSheetData(`aseo!D${task.rowNumber}`, [["Realizado"]]); // Asegúrate de que `rowNumber` esté correctamente definido
 }
 
 // Cargar registros completados
@@ -301,31 +295,34 @@ async function loadPendingBuses() {
     const currentUser = localStorage.getItem("username").toUpperCase();
 
     const userPendingBuses = pendingBusesData.filter(bus => bus[0].toUpperCase() === currentUser);
-    const newPendingBusIds = new Set(userPendingBuses.map(bus => bus[0])); // IDs únicos
+    const newPendingBusIds = new Set(userPendingBuses.map(bus => bus[0].toUpperCase())); // IDs únicos
 
-    // Mostrar nuevos buses pendientes sin borrar toda la tabla
+    // Mostrar nuevos buses pendientes sin duplicados
     userPendingBuses.forEach(bus => {
-        if (!lastPendingBusIds.has(bus[0])) {
+        if (!lastPendingBusIds.has(bus[0].toUpperCase())) {
             const tr = document.createElement("tr");
             bus.forEach(cellData => {
                 const td = document.createElement("td");
                 td.textContent = cellData;
                 tr.appendChild(td);
             });
-            tr.addEventListener("click", () => populateBusId(bus[0]));
+            tr.addEventListener("click", () => handlePendingBusClick(bus[0]));
             pendingBusesTable.appendChild(tr);
             showPersistentAlert('info', 'Nuevo Bus Pendiente', `Bus ${bus[0]} tiene una tarea pendiente.`);
         }
     });
 
     lastPendingBusIds = newPendingBusIds;
+
+    // Actualizar paginación si es necesario
+    paginateTable(pendingBusesTable, "pending-buses-pagination");
 }
 
 // Función para llenar automáticamente el input de PPU Bus al clicar en un bus pendiente
-function populateBusId(busId) {
+function handlePendingBusClick(busId) {
     const busIdInput = document.getElementById("bus-id");
     busIdInput.value = busId.toUpperCase();
-    document.getElementById("pending-buses-modal").style.display = "none";
+    document.getElementById("pending-buses-modal").style.display = 'none';
 }
 
 // Función para actualizar contadores
@@ -538,11 +535,24 @@ function initializeChartsAndCounters() {
     updateCounts();
 }
 
-// Función para actualizar todos los gráficos
-function updateAllCharts() {
-    updateTaskChart();
-    updateAttendanceChart();
-    updateAseadoresChart();
+// Función para actualizar todos los gráficos y contadores
+async function updateAllChartsAndCounters() {
+    await loadAssignedTasks();
+    await loadCompletedRecords();
+    updateAllCharts();
+    updateCounts();
+}
+
+// Función para configurar la actualización automática cada 5 segundos
+function setupAutoUpdate() {
+    setInterval(async () => {
+        try {
+            await updateAllChartsAndCounters();
+        } catch (error) {
+            console.error("Error en la actualización automática:", error);
+            showAlert('error', 'Error de Actualización', 'Ocurrió un error al actualizar los datos.');
+        }
+    }, 5000); // 5000 ms = 5 segundos
 }
 
 // -------------------------------
@@ -663,58 +673,6 @@ function showAlert(type, title, message) {
     });
 }
 
-// Función para manejar la transición de tareas de pendientes a realizadas
-async function handleTaskCompletion(taskId) {
-    // Implementar lógica para mover la tarea de asignadas a completadas en Google Sheets
-    // Por ejemplo, actualizar el estado de la tarea
-    await updateSheetData(`aseo!D${taskId}`, [["Realizado"]]);
-    showAlert('success', 'Tarea Realizada', 'La tarea ha sido marcada como realizada.');
-    loadAssignedTasks();
-    loadCompletedRecords();
-}
-
-// Función para manejar clics en buses pendientes
-function handlePendingBusClick(busId) {
-    const busIdInput = document.getElementById("bus-id");
-    busIdInput.value = busId.toUpperCase();
-    pendingBusesModal.style.display = 'none';
-}
-
-// -------------------------------
-// Funciones para manejar los gráficos con Chart.js
-// Ya implementadas arriba
-// -------------------------------
-
-// Función para cargar buses pendientes desde Google Sheets
-async function loadPendingBuses() {
-    const pendingBusesTable = document.getElementById("pending-buses-table").querySelector("tbody");
-    const pendingBusesData = await loadSheetData("cleaner!A2:C");
-    const currentUser = localStorage.getItem("username").toUpperCase();
-
-    const userPendingBuses = pendingBusesData.filter(bus => bus[0].toUpperCase() === currentUser);
-    const newPendingBusIds = new Set(userPendingBuses.map(bus => bus[0].toUpperCase())); // IDs únicos
-
-    // Mostrar nuevos buses pendientes sin duplicados
-    userPendingBuses.forEach(bus => {
-        if (!lastPendingBusIds.has(bus[0].toUpperCase())) {
-            const tr = document.createElement("tr");
-            bus.forEach(cellData => {
-                const td = document.createElement("td");
-                td.textContent = cellData;
-                tr.appendChild(td);
-            });
-            tr.addEventListener("click", () => handlePendingBusClick(bus[0]));
-            pendingBusesTable.appendChild(tr);
-            showPersistentAlert('info', 'Nuevo Bus Pendiente', `Bus ${bus[0]} tiene una tarea pendiente.`);
-        }
-    });
-
-    lastPendingBusIds = newPendingBusIds;
-
-    // Actualizar paginación si es necesario
-    paginateTable(pendingBusesTable, "pending-buses-pagination");
-}
-
 // -------------------------------
 // Inicialización y configuración general
 // -------------------------------
@@ -724,6 +682,7 @@ async function initializeData() {
     initializeChartsAndCounters();
     initializePagination();
     setupTableObservers();
+    setupAutoUpdate();
 }
 
 // Función para actualizar todos los gráficos y contadores
@@ -733,36 +692,3 @@ async function updateAllChartsAndCounters() {
     updateAllCharts();
     updateCounts();
 }
-
-// Configurar la actualización automática cada 5 segundos
-function setupAutoUpdate() {
-    setInterval(async () => {
-        try {
-            await updateAllChartsAndCounters();
-        } catch (error) {
-            console.error("Error en la actualización automática:", error);
-            showAlert('error', 'Error de Actualización', 'Ocurrió un error al actualizar los datos.');
-        }
-    }, 5000); // 5000 ms = 5 segundos
-}
-
-// -------------------------------
-// Eventos de Formularios y Botones
-// -------------------------------
-
-// Manejar envío del formulario de tareas asignadas (si existe)
-document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    await registerAseo();
-});
-
-// Manejar clic en botón de buses pendientes
-document.getElementById("pending-buses-btn").addEventListener("click", () => {
-    document.getElementById("pending-buses-modal").style.display = "flex";
-    loadPendingBuses();
-});
-
-// Manejar cierre de modal de buses pendientes
-document.getElementById("close-modal").addEventListener("click", () => {
-    document.getElementById("pending-buses-modal").style.display = "none";
-});
