@@ -9,8 +9,8 @@ let tokenClient;
 let isAuthenticated = false;
 
 // Sets para rastrear registros existentes y detectar nuevos
-let existingAseoRecords = new Set();
-let existingAssignmentRecords = new Set();
+const existingAseoRecords = new Set();
+const existingAssignmentRecords = new Set();
 
 // Referencias a los elementos de la tabla
 const assignmentTableBody = document.getElementById('assignment-table').querySelector('tbody');
@@ -602,6 +602,7 @@ function initializeChartsAndCounters() {
         try {
             await loadTablesData();
             await updateAllCharts();
+            updateCounts();
         } catch (error) {
             console.error("Error en la actualización automática:", error);
         }
