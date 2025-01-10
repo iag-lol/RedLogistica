@@ -1,13 +1,18 @@
 /* Variables de color */
 :root {
-    --primary-color: #224e9d;
-    --secondary-color: #365ac7;
-    --accent-color: #f5f5f5;
-    --background-color: #f0f2f5;
+    --primary-color: #1e3d59;
+    --secondary-color: #162447;
+    --accent-color: #e0e1dd;
+    --background-color: #f7f7f7;
     --text-color: #333;
     --white: #ffffff;
     --danger-color: #dc3545;
     --success-color: #28a745;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+    --toast-bg-color: rgba(30, 61, 89, 0.9);
+    --toast-text-color: #ffffff;
+    --modal-bg-color: rgba(30, 61, 89, 0.95);
 }
 
 /* Reset y estilos básicos */
@@ -26,15 +31,15 @@ body {
     align-items: flex-start;
     min-height: 100vh;
     padding: 10px;
+    overflow-x: hidden; /* Evita scroll horizontal */
 }
 
-/* Contenedor principal */
 .container {
     width: 100%;
     max-width: 480px;
     background-color: var(--white);
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     padding: 20px;
     display: flex;
@@ -44,44 +49,34 @@ body {
 
 /* Sección de encabezado */
 h2 {
-    font-size: 1.5em;
+    font-size: 1.6em;
     color: var(--primary-color);
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 5px;
     margin-bottom: 15px;
     text-align: center;
+    letter-spacing: 1px;
 }
 
 /* Sección de estado de usuario y conexión */
 .user-status-section {
-    background-color: #f8f9fa;
+    background-color: var(--accent-color);
     padding: 15px;
     border-radius: 10px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 10px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .user-status-section:hover {
     transform: translateY(-2px);
-    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
-#connection-status-section {
-    font-size: 16px;
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-/* Estado de conexión */
 #connection-status-section p {
-    margin: 0;
+    font-size: 0.95em;
     font-weight: 500;
     display: flex;
     align-items: center;
@@ -90,19 +85,18 @@ h2 {
 
 #connection-status {
     font-weight: bold;
-    color: var(--danger-color); /* Color rojo para DESCONECTADO */
-    padding: 2px 8px;
+    color: var(--danger-color); /* Rojo por defecto */
+    padding: 4px 8px;
     border-radius: 5px;
     background-color: #f8d7da;
     transition: color 0.3s ease, background-color 0.3s ease;
 }
 
 #connection-status.connected {
-    color: var(--success-color); /* Color verde para CONECTADO */
+    color: var(--success-color); /* Verde si está conectado */
     background-color: #d4edda;
 }
 
-/* Estilo para el nombre de usuario */
 #username-display {
     font-weight: bold;
     color: var(--primary-color);
@@ -125,23 +119,22 @@ input,
 select {
     padding: 12px;
     font-size: 1em;
-    border: 1px solid #ddd;
+    border: 1px solid #ccc;
     border-radius: 8px;
     outline: none;
     transition: border-color 0.3s, box-shadow 0.3s;
     background-color: var(--white);
-    width: 100%;
 }
 
 input:focus,
 select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0px 4px 10px rgba(34, 78, 157, 0.2);
+    box-shadow: 0 4px 12px rgba(30, 61, 89, 0.2);
 }
 
 select {
     appearance: none;
-    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><path fill="%23224e9d" d="M0 0h140v140H0z"/><path fill="%23FFF" d="M70 93l-27-33h54z"/></svg>');
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><polygon points="70,105 105,35 35,35"/></svg>');
     background-repeat: no-repeat;
     background-position: right 10px center;
     padding-right: 30px;
@@ -175,11 +168,11 @@ select {
 }
 
 .btn-secondary {
-    background-color: #888;
+    background-color: var(--secondary-color);
 }
 
 .btn-secondary:hover {
-    background-color: #555;
+    background-color: var(--primary-color);
     transform: translateY(-2px);
 }
 
@@ -190,6 +183,7 @@ table {
     border-radius: 8px;
     overflow: hidden;
     margin-top: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 table thead {
@@ -257,17 +251,18 @@ table th {
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.5);
+    overflow-y: auto;
+    background-color: var(--modal-bg-color);
     justify-content: center;
     align-items: center;
+    padding: 20px;
 }
 
 .modal-content {
     background-color: var(--white);
     border-radius: 12px;
     padding: 20px;
-    width: 90%;
+    width: 100%;
     max-width: 400px;
     box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
     position: relative;
@@ -340,6 +335,8 @@ table th {
 .charts-section canvas {
     width: 100% !important;
     height: auto !important;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Animación de entrada para el modal */
@@ -355,6 +352,50 @@ table th {
     }
 }
 
+/* Alertas Flotantes (Toasts) */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 250px;
+    background-color: var(--toast-bg-color);
+    border-left: 5px solid #4a90e2; /* Color primario */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast .close-button {
+    background: none;
+    border: none;
+    color: #aaaaaa;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.toast .close-button:hover {
+    color: #000000;
+}
+
 /* Responsividad */
 @media (max-width: 768px) {
     .user-status-section {
@@ -363,22 +404,22 @@ table th {
     }
 
     #connection-status-section p {
-        font-size: 14px;
+        font-size: 0.9em;
     }
 
     h2 {
-        font-size: 1.3em;
+        font-size: 1.4em;
     }
 
     table th,
     table td {
-        font-size: 0.8em;
+        font-size: 0.85em;
         padding: 10px;
     }
 
     .btn-primary,
     .btn-secondary {
-        font-size: 0.9em;
+        font-size: 0.95em;
         padding: 10px;
     }
 
@@ -407,5 +448,9 @@ table th {
     #toast-container {
         top: 10px;
         right: 10px;
+    }
+
+    .charts-section canvas {
+        height: 150px !important;
     }
 }
