@@ -400,7 +400,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let taskChart = new Chart(taskChartCtx, {
         type: 'bar',
         data: {
-            labels: ["Laura Soto", "Deisy Toribio", "Virginia Mosquera", "Pierre Joseph", "Galindo Saez", "Laureano Ramirez", "Pamela Andrades", "Hugo Carrasco", "Patricia Cerda", "Gloria Angel", "Paulina Morales", "Daniela Solorza", "Silvia Gonzalez", "Silvia Villalobos", "Daniela Sanchez", "Marisol Aguirre", "Maria Lazcano", "Isaac Maguiña", "Axis Maurice", "Vitel Desrosiers", "Veronica Ortiz", "Rosa Smart", "Patricia Quirilao"],
+            labels: ["Laura Soto","Galindo Saez", "Laureano Ramirez", "Pamela Andrades", "Hugo Carrasco","Gloria Angel","Daniela Solorza", "Silvia Gonzalez", "Silvia Villalobos","Marisol Aguirre", "Maria Lazcano", "Isaac Maguiña", "Axis Maurice", "Vitel Desrosiers", "Veronica Ortiz", "Rosa Smart", "Patricia Quirilao"],
             datasets: [{
                 label: "Registros de Aseadores",
                 data: new Array(21).fill(0),
@@ -418,7 +418,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let attendanceChart = new Chart(attendanceChartCtx, {
         type: 'bar',
         data: {
-            labels: ["Barrido", "Trapeado", "Barrido y Trapeado", "Revisado por ICA", "Progamado por RTG", "Programado por DTPM", "Programado por APPLUS"],
+            labels: ["Barrido", "Trapeado", "Barrido y Trapeado","Revisado por Inspeccion",  "Revisado por ICA", "Progamado por RTG", "Programado por DTPM", "Programado por APPLUS"],
             datasets: [{
                 label: "Cantidad de Aseos Realizados",
                 data: [0, 0, 0, 0, 0, 0, 0],
