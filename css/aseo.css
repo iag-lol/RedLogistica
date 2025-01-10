@@ -552,3 +552,70 @@ body {
         font-size: 0.8rem;
     }
 }
+
+
+/* Estilos para el Alert Modal */
+.alert-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.alert-modal.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.alert-content {
+    background: #ffffff;
+    padding: 20px 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 90%;
+    width: 400px;
+    animation: slideDown 0.5s ease-out;
+}
+
+.alert-content p {
+    font-size: 1.1rem;
+    color: var(--dark-gray);
+    margin-bottom: 20px;
+}
+
+.alert-content button {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+}
+
+.alert-content button:hover {
+    background-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
