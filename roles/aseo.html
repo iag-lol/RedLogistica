@@ -7,7 +7,9 @@
     <title>Panel de Aseo</title>
     <!-- Enlaces a estilos CSS -->
     <link rel="stylesheet" href="/RedLogistica/css/aseo.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-yH6eVltW9pLRCZBwX4wQ8vgxLh6V8pPfJJfrJ8qk3hFUcIw9q3H4FGhHEjW4OSqFjKb8MY5SSyEdh9URmNQxqw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google API -->
@@ -20,7 +22,9 @@
     <!-- Barra de Navegación -->
     <header class="navbar">
         <div class="navbar-container">
-            <h1>Panel de Aseo</h1>
+            <div class="logo">
+                <h1>RedLogistica</h1>
+            </div>
             <nav>
                 <ul>
                     <li><a href="/RedLogistica/index.html"><i class="fas fa-home"></i> Inicio</a></li>
@@ -37,14 +41,14 @@
             <section class="top-section">
                 <!-- Formulario de Ingreso de Aseo -->
                 <section class="form-section">
-                    <h2>Registrar Aseo</h2>
+                    <h2><i class="fas fa-broom"></i> Registrar Aseo</h2>
                     <form id="aseo-form">
                         <div class="form-group">
-                            <label for="bus-id">PPU de Bus:</label>
+                            <label for="bus-id" data-tooltip="Ingrese el número de PPU del bus">PPU de Bus:</label>
                             <input type="text" id="bus-id" placeholder="Ingrese el PPU del bus" required>
                         </div>
                         <div class="form-group">
-                            <label for="nombreaseador">Nombre Cleaner:</label>
+                            <label for="nombreaseador" data-tooltip="Seleccione el nombre del aseador">Nombre Cleaner:</label>
                             <select name="aseadores" id="nombreaseador" required>
                                 <option value="" disabled selected>Seleccione un aseador</option>
                                 <option value="Laura Soto">Laura Soto</option>
@@ -68,7 +72,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="aseo-status">Aseo Realizado:</label>
+                            <label for="aseo-status" data-tooltip="Seleccione el tipo de aseo realizado">Aseo Realizado:</label>
                             <select id="aseo-status" required>
                                 <option value="" disabled selected>Seleccione el tipo de aseo</option>
                                 <option value="Barrido">Barrido</option>
@@ -82,19 +86,19 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="task-deadline">Fecha de Realización:</label>
+                            <label for="task-deadline" data-tooltip="Seleccione la fecha de realización del aseo">Fecha de Realización:</label>
                             <input type="date" id="task-deadline" required>
                         </div>
-                        <button type="submit" class="btn-primary">Registrar Aseo</button>
+                        <button type="submit" class="btn-primary"><i class="fas fa-plus-circle"></i> Registrar Aseo</button>
                     </form>
                 </section>
 
                 <!-- Formulario de Asignación de Tareas -->
                 <section class="tasks-assignment-section">
-                    <h2>Asignar Tarea</h2>
+                    <h2><i class="fas fa-tasks"></i> Asignar Tarea</h2>
                     <form id="task-assignment-form">
                         <div class="form-group">
-                            <label for="cleaner-name">Aseador:</label>
+                            <label for="cleaner-name" data-tooltip="Seleccione el aseador al que se asignará la tarea">Aseador:</label>
                             <select name="aseadorestareas" id="cleaner-name" required>
                                 <option value="" disabled selected>Seleccione un aseador</option>
                                 <option value="Laura Soto">Laura Soto</option>
@@ -118,18 +122,18 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="bus-idtarea">PPU de Bus:</label>
+                            <label for="bus-idtarea" data-tooltip="Ingrese el número de PPU del bus">PPU de Bus:</label>
                             <input type="text" id="bus-idtarea" placeholder="Ingrese el PPU del bus" required>
                         </div>
                         <div class="form-group">
-                            <label for="task-desc">Descripción de la Tarea:</label>
+                            <label for="task-desc" data-tooltip="Descripción detallada de la tarea asignada">Descripción de la Tarea:</label>
                             <input type="text" id="task-desc" placeholder="Descripción de la tarea" required>
                         </div>
                         <div class="form-group">
-                            <label for="assignment-deadline">Fecha Límite:</label>
+                            <label for="assignment-deadline" data-tooltip="Seleccione la fecha límite para la tarea">Fecha Límite:</label>
                             <input type="date" id="assignment-deadline" required>
                         </div>
-                        <button type="submit" class="btn-primary">Asignar Tarea</button>
+                        <button type="submit" class="btn-primary"><i class="fas fa-check-circle"></i> Asignar Tarea</button>
                     </form>
                 </section>
             </section>
@@ -156,7 +160,10 @@
 
                 <!-- Nuevo Gráfico de Registros de Ingresos Diarios por Aseador -->
                 <div class="chart-container">
-                    <h3>Registros de Ingresos Diarios por Aseador</h3>
+                    <div class="count-box">
+                        <h3>Registros de Ingresos Diarios por Aseador</h3>
+                        <!-- Puedes agregar un contador adicional si lo deseas -->
+                    </div>
                     <canvas id="aseadoresChart"></canvas>
                 </div>
             </section>
@@ -165,7 +172,7 @@
             <section class="tables-section">
                 <!-- Tabla de Ingresos de Aseo Diarios -->
                 <section class="table-section">
-                    <h2>Registro de Ingresos de Aseo Diarios</h2>
+                    <h2><i class="fas fa-clipboard-list"></i> Registro de Ingresos de Aseo Diarios</h2>
                     <table id="daily-aseo-table" class="styled-table">
                         <thead>
                             <tr>
@@ -184,7 +191,7 @@
 
                 <!-- Tabla de Asignación de Tareas -->
                 <section class="table-section">
-                    <h2>Registro de Asignación de Tareas</h2>
+                    <h2><i class="fas fa-tasks"></i> Registro de Asignación de Tareas</h2>
                     <table id="assignment-table" class="styled-table">
                         <thead>
                             <tr>
@@ -212,4 +219,3 @@
 </body>
 
 </html>
-
