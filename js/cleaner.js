@@ -1,6 +1,6 @@
 // cleaner.js
 
-import { initializeGapiClient, loadSheetData, appendData, updateSheetData, isUserAuthenticated, redirectToRolePage, handleLogout } from './api/googleSheets.js';
+import { initializeGapiClient, loadSheetData, appendData, updateSheetData, isUserAuthenticated, redirectToRolePage, handleLogout } from '/RedLogistica/api/googleSheets.js';
 
 let lastTaskIds = new Set();
 let lastCompletedIds = new Set();
