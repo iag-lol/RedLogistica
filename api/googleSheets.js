@@ -6,7 +6,7 @@ const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googlea
 let tokenClient;
 let isAuthenticated = false;
 
-// Inicializar cliente de Google API
+
 export function initializeGapiClient() {
     return new Promise((resolve, reject) => {
         gapi.load('client', async () => {
@@ -15,7 +15,8 @@ export function initializeGapiClient() {
                     apiKey: API_KEY,
                     discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"]
                 });
-                initializeOAuth().then(resolve).catch(reject);
+                await initializeOAuth();
+                resolve();
             } catch (error) {
                 console.error("Error inicializando el cliente de Google API:", error);
                 reject("Las bibliotecas de Google no están cargadas completamente.");
@@ -24,8 +25,11 @@ export function initializeGapiClient() {
     });
 }
 
-// Inicializar OAuth con Google
-function initializeOAuth() {
+/**
+ * Inicializa OAuth con Google.
+ * @returns {Promise<void>}
+ */
+async function initializeOAuth() {
     return new Promise((resolve, reject) => {
         tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: CLIENT_ID,
@@ -37,9 +41,9 @@ function initializeOAuth() {
                     return;
                 }
                 // Almacena el token de acceso y su tiempo de expiración en localStorage
-                const expiresAt = (new Date().getTime()) + (response.expires_in * 1000);
+                const expiresAt = Date.now() + (response.expires_in * 1000);
                 localStorage.setItem('google_access_token', response.access_token);
-                localStorage.setItem('expires_at', expiresAt);
+                localStorage.setItem('expires_at', expiresAt.toString());
                 gapi.client.setToken({ access_token: response.access_token });
                 isAuthenticated = true;
                 console.log('Autenticación exitosa');
@@ -48,21 +52,23 @@ function initializeOAuth() {
         });
 
         const storedToken = localStorage.getItem('google_access_token');
-        const expiresAt = localStorage.getItem('expires_at');
+        const storedExpiresAt = localStorage.getItem('expires_at');
 
-        if (storedToken && expiresAt) {
-            const now = new Date().getTime();
-            if (now < parseInt(expiresAt, 10)) {
+        if (storedToken && storedExpiresAt) {
+            const now = Date.now();
+            if (now < parseInt(storedExpiresAt, 10)) {
                 gapi.client.setToken({ access_token: storedToken });
                 isAuthenticated = true;
                 console.log('Autenticado con token almacenado válido');
                 resolve();
             } else {
                 console.log('Token almacenado expirado, intentando refrescar...');
-                requestAccessToken(false).then(resolve).catch(() => {
-                    // Si el refresco falla, solicita un nuevo token con consentimiento
-                    requestAccessToken(true).then(resolve).catch(reject);
-                });
+                requestAccessToken(false)
+                    .then(resolve)
+                    .catch(() => {
+                        // Si el refresco falla, solicita un nuevo token con consentimiento
+                        requestAccessToken(true).then(resolve).catch(reject);
+                    });
             }
         } else {
             requestAccessToken(true).then(resolve).catch(reject);
@@ -70,8 +76,11 @@ function initializeOAuth() {
     });
 }
 
-// Solicitar token de acceso
-// `forcePrompt` determina si se debe forzar el consentimiento del usuario
+/**
+ * Solicita un token de acceso.
+ * @param {boolean} forcePrompt - Si se debe forzar el consentimiento del usuario.
+ * @returns {Promise<void>}
+ */
 function requestAccessToken(forcePrompt = false) {
     return new Promise((resolve, reject) => {
         tokenClient.callback = (response) => {
@@ -80,9 +89,9 @@ function requestAccessToken(forcePrompt = false) {
                 reject(response.error);
                 return;
             }
-            const expiresAt = (new Date().getTime()) + (response.expires_in * 1000);
+            const expiresAt = Date.now() + (response.expires_in * 1000);
             localStorage.setItem('google_access_token', response.access_token);
-            localStorage.setItem('expires_at', expiresAt);
+            localStorage.setItem('expires_at', expiresAt.toString());
             gapi.client.setToken({ access_token: response.access_token });
             isAuthenticated = true;
             console.log('Token actualizado exitosamente');
@@ -93,23 +102,30 @@ function requestAccessToken(forcePrompt = false) {
     });
 }
 
-// Función para verificar si el usuario está autenticado
+/**
+ * Verifica si el usuario está autenticado.
+ * @returns {boolean}
+ */
 export function isUserAuthenticated() {
     return isAuthenticated;
 }
 
-// Verificar y refrescar token si es necesario antes de hacer cualquier solicitud
+/**
+ * Asegura que el usuario esté autenticado antes de realizar cualquier solicitud.
+ * Refresca el token si está a punto de expirar.
+ * @returns {Promise<void>}
+ */
 async function ensureAuthenticated() {
     if (!isAuthenticated) {
         await requestAccessToken(true);
         return;
     }
 
-    const expiresAt = localStorage.getItem('expires_at');
-    const now = new Date().getTime();
+    const storedExpiresAt = localStorage.getItem('expires_at');
+    const now = Date.now();
 
     // Refrescar el token si faltan menos de 5 minutos para que expire
-    if (expiresAt && (now + 5 * 60 * 1000) > parseInt(expiresAt, 10)) {
+    if (storedExpiresAt && (now + 5 * 60 * 1000) > parseInt(storedExpiresAt, 10)) {
         console.log('Refrescando token...');
         try {
             await requestAccessToken(false);
@@ -120,7 +136,11 @@ async function ensureAuthenticated() {
     }
 }
 
-// Función para cargar datos de Google Sheets
+/**
+ * Carga datos desde una hoja específica de Google Sheets.
+ * @param {string} range - Rango de celdas a cargar.
+ * @returns {Promise<Array>}
+ */
 export async function loadSheetData(range) {
     try {
         await ensureAuthenticated();
@@ -136,7 +156,12 @@ export async function loadSheetData(range) {
     }
 }
 
-// Función para actualizar datos en Google Sheets
+/**
+ * Actualiza datos en una hoja específica de Google Sheets.
+ * @param {string} range - Rango de celdas a actualizar.
+ * @param {Array} values - Nuevos valores.
+ * @returns {Promise<void>}
+ */
 export async function updateSheetData(range, values) {
     try {
         await ensureAuthenticated();
@@ -153,7 +178,12 @@ export async function updateSheetData(range, values) {
     }
 }
 
-// Función para agregar datos en Google Sheets
+/**
+ * Agrega datos a una hoja específica de Google Sheets.
+ * @param {string} range - Rango de celdas para agregar datos.
+ * @param {Array} values - Valores a agregar.
+ * @returns {Promise<void>}
+ */
 export async function appendData(range, values) {
     try {
         await ensureAuthenticated();
@@ -162,6 +192,7 @@ export async function appendData(range, values) {
             spreadsheetId: SPREADSHEET_ID,
             range: range,
             valueInputOption: 'USER_ENTERED',
+            insertDataOption: 'INSERT_ROWS',
             resource: { values: values },
         });
         console.log('Datos agregados a Google Sheets');
@@ -170,7 +201,10 @@ export async function appendData(range, values) {
     }
 }
 
-// Redireccionar según el rol
+/**
+ * Redirecciona a la página según el rol del usuario.
+ * @param {string} role - Rol del usuario.
+ */
 export function redirectToRolePage(role) {
     const baseUrl = '/RedLogistica/roles/';
     const rolePages = {
@@ -189,7 +223,11 @@ export function redirectToRolePage(role) {
     }
 }
 
-// Cerrar sesión
+/**
+ * Maneja el cierre de sesión del usuario.
+ * Actualiza el estado en Google Sheets y limpia datos locales.
+ * @returns {Promise<void>}
+ */
 export async function handleLogout() {
     try {
         const credentials = await loadSheetData('credenciales!A2:D');
@@ -212,4 +250,3 @@ export async function handleLogout() {
     isAuthenticated = false;
     window.location.href = "/login.html";
 }
-
