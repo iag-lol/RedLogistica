@@ -154,8 +154,8 @@ export function redirectToRolePage(role) {
         case 'Cleaner':
             window.location.href = `${baseUrl}cleaner.html`;
             break;
-        case 'Movilizador':
-            window.location.href = `${baseUrl}movilizador.html`;
+        case 'Aseo':
+            window.location.href = `${baseUrl}aseo.html`;
             break;
         case 'Bodeguero':  // Añadido para redirigir a bodega.html
             window.location.href = `${baseUrl}bodega.html`;
