@@ -1,3 +1,5 @@
+// googleSheets.js
+
 const CLIENT_ID = '749139679919-3bc57iab4hj1qv7uh6r7s9tn6lp8r389.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDwUO5PpwoNbVbWfKViTEQO8Lnpkl12D5c';
 const SPREADSHEET_ID = '1jzTdEoshxRpuf9kHXI5vQLRtoCsSA-Uw-48JX8LxXaU';
@@ -6,7 +8,10 @@ const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googlea
 let tokenClient;
 let isAuthenticated = false;
 
-
+/**
+ * Inicializa el cliente de Google API.
+ * @returns {Promise<void>}
+ */
 export function initializeGapiClient() {
     return new Promise((resolve, reject) => {
         gapi.load('client', async () => {
