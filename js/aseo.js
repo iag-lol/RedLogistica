@@ -12,7 +12,17 @@ let isAuthenticated = false;
 let existingAseoRecords = new Set();
 let existingAssignmentRecords = new Set();
 
+// Referencias a los elementos de la tabla
+const assignmentTableBody = document.getElementById('assignment-table').querySelector('tbody');
+const dailyAseoTableBody = document.getElementById('daily-aseo-table').querySelector('tbody');
+
+// Audio para notificaciones
+const notificationSound = new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3');
+notificationSound.preload = 'auto';
+
+// -------------------------------
 // Función para cargar el script de la API de Google
+// -------------------------------
 async function loadGapiScript() {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
@@ -23,7 +33,9 @@ async function loadGapiScript() {
     });
 }
 
+// -------------------------------
 // Función para inicializar el cliente de Google API
+// -------------------------------
 async function initializeGapiClient() {
     try {
         await loadGapiScript();
@@ -40,7 +52,9 @@ async function initializeGapiClient() {
     }
 }
 
+// -------------------------------
 // Función para cargar el script de Google Accounts para OAuth
+// -------------------------------
 function loadGoogleAccountsScript() {
     const script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
@@ -49,7 +63,9 @@ function loadGoogleAccountsScript() {
     document.body.appendChild(script);
 }
 
+// -------------------------------
 // Función para inicializar OAuth y manejar la autenticación
+// -------------------------------
 function initializeOAuth() {
     if (!window.google || !google.accounts) {
         console.error("La API de Google no está completamente cargada.");
@@ -81,7 +97,9 @@ function initializeOAuth() {
     }
 }
 
+// -------------------------------
 // Función para cargar los datos de las tablas desde Google Sheets
+// -------------------------------
 async function loadTablesData() {
     if (!isAuthenticated) {
         console.log("Autenticación no completada. Esperando autenticación...");
@@ -97,10 +115,11 @@ async function loadTablesData() {
     }
 }
 
+// -------------------------------
 // Función para cargar datos de la tabla de asignación de tareas a aseadores
+// -------------------------------
 async function loadAssignmentData() {
-    const assignmentTable = document.getElementById('assignment-table').querySelector('tbody');
-    assignmentTable.innerHTML = '';
+    assignmentTableBody.innerHTML = '';
 
     try {
         const assignmentData = await loadSheetData('aseo!A2:F');  // Ajusta el rango según tus datos
@@ -114,7 +133,7 @@ async function loadAssignmentData() {
                     td.textContent = cellData;
                     tr.appendChild(td);
                 });
-                assignmentTable.appendChild(tr);
+                assignmentTableBody.appendChild(tr);
             }
         });
     } catch (error) {
@@ -122,10 +141,11 @@ async function loadAssignmentData() {
     }
 }
 
+// -------------------------------
 // Función para cargar datos de la tabla de ingresos de aseo diarios
+// -------------------------------
 async function loadDailyAseoData() {
-    const dailyAseoTable = document.getElementById('daily-aseo-table').querySelector('tbody');
-    dailyAseoTable.innerHTML = '';
+    dailyAseoTableBody.innerHTML = '';
 
     try {
         const dailyAseoData = await loadSheetData('aseo!I2:L'); // Ajusta el rango según tus datos
@@ -139,10 +159,10 @@ async function loadDailyAseoData() {
                     td.textContent = cellData;
                     tr.appendChild(td);
                 });
-                dailyAseoTable.appendChild(tr);
+                dailyAseoTableBody.appendChild(tr);
 
                 // Mostrar alerta para el nuevo registro
-                showAseoAlert(row[1], row[2], row[0]);
+                showAseoToast(row[1], row[2], row[0]);
             }
         });
     } catch (error) {
@@ -150,7 +170,9 @@ async function loadDailyAseoData() {
     }
 }
 
+// -------------------------------
 // Función para cargar datos de Google Sheets
+// -------------------------------
 async function loadSheetData(range) {
     if (!isAuthenticated) {
         console.log("Usuario no autenticado.");
@@ -169,7 +191,9 @@ async function loadSheetData(range) {
     }
 }
 
+// -------------------------------
 // Función para agregar una fila a Google Sheets
+// -------------------------------
 async function appendData(range, values) {
     if (!isAuthenticated) {
         console.log("Usuario no autenticado.");
@@ -189,18 +213,80 @@ async function appendData(range, values) {
     }
 }
 
-// Función para mostrar la alerta de nuevo registro de aseo
-function showAseoAlert(cleanerName, aseoType, busPPU) {
-    const alertModal = document.getElementById('alert-modal');
-    const alertMessage = document.getElementById('alert-message');
-    const alertButton = document.getElementById('alert-button');
-    const notificationSound = document.getElementById('notification-sound');
+// -------------------------------
+// Función para mostrar una alerta flotante (toast)
+// -------------------------------
+function showAseoToast(cleanerName, aseoType, busPPU) {
+    // Crear el contenedor de toasts si no existe
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.top = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '3000';
+        toastContainer.style.display = 'flex';
+        toastContainer.style.flexDirection = 'column';
+        toastContainer.style.gap = '10px';
+        document.body.appendChild(toastContainer);
+    }
 
-    // Actualizar el mensaje de la alerta
-    alertMessage.textContent = `"${cleanerName}" ha realizado el "${aseoType}" del bus "${busPPU}".`;
+    // Crear el toast
+    const toast = document.createElement('div');
+    toast.classList.add('toast');
+    toast.style.minWidth = '250px';
+    toast.style.backgroundColor = '#ffffff';
+    toast.style.borderLeft = '5px solid #4a90e2'; // Color primario
+    toast.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    toast.style.padding = '15px 20px';
+    toast.style.borderRadius = '8px';
+    toast.style.display = 'flex';
+    toast.style.justifyContent = 'space-between';
+    toast.style.alignItems = 'center';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    toast.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
 
-    // Mostrar el modal
-    alertModal.classList.remove('hidden');
+    // Contenido del toast
+    const message = document.createElement('div');
+    message.innerHTML = `<strong>${cleanerName}</strong> ha realizado el <strong>${aseoType}</strong> del bus <strong>${busPPU}</strong>.`;
+    message.style.fontSize = '0.9rem';
+    message.style.color = '#333333';
+
+    // Botón de cierre
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = '&times;';
+    closeButton.style.background = 'none';
+    closeButton.style.border = 'none';
+    closeButton.style.color = '#aaaaaa';
+    closeButton.style.fontSize = '1.2rem';
+    closeButton.style.cursor = 'pointer';
+    closeButton.style.marginLeft = '15px';
+    closeButton.style.transition = 'color 0.3s';
+    closeButton.onclick = () => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            toast.remove();
+        }, 500);
+    };
+    closeButton.onmouseover = () => {
+        closeButton.style.color = '#000000';
+    };
+    closeButton.onmouseout = () => {
+        closeButton.style.color = '#aaaaaa';
+    };
+
+    toast.appendChild(message);
+    toast.appendChild(closeButton);
+    toastContainer.appendChild(toast);
+
+    // Mostrar el toast
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+    }, 100);
 
     // Reproducir sonido de notificación
     notificationSound.currentTime = 0; // Reiniciar el sonido
@@ -208,27 +294,37 @@ function showAseoAlert(cleanerName, aseoType, busPPU) {
         console.warn("No se pudo reproducir el sonido automáticamente:", error);
     });
 
-    // Manejar el clic en el botón "Entendido" para cerrar la alerta
-    alertButton.onclick = () => {
-        alertModal.classList.add('hidden');
-    };
+    // Remover el toast después de 10 segundos si no se cierra manualmente
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            toast.remove();
+        }, 500);
+    }, 10000);
 }
 
+// -------------------------------
 // Función para agregar una nueva tarea de aseo
+// -------------------------------
 async function addAseoTask(busId, aseadorName, estado, fecha) {
     const values = [[busId, aseadorName, estado, fecha]];
     await appendData('aseo!I2:L', values);
     addRowToDailyAseoTable([busId, aseadorName, estado, fecha]);
 }
 
+// -------------------------------
 // Función para agregar una nueva asignación de tarea con PPU
+// -------------------------------
 async function addAssignmentTask(cleanerName, busIdTarea, taskType, deadline) {
     const values = [[cleanerName, busIdTarea, taskType, "Pendiente", deadline]];
     await appendData('aseo!A2:F', values);  // Ajusta el rango según tus datos
     addRowToAssignmentTable([cleanerName, busIdTarea, taskType, "Pendiente", deadline]);
 }
 
+// -------------------------------
 // Evento de formulario para registrar una nueva tarea de aseo
+// -------------------------------
 document.getElementById('aseo-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const busId = document.getElementById('bus-id').value.trim();
@@ -244,7 +340,9 @@ document.getElementById('aseo-form').addEventListener('submit', async (e) => {
     }
 });
 
+// -------------------------------
 // Evento de formulario para registrar una nueva asignación de tarea
+// -------------------------------
 document.getElementById('task-assignment-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const cleanerName = document.querySelector('[name="aseadorestareas"]').value;
@@ -260,9 +358,10 @@ document.getElementById('task-assignment-form').addEventListener('submit', async
     }
 });
 
+// -------------------------------
 // Función para añadir una fila a la tabla de asignación de tareas en la interfaz
+// -------------------------------
 function addRowToAssignmentTable(rowData) {
-    const assignmentTable = document.getElementById('assignment-table').querySelector('tbody');
     const tr = document.createElement('tr');
     const uniqueId = rowData.join('|');
     if (!existingAssignmentRecords.has(uniqueId)) {
@@ -272,13 +371,14 @@ function addRowToAssignmentTable(rowData) {
             td.textContent = cellData;
             tr.appendChild(td);
         });
-        assignmentTable.appendChild(tr);
+        assignmentTableBody.appendChild(tr);
     }
 }
 
+// -------------------------------
 // Función para añadir una fila a la tabla de ingresos de aseo en la interfaz
+// -------------------------------
 function addRowToDailyAseoTable(rowData) {
-    const dailyAseoTable = document.getElementById('daily-aseo-table').querySelector('tbody');
     const tr = document.createElement('tr');
     const uniqueId = rowData.join('|');
     if (!existingAseoRecords.has(uniqueId)) {
@@ -288,20 +388,18 @@ function addRowToDailyAseoTable(rowData) {
             td.textContent = cellData;
             tr.appendChild(td);
         });
-        dailyAseoTable.appendChild(tr);
+        dailyAseoTableBody.appendChild(tr);
 
         // Mostrar alerta para el nuevo registro
-        showAseoAlert(rowData[1], rowData[2], rowData[0]);
+        showAseoToast(rowData[1], rowData[2], rowData[0]);
     }
 }
 
+// -------------------------------
 // Función para inicializar y configurar los gráficos y contadores
+// -------------------------------
 function initializeChartsAndCounters() {
     const ROWS_PER_PAGE = 10;
-
-    // Referencias a las tablas y sus cuerpos
-    const assignmentTableBody = document.getElementById("assignment-table").querySelector("tbody");
-    const dailyAseoTableBody = document.getElementById("daily-aseo-table").querySelector("tbody");
 
     // Inicializa la paginación
     paginateTable(assignmentTableBody, "assignment-pagination");
@@ -528,27 +626,36 @@ function initializeChartsAndCounters() {
     }
 
     // Configurar la actualización automática cada 5 segundos
-    setInterval(updateAllCharts, 5000);
+    setInterval(async () => {
+        try {
+            await loadTablesData();
+            await updateAllCharts();
+        } catch (error) {
+            console.error("Error en la actualización automática:", error);
+        }
+    }, 5000); // 5000 ms = 5 segundos
+
+    // Función para actualizar los contadores
+    function updateCounts() {
+        const totalTasksCount = document.getElementById("total-tasks-count");
+        const totalAttendanceCount = document.getElementById("total-attendance-count");
+        totalTasksCount.textContent = assignmentTableBody.rows.length;
+        totalAttendanceCount.textContent = dailyAseoTableBody.rows.length;
+    }
 
     // Observador para detectar cambios en las tablas y actualizar contadores y gráficos
     const observer = new MutationObserver(() => {
         updateCounts();
         updateTaskChart();
         updateAttendanceChart();
-        updateAseadoresChart();
+        aseadoresChart.update(); // Asegura que el gráfico de aseadores se actualice si hay cambios
     });
 
     // Configura el observador en ambas tablas
     observer.observe(assignmentTableBody, { childList: true });
     observer.observe(dailyAseoTableBody, { childList: true });
 
-    // Función para actualizar los contadores
-    function updateCounts() {
-        totalTasksCount.textContent = assignmentTableBody.rows.length;
-        totalAttendanceCount.textContent = dailyAseoTableBody.rows.length;
-    }
-
-    // Llama a las funciones de actualización inicial para contar registros y mostrar gráficos
+    // Inicializa los contadores y gráficos al cargar la página
     updateCounts();
     updateTaskChart();
     updateAttendanceChart();
@@ -560,4 +667,3 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeGapiClient();
     initializeChartsAndCounters();
 });
-
