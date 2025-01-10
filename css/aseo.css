@@ -1,8 +1,8 @@
 /* Variables de color modernizadas */
 :root {
-    --primary-color: #4a90e2;
-    --secondary-color: #50e3c2;
-    --accent-color: #f5a623;
+    --primary-color: #4a90e2; /* Azul brillante */
+    --secondary-color: #50e3c2; /* Verde agua */
+    --accent-color: #f5a623; /* Naranja brillante */
     --light-gray: #f5f5f5;
     --dark-gray: #4a4a4a;
     --text-light: #ffffff;
@@ -11,6 +11,7 @@
     --button-gradient-hover: linear-gradient(45deg, #50e3c2, #4a90e2);
     --shadow-color: rgba(0, 0, 0, 0.1);
     --shadow-hover-color: rgba(0, 0, 0, 0.2);
+    --border-radius: 12px;
 }
 
 /* Reset de márgenes y padding */
@@ -101,7 +102,7 @@ body {
 .form-section, .tasks-assignment-section {
     background: var(--text-light);
     padding: 25px;
-    border-radius: 15px;
+    border-radius: var(--border-radius);
     box-shadow: 0px 8px 20px var(--shadow-color);
     flex: 1 1 45%;
     max-width: 45%;
@@ -144,11 +145,11 @@ body {
 }
 
 .form-section h2::before {
-    content: "\f0c0"; /* Icono de Font Awesome */
+    content: "\f0c0"; /* Icono de Font Awesome (usuarios) */
 }
 
 .tasks-assignment-section h2::before {
-    content: "\f0ae"; /* Icono de Font Awesome para tareas */
+    content: "\f0ae"; /* Icono de Font Awesome (tareas) */
 }
 
 /* Form Groups */
@@ -249,7 +250,7 @@ body {
 .chart-container {
     background: var(--text-light);
     padding: 20px;
-    border-radius: 15px;
+    border-radius: var(--border-radius);
     box-shadow: 0px 8px 20px var(--shadow-color);
     flex: 1 1 30%;
     max-width: 30%;
@@ -306,10 +307,11 @@ body {
     gap: 30px;
 }
 
+/* Sección de Tabla */
 .table-section {
     background: var(--text-light);
     padding: 20px;
-    border-radius: 15px;
+    border-radius: var(--border-radius);
     box-shadow: 0px 8px 20px var(--shadow-color);
     width: 100%;
     transition: transform 0.3s, box-shadow 0.3s;
@@ -348,7 +350,7 @@ body {
 }
 
 .table-section h2::before {
-    content: "\f0c0"; /* Icono de Font Awesome */
+    content: "\f0c0"; /* Icono de Font Awesome (usuarios) */
 }
 
 .styled-table {
