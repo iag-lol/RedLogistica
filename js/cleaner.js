@@ -557,3 +557,141 @@ function showAlert(type, title, message) {
 // Ya implementadas arriba
 
 // Asegúrate de implementar las funciones de gráficos y contadores aquí o en otro archivo si están separados
+
+
+
+// pendingBuses.js
+
+import { loadSheetData } from './googleSheets.js'; // Asegúrate de que la ruta es correcta
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Seleccionar los elementos del DOM
+    const pendingBusesBtn = document.getElementById("pending-buses-btn");
+    const pendingBusesModal = document.getElementById("pending-buses-modal");
+    const pendingBusesTableBody = document.querySelector("#pending-buses-table tbody");
+    const closeModalBtn = document.getElementById("close-modal");
+    const busIdInput = document.getElementById("bus-id");
+
+    /**
+     * Función para mostrar alertas utilizando SweetAlert2
+     * @param {string} type - Tipo de alerta ('success', 'error', 'info', 'warning')
+     * @param {string} title - Título de la alerta
+     * @param {string} message - Mensaje de la alerta
+     */
+    function showAlert(type, title, message) {
+        Swal.fire({
+            icon: type,
+            title: title,
+            text: message,
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            position: 'top-end',
+            toast: true,
+            background: '#1e3d59',
+            color: '#fff'
+        });
+    }
+
+    /**
+     * Función para abrir el modal y cargar los buses pendientes
+     */
+    const openPendingBusesModal = async () => {
+        try {
+            // Limpiar la tabla antes de cargar nuevos datos
+            pendingBusesTableBody.innerHTML = '';
+
+            // Mostrar un mensaje de carga
+            const loadingRow = document.createElement("tr");
+            const loadingTd = document.createElement("td");
+            loadingTd.colSpan = 3;
+            loadingTd.textContent = "Cargando...";
+            loadingTd.style.textAlign = "center";
+            loadingRow.appendChild(loadingTd);
+            pendingBusesTableBody.appendChild(loadingRow);
+
+            // Cargar datos desde Google Sheets (rango: cleaner!A2:C)
+            const busesData = await loadSheetData("cleaner!A2:C");
+            console.log("Buses Data:", busesData); // Para depuración
+
+            // Limpiar el mensaje de carga
+            pendingBusesTableBody.innerHTML = '';
+
+            if (!busesData || busesData.length === 0) {
+                // Si no hay datos, mostrar un mensaje
+                const tr = document.createElement("tr");
+                const td = document.createElement("td");
+                td.colSpan = 3;
+                td.textContent = "No hay buses pendientes.";
+                td.style.textAlign = "center";
+                tr.appendChild(td);
+                pendingBusesTableBody.appendChild(tr);
+            } else {
+                // Iterar sobre cada bus y crear una fila en la tabla
+                busesData.forEach((bus, index) => {
+                    const tr = document.createElement("tr");
+                    tr.style.cursor = "pointer";
+
+                    // Asumiendo que bus[0] = PPU BUS, bus[1] = Motivo, bus[2] = Fecha
+                    const ppuBus = bus[0] ? bus[0].trim().toUpperCase() : '';
+                    const motivo = bus[1] ? bus[1].trim() : '';
+                    const fecha = bus[2] ? bus[2].trim() : '';
+
+                    // Crear celdas
+                    const tdPpu = document.createElement("td");
+                    tdPpu.textContent = ppuBus;
+                    tr.appendChild(tdPpu);
+
+                    const tdMotivo = document.createElement("td");
+                    tdMotivo.textContent = motivo;
+                    tr.appendChild(tdMotivo);
+
+                    const tdFecha = document.createElement("td");
+                    tdFecha.textContent = fecha;
+                    tr.appendChild(tdFecha);
+
+                    // Añadir evento de clic a la fila
+                    tr.addEventListener("click", () => {
+                        busIdInput.value = ppuBus;
+                        closePendingBusesModal();
+                        showAlert('success', 'PPU BUS Agregado', `Bus ${ppuBus} agregado al registro.`);
+                    });
+
+                    pendingBusesTableBody.appendChild(tr);
+                });
+            }
+
+            // Mostrar el modal
+            pendingBusesModal.style.display = "flex";
+        } catch (error) {
+            console.error("Error al cargar buses pendientes:", error);
+            pendingBusesTableBody.innerHTML = ''; // Limpiar cualquier mensaje
+            const tr = document.createElement("tr");
+            const td = document.createElement("td");
+            td.colSpan = 3;
+            td.textContent = "Error al cargar los datos.";
+            td.style.textAlign = "center";
+            tr.appendChild(td);
+            pendingBusesTableBody.appendChild(tr);
+            showAlert('error', 'Error de Carga', 'No se pudieron cargar los buses pendientes.');
+        }
+    };
+
+    /**
+     * Función para cerrar el modal
+     */
+    const closePendingBusesModal = () => {
+        pendingBusesModal.style.display = "none";
+    };
+
+    // Asignar eventos
+    pendingBusesBtn.addEventListener("click", openPendingBusesModal);
+    closeModalBtn.addEventListener("click", closePendingBusesModal);
+
+    // Cerrar el modal al hacer clic fuera del contenido
+    window.addEventListener("click", (event) => {
+        if (event.target === pendingBusesModal) {
+            closePendingBusesModal();
+        }
+    });
+});
