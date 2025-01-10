@@ -1,184 +1,79 @@
 // cleaner.js
 
-import { initializeGapiClient, loadSheetData, appendData, isUserAuthenticated, updateSheetData } from './googleSheets.js';
-
-// Función para reproducir sonido
-function playSound(soundPath) {
-    const audio = new Audio(soundPath);
-    audio.play().catch(error => {
-        console.warn("Reproducción de sonido bloqueada o archivo no encontrado:", error);
-    });
-}
-
-// Función para mostrar alerta flotante persistente hasta que el usuario la cierre
-function showPersistentAlert(type, title, message) {
-    let icon, color, soundPath;
-
-    switch (type) {
-        case 'info':
-            icon = 'info';
-            color = '#17a2b8';
-            soundPath = '/sounds/nueva-tarea.mp3';
-            break;
-        case 'success':
-            icon = 'success';
-            color = '#28a745';
-            soundPath = '/sounds/success.mp3';
-            break;
-        case 'warning':
-            icon = 'warning';
-            color = '#ffc107';
-            soundPath = '/sounds/warning.mp3';
-            break;
-        case 'error':
-            icon = 'error';
-            color = '#dc3545';
-            soundPath = '/sounds/error.mp3';
-            break;
-        default:
-            icon = 'info';
-            color = '#17a2b8';
-    }
-
-    Swal.fire({
-        title: title,
-        text: message,
-        icon: icon,
-        background: color,
-        color: '#fff',
-        showConfirmButton: true,
-        confirmButtonText: 'Entendido',
-        position: 'top-end',
-        toast: true,
-        timerProgressBar: true
-    }).then(() => {
-        if (soundPath) {
-            playSound(soundPath);
-        }
-    });
-}
-
-// Función para mostrar alertas temporales
-function showAlert(type, title, message) {
-    Swal.fire({
-        title: title,
-        text: message,
-        icon: type,
-        confirmButtonText: 'OK',
-        position: 'top-end',
-        toast: true,
-        timer: 3000,
-        timerProgressBar: true
-    });
-}
-
-document.addEventListener("DOMContentLoaded", async function () {
-    const currentUser = localStorage.getItem("username");
-    const usernameDisplay = document.getElementById("username-display");
-    const connectionStatus = document.getElementById("connection-status");
-
-    if (currentUser) {
-        usernameDisplay.textContent = currentUser.toUpperCase(); // Convertir a mayúsculas
-    } else {
-        usernameDisplay.textContent = "USUARIO NO IDENTIFICADO";
-    }
-
-    try {
-        await initializeGapiClient();
-    } catch (error) {
-        console.error("Error al inicializar GAPI:", error);
-        showAlert('error', 'Error de Inicialización', 'No se pudo inicializar la conexión con Google API.');
-        return;
-    }
-
-    checkConnectionStatus();
-    if (isUserAuthenticated()) {
-        connectionStatus.textContent = 'CONECTADO';
-        connectionStatus.classList.add('connected');
-        await initializeData();
-        setInterval(updateAllChartsAndCounters, 5000); // Actualizar cada 5 segundos
-    } else {
-        connectionStatus.textContent = 'DESCONECTADO';
-        connectionStatus.classList.remove('connected');
-        showAlert('error', 'Error de Autenticación', 'No se pudo autenticar con Google Sheets.');
-    }
-
-    document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        await registerAseo();
-    });
-
-    document.getElementById("pending-buses-btn").addEventListener("click", () => {
-        document.getElementById("pending-buses-modal").style.display = "flex";
-        loadPendingBuses();
-    });
-
-    document.getElementById("close-modal").addEventListener("click", () => {
-        document.getElementById("pending-buses-modal").style.display = "none";
-    });
-});
-
-async function initializeData() {
-    await loadAssignedTasks();
-    await loadCompletedRecords();
-    initializeChartsAndCounters();
-    initializePagination();
-    setupTableObservers();
-    setupAutoUpdate();
-}
-
-// Función para verificar el estado de conexión y actualizar visualmente
-function checkConnectionStatus() {
-    const statusElement = document.getElementById('connection-status');
-    const usernameElement = document.getElementById('username-display');
-    
-    if (isUserAuthenticated()) {
-        statusElement.textContent = 'CONECTADO';
-        statusElement.classList.remove('disconnected');
-        statusElement.classList.add('connected');
-    } else {
-        statusElement.textContent = 'DESCONECTADO';
-        statusElement.classList.remove('connected');
-        statusElement.classList.add('disconnected');
-    }
-
-    const username = localStorage.getItem('username');
-    usernameElement.textContent = username ? username.toUpperCase() : 'USUARIO DESCONOCIDO';
-}
-
-// Cargar asignación y hora de colación desde Google Sheets
-async function loadAssignmentAndBreakTime(username) {
-    const cleanerData = await loadSheetData("cleaner!A2:C");
-    const userData = cleanerData.find(row => row[0].toUpperCase() === username.toUpperCase());
-
-    if (userData) {
-        document.getElementById("assignment-display").textContent = userData[1];
-        document.getElementById("break-time-display").textContent = userData[2];
-    } else {
-        document.getElementById("assignment-display").textContent = "No asignado";
-        document.getElementById("break-time-display").textContent = "No asignado";
-    }
-}
+import { initializeGapiClient, loadSheetData, appendData, updateSheetData, isUserAuthenticated, redirectToRolePage, handleLogout } from './googleSheets.js';
 
 let lastTaskIds = new Set();
 let lastCompletedIds = new Set();
 let lastPendingBusIds = new Set();
 
-// Cargar tareas asignadas para el usuario
+document.addEventListener("DOMContentLoaded", async function () {
+    try {
+        await initializeGapiClient();
+
+        if (isUserAuthenticated()) {
+            updateConnectionStatus(true);
+            await initializeCleanerData();
+            setInterval(updateAllChartsAndCounters, 5000); // Actualizar cada 5 segundos
+        } else {
+            updateConnectionStatus(false);
+            alert('No se pudo autenticar con Google Sheets.');
+        }
+
+        document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await registerAseo();
+        });
+
+        document.getElementById("pending-buses-btn").addEventListener("click", () => {
+            document.getElementById("pending-buses-modal").style.display = "flex";
+            loadPendingBuses();
+        });
+
+        document.getElementById("close-modal").addEventListener("click", () => {
+            document.getElementById("pending-buses-modal").style.display = "none";
+        });
+    } catch (error) {
+        console.error("Error al inicializar la aplicación:", error);
+    }
+});
+
+function updateConnectionStatus(connected) {
+    const connectionStatus = document.getElementById("connection-status");
+    if (connected) {
+        connectionStatus.textContent = 'CONECTADO';
+        connectionStatus.classList.add('connected');
+        connectionStatus.classList.remove('disconnected');
+    } else {
+        connectionStatus.textContent = 'DESCONECTADO';
+        connectionStatus.classList.remove('connected');
+        connectionStatus.classList.add('disconnected');
+    }
+
+    const username = localStorage.getItem("username");
+    const usernameDisplay = document.getElementById("username-display");
+    usernameDisplay.textContent = username ? username.toUpperCase() : 'USUARIO DESCONOCIDO';
+}
+
+async function initializeCleanerData() {
+    await loadAssignedTasks();
+    await loadCompletedRecords();
+    initializeChartsAndCounters();
+    initializePagination();
+    setupTableObservers();
+}
+
 async function loadAssignedTasks() {
     const tasksTableBody = document.getElementById("assigned-tasks-table").querySelector("tbody");
-    const assignedTasks = await loadSheetData("aseo!A2:F");
+    const assignedTasks = await loadSheetData("aseo!A2:F"); // Ajusta el rango según tu hoja
+
     const currentUser = localStorage.getItem("username").toUpperCase();
-
     const userTasks = assignedTasks.filter(task => task[0].toUpperCase() === currentUser);
-    const newTaskIds = new Set(userTasks.map(task => task[1])); // IDs actuales de tareas
 
-    // Mostrar nuevas tareas sin borrar toda la tabla
+    const newTaskIds = new Set(userTasks.map(task => task[1])); // Asumiendo que task[1] es un ID único
+
     userTasks.forEach(task => {
         if (!lastTaskIds.has(task[1])) {
             const tr = document.createElement("tr");
-            // Asumiendo que las columnas son:
-            // 0: Nombre Cleaner, 1: Task ID, 2: PPU BUS, 3: Tarea, 4: Fecha Límite, 5: Estado
             ["2", "3", "4"].forEach(i => { // PPU BUS, Tarea, Fecha Límite
                 const td = document.createElement("td");
                 td.textContent = task[i];
@@ -194,12 +89,10 @@ async function loadAssignedTasks() {
 
     lastTaskIds = newTaskIds;
 
-    // Actualizar contadores y gráficos
     updateCounts();
     updateTaskChart();
 }
 
-// Abrir modal de tarea realizada
 function openTaskModal(task) {
     Swal.fire({
         title: 'Confirmación de Tarea',
@@ -213,19 +106,22 @@ function openTaskModal(task) {
     }).then(async (result) => {
         if (result.isConfirmed) {
             await markTaskAsCompleted(task);
-            showPersistentAlert('success', 'Tarea Realizada', 'La tarea ha sido marcada como realizada.');
+            Swal.fire({
+                title: 'Tarea Realizada',
+                text: 'La tarea ha sido marcada como realizada.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
             loadAssignedTasks(); // Recargar la tabla de asignadas
             loadCompletedRecords(); // Recargar la tabla de completadas
         }
     });
 }
 
-// Marcar tarea como realizada
 async function markTaskAsCompleted(task) {
-    // Añadir la tarea a la tabla de completadas
     const completedRecordsTableBody = document.getElementById("completed-records-table").querySelector("tbody");
     const tr = document.createElement("tr");
-    // 0: PPU BUS, 1: Cleaner (usuario), 2: Aseo Realizado, 3: Fecha
     const cleaner = localStorage.getItem("username").toUpperCase();
     const fecha = new Date().toISOString().split('T')[0]; // Fecha actual en formato YYYY-MM-DD
 
@@ -236,25 +132,22 @@ async function markTaskAsCompleted(task) {
     });
     completedRecordsTableBody.appendChild(tr);
 
-    // Actualizar el estado de la tarea en Google Sheets (columna F)
-    // Asegúrate de que `task.rowNumber` esté correctamente definido
     if (task.rowNumber) {
-        await updateSheetData(`aseo!F${task.rowNumber}`, [["Realizado"]]);
+        await updateSheetData(`aseo!F${task.rowNumber}`, [['Realizado']]);
     } else {
         console.warn("Número de fila no disponible para actualizar el estado de la tarea.");
     }
 }
 
-// Cargar registros completados
 async function loadCompletedRecords() {
     const recordsTableBody = document.getElementById("completed-records-table").querySelector("tbody");
-    const completedRecords = await loadSheetData("aseo!I2:L");
+    const completedRecords = await loadSheetData("aseo!I2:L"); // Ajusta el rango según tu hoja
+
     const currentUser = localStorage.getItem("username").toUpperCase();
-
     const userCompleted = completedRecords.filter(record => record[1].toUpperCase() === currentUser);
-    const newCompletedIds = new Set(userCompleted.map(record => record[1])); // IDs únicos si aplica
 
-    // Mostrar nuevos registros sin borrar toda la tabla
+    const newCompletedIds = new Set(userCompleted.map(record => record[1])); // Asumiendo que record[1] es un ID único
+
     userCompleted.forEach(record => {
         if (!lastCompletedIds.has(record[1])) {
             const tr = document.createElement("tr");
@@ -269,13 +162,11 @@ async function loadCompletedRecords() {
 
     lastCompletedIds = newCompletedIds;
 
-    // Actualizar contadores y gráficos
     updateCounts();
     updateAttendanceChart();
     updateAseadoresChart();
 }
 
-// Registrar el aseo y limpiar el campo `bus-id`
 async function registerAseo() {
     const busIdInput = document.getElementById("bus-id");
     const aseoType = document.getElementById("aseo-type").value;
@@ -298,7 +189,6 @@ async function registerAseo() {
     await appendData("aseo!I2:L", values);
     loadCompletedRecords();
 
-    // Mostrar alerta de éxito y limpiar el formulario
     Swal.fire({
         title: 'Registro Exitoso',
         text: 'Se ha registrado el aseo correctamente.',
@@ -306,21 +196,20 @@ async function registerAseo() {
         confirmButtonText: 'OK'
     }).then(() => {
         busIdInput.value = "";
-        aseoType.selectedIndex = 0;
+        document.getElementById("aseo-type").selectedIndex = 0;
         dateInput.value = "";
     });
 }
 
-// Cargar buses pendientes
 async function loadPendingBuses() {
     const pendingBusesTableBody = document.getElementById("pending-buses-table").querySelector("tbody");
-    const pendingBusesData = await loadSheetData("cleaner!A2:C");
-    const currentUser = localStorage.getItem("username").toUpperCase();
+    const pendingBusesData = await loadSheetData("cleaner!A2:C"); // Ajusta el rango según tu hoja
 
+    const currentUser = localStorage.getItem("username").toUpperCase();
     const userPendingBuses = pendingBusesData.filter(bus => bus[0].toUpperCase() === currentUser);
+
     const newPendingBusIds = new Set(userPendingBuses.map(bus => bus[0].toUpperCase())); // IDs únicos
 
-    // Mostrar nuevos buses pendientes sin duplicados
     userPendingBuses.forEach(bus => {
         if (!lastPendingBusIds.has(bus[0].toUpperCase())) {
             const tr = document.createElement("tr");
@@ -337,18 +226,15 @@ async function loadPendingBuses() {
 
     lastPendingBusIds = newPendingBusIds;
 
-    // Actualizar paginación si es necesario
     paginateTable(pendingBusesTableBody, "pending-buses-pagination");
 }
 
-// Función para llenar automáticamente el input de PPU Bus al clicar en un bus pendiente
 function handlePendingBusClick(busId) {
     const busIdInput = document.getElementById("bus-id");
     busIdInput.value = busId.toUpperCase();
     document.getElementById("pending-buses-modal").style.display = 'none';
 }
 
-// Función para actualizar contadores
 function updateCounts() {
     const totalTasksCount = document.getElementById("total-tasks-count");
     const totalAttendanceCount = document.getElementById("total-attendance-count");
@@ -452,7 +338,6 @@ function initializeCharts() {
     });
 }
 
-// Función para actualizar el gráfico de tareas asignadas
 async function updateTaskChart() {
     const assignedTasks = await loadSheetData("aseo!A2:F");
     const taskCounts = {
@@ -486,7 +371,6 @@ async function updateTaskChart() {
     taskChart.update();
 }
 
-// Función para actualizar el gráfico de aseos realizados por tipo
 async function updateAttendanceChart() {
     const completedRecords = await loadSheetData("aseo!I2:L");
 
@@ -512,7 +396,6 @@ async function updateAttendanceChart() {
     attendanceChart.update();
 }
 
-// Función para actualizar el gráfico de registros de aseadores
 async function updateAseadoresChart() {
     const completedRecords = await loadSheetData("aseo!I2:L");
 
@@ -547,7 +430,6 @@ async function updateAseadoresChart() {
     aseadoresChart.update();
 }
 
-// Función para inicializar y configurar los gráficos y contadores
 function initializeChartsAndCounters() {
     initializeCharts();
     updateTaskChart();
@@ -556,48 +438,19 @@ function initializeChartsAndCounters() {
     updateCounts();
 }
 
-// Función para actualizar todos los gráficos y contadores
 async function updateAllChartsAndCounters() {
     await loadAssignedTasks();
     await loadCompletedRecords();
-    updateAllCharts();
+    updateTaskChart();
+    updateAttendanceChart();
+    updateAseadoresChart();
     updateCounts();
 }
 
-// -------------------------------
-// Funciones para manejar los modales
-// -------------------------------
-const taskModal = document.getElementById('task-modal');
-const closeTaskModalBtn = document.getElementById('close-task-modal');
-const taskCompletedBtn = document.getElementById('task-completed-btn');
+/**
+ * Funciones para paginación de tablas
+ */
 
-const pendingBusesModal = document.getElementById('pending-buses-modal');
-const closePendingBusesModalBtn = document.getElementById('close-modal');
-const pendingBusesBtn = document.getElementById('pending-buses-btn');
-
-// Cerrar modal de tarea realizada
-closeTaskModalBtn.addEventListener('click', () => {
-    taskModal.style.display = 'none';
-});
-
-// Cerrar modal de buses pendientes
-closePendingBusesModalBtn.addEventListener('click', () => {
-    pendingBusesModal.style.display = 'none';
-});
-
-// Cerrar modales al hacer clic fuera del contenido
-window.addEventListener('click', (event) => {
-    if (event.target === taskModal) {
-        taskModal.style.display = 'none';
-    }
-    if (event.target === pendingBusesModal) {
-        pendingBusesModal.style.display = 'none';
-    }
-});
-
-// -------------------------------
-// Funciones para paginación de tablas
-// -------------------------------
 function paginateTable(tableBody, paginationContainerId, rowsPerPage = 10) {
     const paginationContainer = document.getElementById(paginationContainerId);
     let currentPage = 1;
@@ -633,14 +486,12 @@ function paginateTable(tableBody, paginationContainerId, rowsPerPage = 10) {
     renderTable();
 }
 
-// Inicializar paginación para cada tabla
 function initializePagination() {
     paginateTable(document.getElementById("assigned-tasks-table").querySelector("tbody"), "assignment-pagination");
     paginateTable(document.getElementById("completed-records-table").querySelector("tbody"), "completed-records-pagination");
     paginateTable(document.getElementById("pending-buses-table").querySelector("tbody"), "pending-buses-pagination");
 }
 
-// Observador para detectar cambios en las tablas y actualizar paginación
 function setupTableObservers() {
     const observerOptions = { childList: true };
 
@@ -666,38 +517,43 @@ function setupTableObservers() {
     pendingBusesObserver.observe(document.getElementById("pending-buses-table").querySelector("tbody"), observerOptions);
 }
 
-// -------------------------------
-// Funciones para manejar las alertas
-// -------------------------------
+/**
+ * Funciones para manejar las alertas
+ */
 
-// Ya están definidas las funciones showPersistentAlert y showAlert arriba
+function showPersistentAlert(type, title, message) {
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: type,
+        background: '#1e3d59',
+        color: '#fff',
+        showConfirmButton: true,
+        confirmButtonText: 'Entendido',
+        position: 'top-end',
+        toast: true,
+        timer: 5000,
+        timerProgressBar: true
+    });
+}
 
-// -------------------------------
-// Funciones para manejar los gráficos con Chart.js
-// -------------------------------
+function showAlert(type, title, message) {
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: type,
+        confirmButtonText: 'OK',
+        position: 'top-end',
+        toast: true,
+        timer: 3000,
+        timerProgressBar: true
+    });
+}
+
+/**
+ * Funciones para manejar los gráficos con Chart.js
+ */
 
 // Ya implementadas arriba
 
-// -------------------------------
-// Inicialización y configuración general
-// -------------------------------
-async function initializeData() {
-    await loadAssignedTasks();
-    await loadCompletedRecords();
-    initializeChartsAndCounters();
-    initializePagination();
-    setupTableObservers();
-    setupAutoUpdate();
-}
-
-// Función para configurar la actualización automática cada 5 segundos
-function setupAutoUpdate() {
-    setInterval(async () => {
-        try {
-            await updateAllChartsAndCounters();
-        } catch (error) {
-            console.error("Error en la actualización automática:", error);
-            showAlert('error', 'Error de Actualización', 'Ocurrió un error al actualizar los datos.');
-        }
-    }, 5000); // 5000 ms = 5 segundos
-}
+// Asegúrate de implementar las funciones de gráficos y contadores aquí o en otro archivo si están separados
