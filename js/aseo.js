@@ -400,7 +400,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let taskChart = new Chart(taskChartCtx, {
         type: 'bar',
         data: {
-            labels: ["Laura Soto", "Deisy Toribio", "Virginia Mosquera", "Pierre Joseph", "Galindo Saez", "Laureano Ramirez", "Pamela Andrades", "Hugo Carrasco", "Patricia Cerda", "Gloria Angel", "Paulina Morales", "Daniela Solorza", "Silvia Gonzalez", "Silvia Villalobos", "Daniela Sanchez", "Marisol Aguirre", "Maria Lazcano", "Isaac Maguiña", "Axis Maurice", "Vitel Desrosiers", "Veronica Ortiz", "Tamara Sepulveda", "Ayleen Tabilo"],
+            labels: ["Laura Soto", "Deisy Toribio", "Virginia Mosquera", "Pierre Joseph", "Galindo Saez", "Laureano Ramirez", "Pamela Andrades", "Hugo Carrasco", "Patricia Cerda", "Gloria Angel", "Paulina Morales", "Daniela Solorza", "Silvia Gonzalez", "Silvia Villalobos", "Daniela Sanchez", "Marisol Aguirre", "Maria Lazcano", "Isaac Maguiña", "Axis Maurice", "Vitel Desrosiers", "Veronica Ortiz", "Rosa Smart", "Patricia Quirilao"],
             datasets: [{
                 label: "Registros de Aseadores",
                 data: new Array(21).fill(0),
@@ -457,8 +457,8 @@ document.addEventListener("DOMContentLoaded", function () {
             "Axis Maurice": 0,
             "Vitel Desrosiers": 0,
             "Veronica Ortiz": 0,
-            "Tamara Sepulveda": 0,
-            "Ayleen Tabilo": 0
+            "Rosa Smart": 0,
+            "Patricia Quirilao": 0
         };
 
         // Contar la frecuencia de cada aseador en la columna correspondiente
@@ -483,6 +483,7 @@ document.addEventListener("DOMContentLoaded", function () {
             "Revisado por ICA": 0,
             "Progamado por RTG": 0,
             "Programado por DTPM": 0,
+            "Programado por Inspeccion": 0,
             "Programado por APPLUS": 0
         };
 
