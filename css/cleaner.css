@@ -456,3 +456,32 @@ table th {
         height: 150px !important;
     }
 }
+
+
+/* CSS para mejorar la calidad del gráfico attendanceChart */
+
+#attendanceChart {
+    /* Asegura que el canvas ocupe el 100% del ancho de su contenedor */
+    width: 100% !important;
+    height: auto !important;
+    
+    /* Define un tamaño máximo para evitar que el gráfico se extienda demasiado */
+    max-width: 800px; /* Puedes ajustar este valor según tus necesidades */
+    max-height: 400px; /* Puedes ajustar este valor según tus necesidades */
+    
+    /* Centra el canvas dentro de su contenedor */
+    display: block;
+    margin: 0 auto;
+    
+    /* Añade un borde sutil y una sombra para darle profundidad */
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    
+    /* Fondo blanco para asegurar buena visibilidad */
+    background-color: #fff;
+    
+    /* Mejora la nitidez en pantallas de alta densidad de píxeles */
+    image-rendering: optimizeQuality;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
