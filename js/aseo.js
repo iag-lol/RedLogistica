@@ -4,6 +4,7 @@ const API_KEY = 'AIzaSyDwUO5PpwoNbVbWfKViTEQO8Lnpkl12D5c';
 const SPREADSHEET_ID = '1jzTdEoshxRpuf9kHXI5vQLRtoCsSA-Uw-48JX8LxXaU';
 const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 
+// Inicialización de variables
 let tokenClient;
 let isAuthenticated = false;
 
@@ -68,6 +69,7 @@ function initializeOAuth() {
                 return;
             }
             gapi.client.setToken({ access_token: tokenResponse.access_token });
+            localStorage.setItem('google_access_token', tokenResponse.access_token);
             isAuthenticated = true;
             loadTablesData();
         },
@@ -82,24 +84,6 @@ function initializeOAuth() {
         tokenClient.requestAccessToken({ prompt: 'consent' });
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // -------------------------------
 // Función para cargar los datos de las tablas desde Google Sheets
@@ -283,15 +267,9 @@ async function appendData(range, values) {
 // Inicializar al cargar el DOM
 document.addEventListener("DOMContentLoaded", initializeGapiClient);
 
-
-
-
-
-
-
-
-
-
+// -------------------------------
+// Configuración de gráficos y contadores
+// -------------------------------
 document.addEventListener("DOMContentLoaded", function () {
     const ROWS_PER_PAGE = 10;
 
@@ -339,71 +317,23 @@ document.addEventListener("DOMContentLoaded", function () {
         renderTable();
     }
 
-    // Observador para actualizar la paginación cuando se cambien las filas de la tabla
-    const observer = new MutationObserver(() => {
-        paginateTable(assignmentTableBody, "assignment-pagination");
-        paginateTable(dailyAseoTableBody, "daily-aseo-pagination");
-    });
-
-    // Configura el observador en ambas tablas
-    observer.observe(assignmentTableBody, { childList: true });
-    observer.observe(dailyAseoTableBody, { childList: true });
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-document.addEventListener("DOMContentLoaded", function () {
     // Elementos del DOM para los contadores
     const totalTasksCount = document.getElementById("total-tasks-count");
     const totalAttendanceCount = document.getElementById("total-attendance-count");
 
-    // Elementos del DOM para las tablas
-    const assignmentTableBody = document.getElementById("assignment-table").querySelector("tbody");
-    const dailyAseoTableBody = document.getElementById("daily-aseo-table").querySelector("tbody");
-
-    // Función para contar registros y actualizar los contadores
-    function updateCounts() {
-        totalTasksCount.textContent = assignmentTableBody.rows.length;
-        totalAttendanceCount.textContent = dailyAseoTableBody.rows.length;
-    }
-
     // Configuración de gráficos con Chart.js
     const taskChartCtx = document.getElementById("taskChart").getContext("2d");
     const attendanceChartCtx = document.getElementById("attendanceChart").getContext("2d");
+    const aseadoresChartCtx = document.getElementById("aseadoresChart").getContext("2d"); // Nuevo gráfico
 
+    // Gráfico existente de tareas
     let taskChart = new Chart(taskChartCtx, {
         type: 'bar',
         data: {
             labels: ["Laura Soto","Galindo Saez", "Laureano Ramirez", "Pamela Andrades", "Hugo Carrasco","Gloria Angel","Daniela Solorza", "Silvia Gonzalez", "Silvia Villalobos","Marisol Aguirre", "Maria Lazcano", "Isaac Maguiña", "Axis Maurice", "Vitel Desrosiers", "Veronica Ortiz", "Rosa Smart", "Patricia Quirilao"],
             datasets: [{
                 label: "Registros de Aseadores",
-                data: new Array(21).fill(0),
+                data: new Array(17).fill(0), // Ajusta el tamaño según la cantidad de aseadores
                 backgroundColor: "rgba(255, 99, 132, 0.5)"
             }]
         },
@@ -415,13 +345,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Gráfico existente de asistencia
     let attendanceChart = new Chart(attendanceChartCtx, {
         type: 'bar',
         data: {
-            labels: ["Barrido", "Trapeado", "Barrido y Trapeado","Revisado por Inspeccion",  "Revisado por ICA", "Progamado por RTG", "Programado por DTPM", "Programado por APPLUS"],
+            labels: ["Barrido", "Trapeado", "Barrido y Trapeado","Revisado por Inspeccion",  "Revisado por ICA", "Programado por RTG", "Programado por DTPM", "Programado por APPLUS"],
             datasets: [{
                 label: "Cantidad de Aseos Realizados",
-                data: [0, 0, 0, 0, 0, 0, 0],
+                data: [0, 0, 0, 0, 0, 0, 0, 0],
                 backgroundColor: "rgba(54, 162, 235, 0.5)"
             }]
         },
@@ -433,7 +364,36 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Función para actualizar los datos del gráfico de aseadores
+    // Nuevo Gráfico para Aseadores
+    let aseadoresChart = new Chart(aseadoresChartCtx, {
+        type: 'bar',
+        data: {
+            labels: ["Laura Soto","Galindo Saez", "Laureano Ramirez", "Pamela Andrades", "Hugo Carrasco","Gloria Angel","Daniela Solorza", "Silvia Gonzalez", "Silvia Villalobos","Marisol Aguirre", "Maria Lazcano", "Isaac Maguiña", "Axis Maurice", "Vitel Desrosiers", "Veronica Ortiz", "Rosa Smart", "Patricia Quirilao"],
+            datasets: [{
+                label: "Registros de Ingresos Diarios por Aseador",
+                data: new Array(17).fill(0), // Ajusta el tamaño según la cantidad de aseadores
+                backgroundColor: "rgba(75, 192, 192, 0.5)"
+            }]
+        },
+        options: {
+            responsive: true,
+            animation: {
+                duration: 500, // Animación suave
+                easing: 'easeOutQuad'
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Función para contar registros y actualizar los contadores
+    function updateCounts() {
+        totalTasksCount.textContent = assignmentTableBody.rows.length;
+        totalAttendanceCount.textContent = dailyAseoTableBody.rows.length;
+    }
+
+    // Función para actualizar los datos del gráfico de tareas
     function updateTaskChart() {
         const cleanerCounts = {
             "Laura Soto": 0,
@@ -458,7 +418,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Contar la frecuencia de cada aseador en la columna correspondiente
         Array.from(assignmentTableBody.rows).forEach(row => {
             const aseadorName = row.cells[0].textContent; // Suponiendo que la columna de aseadores es la primera
-            if (cleanerCounts[aseadorName] !== undefined) {
+            if (cleanerCounts.hasOwnProperty(aseadorName)) {
                 cleanerCounts[aseadorName]++;
             }
         });
@@ -474,9 +434,9 @@ document.addEventListener("DOMContentLoaded", function () {
             "Barrido": 0,
             "Trapeado": 0,
             "Barrido y Trapeado": 0,
-            "Programado por Inspeccion": 0,
+            "Revisado por Inspeccion": 0,
             "Revisado por ICA": 0,
-            "Progamado por RTG": 0,
+            "Programado por RTG": 0,
             "Programado por DTPM": 0,
             "Programado por APPLUS": 0
         };
@@ -484,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Contar la frecuencia de cada tipo de aseo en la columna correspondiente
         Array.from(dailyAseoTableBody.rows).forEach(row => {
             const aseoType = row.cells[2].textContent; // Suponiendo que la columna de tipo de aseo es la tercera
-            if (aseoCounts[aseoType] !== undefined) {
+            if (aseoCounts.hasOwnProperty(aseoType)) {
                 aseoCounts[aseoType]++;
             }
         });
@@ -494,11 +454,62 @@ document.addEventListener("DOMContentLoaded", function () {
         attendanceChart.update();
     }
 
+    // Función para actualizar el gráfico de aseadores
+    async function updateAseadoresChart() {
+        try {
+            const dailyAseoData = await loadSheetData('aseo!I2:L'); // Ajusta el rango según tus datos
+            const aseadoresCount = {
+                "Laura Soto": 0,
+                "Galindo Saez": 0,
+                "Laureano Ramirez": 0,
+                "Pamela Andrades": 0,
+                "Hugo Carrasco": 0,
+                "Gloria Angel": 0,
+                "Daniela Solorza": 0,
+                "Silvia Gonzalez": 0,
+                "Silvia Villalobos": 0,
+                "Marisol Aguirre": 0,
+                "Maria Lazcano": 0,
+                "Isaac Maguiña": 0,
+                "Axis Maurice": 0,
+                "Vitel Desrosiers": 0,
+                "Veronica Ortiz": 0,
+                "Rosa Smart": 0,
+                "Patricia Quirilao": 0
+            };
+
+            // Contar la frecuencia de cada aseador en la columna correspondiente
+            dailyAseoData.forEach(row => {
+                const aseadorName = row[1]; // Suponiendo que el nombre del aseador está en la segunda columna (índice 1)
+                if (aseadoresCount.hasOwnProperty(aseadorName)) {
+                    aseadoresCount[aseadorName]++;
+                }
+            });
+
+            // Actualizar los datos del gráfico de aseadores
+            aseadoresChart.data.datasets[0].data = Object.values(aseadoresCount);
+            aseadoresChart.update();
+        } catch (error) {
+            console.error("Error al actualizar el gráfico de aseadores:", error);
+        }
+    }
+
+    // Función para actualizar todos los gráficos
+    async function updateAllCharts() {
+        updateTaskChart();
+        updateAttendanceChart();
+        await updateAseadoresChart();
+    }
+
+    // Configurar la actualización automática cada 5 segundos
+    setInterval(updateAllCharts, 5000);
+
     // Observador para detectar cambios en las tablas y actualizar contadores y gráficos
     const observer = new MutationObserver(() => {
         updateCounts();
         updateTaskChart();
         updateAttendanceChart();
+        updateAseadoresChart();
     });
 
     // Configura el observador en ambas tablas
@@ -509,4 +520,5 @@ document.addEventListener("DOMContentLoaded", function () {
     updateCounts();
     updateTaskChart();
     updateAttendanceChart();
+    updateAseadoresChart();
 });
