@@ -10,50 +10,50 @@ function playSound(soundPath) {
     });
 }
 
-// Función para mostrar alertas mejoradas con SweetAlert2
-function showAlert(type, title, message) {
-    Swal.fire({
-        title: title,
-        text: message,
-        icon: type, // 'success', 'error', 'warning', 'info', 'question'
-        confirmButtonText: 'OK',
-        position: 'top-end',
-        toast: true,
-        timer: 5000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        background: type === 'success' ? '#d4edda' :
-                   type === 'error' ? '#f8d7da' :
-                   type === 'warning' ? '#fff3cd' :
-                   '#cce5ff',
-        color: '#333',
-        customClass: {
-            popup: 'animated fadeInDown'
-        }
-    });
-}
-
-// Función para mostrar alertas persistentes hasta que el usuario las cierre
+// Función para mostrar alerta flotante persistente hasta que el usuario la cierre
 function showPersistentAlert(type, title, message) {
+    let icon, color, soundPath;
+
+    switch (type) {
+        case 'info':
+            icon = 'info';
+            color = '#17a2b8';
+            soundPath = '/sounds/nueva-tarea.mp3';
+            break;
+        case 'success':
+            icon = 'success';
+            color = '#28a745';
+            soundPath = '/sounds/success.mp3';
+            break;
+        case 'warning':
+            icon = 'warning';
+            color = '#ffc107';
+            soundPath = '/sounds/warning.mp3';
+            break;
+        case 'error':
+            icon = 'error';
+            color = '#dc3545';
+            soundPath = '/sounds/error.mp3';
+            break;
+        default:
+            icon = 'info';
+            color = '#17a2b8';
+    }
+
     Swal.fire({
         title: title,
         text: message,
-        icon: type, // 'success', 'error', 'warning', 'info', 'question'
+        icon: icon,
+        background: color,
+        color: '#fff',
         showConfirmButton: true,
         confirmButtonText: 'Entendido',
         position: 'top-end',
         toast: true,
-        background: type === 'success' ? '#d4edda' :
-                   type === 'error' ? '#f8d7da' :
-                   type === 'warning' ? '#fff3cd' :
-                   '#cce5ff',
-        color: '#333',
-        customClass: {
-            popup: 'animated fadeInDown'
-        }
+        timerProgressBar: true
     }).then(() => {
-        if (type === 'info') {
-            playSound('/sounds/nueva-tarea.mp3'); // Asegúrate de que esta ruta sea correcta
+        if (soundPath) {
+            playSound(soundPath);
         }
     });
 }
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const connectionStatus = document.getElementById("connection-status");
 
     if (currentUser) {
-        usernameDisplay.textContent = currentUser;
+        usernameDisplay.textContent = currentUser.toUpperCase(); // Convertir a mayúsculas
     } else {
         usernameDisplay.textContent = "Usuario no identificado";
     }
@@ -81,62 +81,32 @@ document.addEventListener("DOMContentLoaded", async function () {
     } else {
         connectionStatus.textContent = 'DESCONECTADO';
         connectionStatus.classList.remove('connected');
-        showAlert("error", "Autenticación Fallida", "No se pudo autenticar con Google Sheets");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de Autenticación',
+            text: 'No se pudo autenticar con Google Sheets.',
+        });
     }
 
-    // Event Listener para el formulario de registro de aseo
     document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         await registerAseo();
     });
 
-    // Event Listener para el botón de buses pendientes
     document.getElementById("pending-buses-btn").addEventListener("click", () => {
         document.getElementById("pending-buses-modal").style.display = "flex";
         loadPendingBuses();
     });
 
-    // Event Listener para cerrar el modal de buses pendientes
     document.getElementById("close-modal").addEventListener("click", () => {
         document.getElementById("pending-buses-modal").style.display = "none";
     });
-
-    // Event Listener para clicks en filas de buses pendientes
-    document.getElementById("pending-buses-table").querySelector("tbody").addEventListener("click", (e) => {
-        const row = e.target.closest("tr");
-        if (row) {
-            const ppuBus = row.cells[0].textContent.trim();
-            const busIdInput = document.getElementById("bus-id");
-            busIdInput.value = ppuBus.toUpperCase(); // Colocar PPU en mayúsculas
-            document.getElementById("pending-buses-modal").style.display = "none"; // Cerrar modal
-            showAlert("info", "PPU Seleccionado", `El PPU ${ppuBus} ha sido seleccionado para registro.`);
-        }
-    });
-
-    // Event Listener para cerrar el modal de tarea realizada
-    document.getElementById("close-task-modal").addEventListener("click", () => {
-        document.getElementById("task-modal").style.display = "none";
-    });
-
-    // Event Listener para marcar tarea como realizada
-    document.getElementById("task-completed-btn").addEventListener("click", async () => {
-        const taskId = document.getElementById("task-modal").getAttribute('data-task-id');
-        if (taskId) {
-            await markTaskAsCompleted(taskId);
-            showAlert("success", "Tarea Completada", "La tarea ha sido marcada como realizada.");
-            document.getElementById("task-modal").style.display = "none";
-            await loadAssignedTasks(); // Recargar tareas asignadas
-            await loadCompletedRecords(); // Recargar registros realizados
-        } else {
-            showAlert("warning", "Error", "No se pudo identificar la tarea.");
-        }
-    });
-
-    // Convertir automáticamente a mayúsculas el input de PPU
-    document.getElementById("bus-id").addEventListener("input", (e) => {
-        e.target.value = e.target.value.toUpperCase();
-    });
 });
+
+async function initializeData() {
+    await loadAssignedTasks();
+    await loadCompletedRecords();
+}
 
 // Función para verificar el estado de conexión y actualizar visualmente
 function checkConnectionStatus() {
@@ -154,14 +124,14 @@ function checkConnectionStatus() {
     }
 
     const username = localStorage.getItem('username');
-    usernameElement.textContent = username || 'Usuario desconocido';
+    usernameElement.textContent = username ? username.toUpperCase() : 'USUARIO DESCONOCIDO';
 }
 
 // Cargar asignación y hora de colación desde Google Sheets
 async function loadAssignmentAndBreakTime(username) {
     const cleanerData = await loadSheetData("cleaner!A2:C");
-    const userData = cleanerData.find(row => row[0] === username);
-    
+    const userData = cleanerData.find(row => row[0].toUpperCase() === username.toUpperCase());
+
     if (userData) {
         document.getElementById("assignment-display").textContent = userData[1];
         document.getElementById("break-time-display").textContent = userData[2];
@@ -172,95 +142,117 @@ async function loadAssignmentAndBreakTime(username) {
 }
 
 let lastTaskIds = new Set();
-
-// Inicializar datos cargados
-async function initializeData() {
-    await loadAssignedTasks();
-    await loadCompletedRecords();
-}
+let lastCompletedIds = new Set();
+let lastPendingBusIds = new Set();
 
 // Cargar tareas asignadas para el usuario
 async function loadAssignedTasks() {
     const tasksTable = document.getElementById("assigned-tasks-table").querySelector("tbody");
     const assignedTasks = await loadSheetData("aseo!A2:F");
-    const currentUser = localStorage.getItem("username");
+    const currentUser = localStorage.getItem("username").toUpperCase();
 
-    const userTasks = assignedTasks.filter(task => task[0] === currentUser);
+    const userTasks = assignedTasks.filter(task => task[0].toUpperCase() === currentUser);
     const newTaskIds = new Set(userTasks.map(task => task[1])); // IDs actuales de tareas
 
     // Mostrar nuevas tareas sin borrar toda la tabla
     userTasks.forEach(task => {
         if (!lastTaskIds.has(task[1])) {
             const tr = document.createElement("tr");
-            tr.setAttribute('data-task-id', task[1]); // Asignar ID de tarea al atributo data
-            ["0", "2", "4"].forEach(i => { // PPU BUS, Tarea, Fecha Límite (A, C, E)
+            ["0", "1", "4"].forEach(i => { // PPU BUS, Tarea, Fecha Límite
                 const td = document.createElement("td");
                 td.textContent = task[i];
                 tr.appendChild(td);
             });
+            tr.dataset.taskId = task[1];
             tr.addEventListener("click", () => openTaskModal(task));
             tasksTable.appendChild(tr);
             showPersistentAlert('info', 'Nueva Asignación', 'Tienes nuevas tareas asignadas.');
         }
     });
 
-    // Quitar tareas que ya no están
-    Array.from(tasksTable.rows).forEach(row => {
-        const taskId = row.getAttribute('data-task-id');
-        if (!newTaskIds.has(taskId)) {
-            row.remove();
-        }
-    });
+    // Quitar tareas que ya no están (opcional, dependiendo de la lógica)
+    // Array.from(tasksTable.rows).forEach(row => {
+    //     const taskId = row.dataset.taskId;
+    //     if (!newTaskIds.has(taskId)) {
+    //         row.remove();
+    //     }
+    // });
 
     lastTaskIds = newTaskIds;
+
+    // Actualizar gráficos y contadores
+    updateCounts();
+    updateTaskChart();
 }
 
 // Abrir modal de tarea realizada
 function openTaskModal(task) {
-    const taskModal = document.getElementById("task-modal");
-    taskModal.setAttribute('data-task-id', task[1]);
-    taskModal.style.display = "flex";
+    Swal.fire({
+        title: 'Confirmación de Tarea',
+        text: `¿Marcar la tarea "${task[2]}" en el bus "${task[0]}" como realizada?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Realizado',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#dc3545'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            await markTaskAsCompleted(task);
+            showPersistentAlert('success', 'Tarea Realizada', 'La tarea ha sido marcada como realizada.');
+            loadAssignedTasks(); // Recargar la tabla de asignadas
+            loadCompletedRecords(); // Recargar la tabla de completadas
+        }
+    });
 }
 
 // Marcar tarea como realizada
-async function markTaskAsCompleted(taskId) {
-    // Obtener los datos de la tarea
-    const assignedTasks = await loadSheetData("aseo!A2:F");
-    const task = assignedTasks.find(row => row[1] === taskId);
+async function markTaskAsCompleted(task) {
+    // Añadir la tarea a la tabla de completadas
+    const completedRecordsTable = document.getElementById("completed-records-table").querySelector("tbody");
+    const tr = document.createElement("tr");
+    [0, 1, 2, 4].forEach(i => { // PPU BUS, Cleaner (usuario), Aseo Realizado, Fecha
+        const td = document.createElement("td");
+        td.textContent = (i === 1) ? localStorage.getItem("username").toUpperCase() : task[i];
+        tr.appendChild(td);
+    });
+    completedRecordsTable.appendChild(tr);
 
-    if (task) {
-        // Agregar la tarea a los registros realizados
-        const completedValues = [[task[0], task[2], task[3], getCurrentDateTime()]];
-        await appendData("aseo!I2:L", completedValues);
-
-        // Actualizar la tarea en asignaciones como "Realizada"
-        const rowIndex = assignedTasks.indexOf(task) + 2; // +2 porque las hojas de cálculo comienzan en 1 y hay encabezados
-        const updateRange = `aseo!F${rowIndex}`; // Columna F para el estado
-        await updateSheetData(updateRange, [["Realizada"]]);
-    } else {
-        showAlert("error", "Error", "No se encontró la tarea para marcar como realizada.");
-    }
+    // Eliminar la tarea de Google Sheets (marcar como realizada)
+    await updateSheetData(`aseo!D${task.rowNumber}`, [["Realizado"]]); // Asumiendo que la columna D es el estado
 }
 
-// Obtener la fecha y hora actual en formato 'DD/MM/YYYY HH:MM:SS'
-function getCurrentDateTime() {
-    const now = new Date();
-    const day = String(now.getDate()).padStart(2, '0');
-    const month = String(now.getMonth() + 1).padStart(2, '0'); // Enero es 0
-    const year = now.getFullYear();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+// Cargar registros completados
+async function loadCompletedRecords() {
+    const recordsTable = document.getElementById("completed-records-table").querySelector("tbody");
+    const completedRecords = await loadSheetData("aseo!I2:L");
+    const currentUser = localStorage.getItem("username").toUpperCase();
+
+    const userCompleted = completedRecords.filter(record => record[1].toUpperCase() === currentUser);
+    const newCompletedIds = new Set(userCompleted.map(record => record[1])); // IDs únicos si aplica
+
+    // Mostrar nuevos registros sin borrar toda la tabla
+    userCompleted.forEach(record => {
+        if (!lastCompletedIds.has(record[1])) {
+            const tr = document.createElement("tr");
+            record.forEach(cellData => {
+                const td = document.createElement("td");
+                td.textContent = cellData;
+                tr.appendChild(td);
+            });
+            recordsTable.appendChild(tr);
+        }
+    });
+
+    lastCompletedIds = newCompletedIds;
+
+    // Actualizar gráficos y contadores
+    updateCounts();
+    updateAttendanceChart();
+    updateAseadoresChart();
 }
 
-// Borrar tarea de Google Sheets (Ahora se marca como realizada)
-async function deleteTask(taskId) {
-    // Ya no se usa esta función porque ahora movemos la tarea a completadas
-    // Mantenerla en caso de futuras modificaciones
-}
-
-// Actualizar tareas asignadas
+// Actualizar tareas
 async function updateAssignedTasks() {
     await loadAssignedTasks();
 }
@@ -269,51 +261,35 @@ async function updateAssignedTasks() {
 async function registerAseo() {
     const busIdInput = document.getElementById("bus-id");
     const aseoType = document.getElementById("aseo-type").value;
-    const cleanerName = localStorage.getItem("username");
+    const dateInput = document.getElementById("date");
 
-    if (!cleanerName) {
-        showAlert("error", "Error", "Usuario no identificado.");
+    const busId = busIdInput.value.trim().toUpperCase(); // Convertir a mayúsculas
+    const aseoRealizado = aseoType;
+    const fecha = dateInput.value;
+
+    if (!busId || !aseoRealizado || !fecha) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campos Incompletos',
+            text: 'Por favor, completa todos los campos del formulario de aseo.',
+        });
         return;
     }
 
-    // Obtener la fecha y hora actual en formato 24 horas
-    const date = getCurrentDateTime();
-
-    const values = [[busIdInput.value, cleanerName, aseoType, date]];
+    const values = [[busId, localStorage.getItem("username").toUpperCase(), aseoRealizado, fecha]];
     await appendData("aseo!I2:L", values);
     loadCompletedRecords();
 
-    // Mostrar alerta de éxito y limpiar el campo bus-id
+    // Mostrar alerta de éxito y limpiar el formulario
     Swal.fire({
-        title: 'Registro exitoso',
+        title: 'Registro Exitoso',
         text: 'Se ha registrado el aseo correctamente.',
         icon: 'success',
         confirmButtonText: 'OK'
     }).then(() => {
-        busIdInput.value = ""; // Limpiar solo el campo de bus-id después de la confirmación
-    });
-}
-
-// Cargar registros realizados para el usuario
-async function loadCompletedRecords() {
-    const recordsTable = document.getElementById("completed-records-table").querySelector("tbody");
-    const recordsData = await loadSheetData("aseo!I2:L");
-    const currentUser = localStorage.getItem("username");
-
-    // Filtrar registros realizados por el usuario
-    const userRecords = recordsData.filter(record => record[1] === currentUser);
-
-    // Limpiar la tabla antes de cargar los nuevos registros
-    recordsTable.innerHTML = "";
-
-    userRecords.forEach(row => {
-        const tr = document.createElement("tr");
-        row.forEach(cellData => {
-            const td = document.createElement("td");
-            td.textContent = cellData;
-            tr.appendChild(td);
-        });
-        recordsTable.appendChild(tr);
+        busIdInput.value = "";
+        aseoType.selectedIndex = 0;
+        dateInput.value = "";
     });
 }
 
@@ -321,17 +297,471 @@ async function loadCompletedRecords() {
 async function loadPendingBuses() {
     const pendingBusesTable = document.getElementById("pending-buses-table").querySelector("tbody");
     const pendingBusesData = await loadSheetData("cleaner!A2:C");
+    const currentUser = localStorage.getItem("username").toUpperCase();
 
-    // Limpiar la tabla antes de cargar los nuevos datos
-    pendingBusesTable.innerHTML = "";
+    const userPendingBuses = pendingBusesData.filter(bus => bus[0].toUpperCase() === currentUser);
+    const newPendingBusIds = new Set(userPendingBuses.map(bus => bus[0])); // IDs únicos
 
-    pendingBusesData.forEach(row => {
-        const tr = document.createElement("tr");
-        row.forEach(cellData => {
-            const td = document.createElement("td");
-            td.textContent = cellData;
-            tr.appendChild(td);
-        });
-        pendingBusesTable.appendChild(tr);
+    // Mostrar nuevos buses pendientes sin borrar toda la tabla
+    userPendingBuses.forEach(bus => {
+        if (!lastPendingBusIds.has(bus[0])) {
+            const tr = document.createElement("tr");
+            bus.forEach(cellData => {
+                const td = document.createElement("td");
+                td.textContent = cellData;
+                tr.appendChild(td);
+            });
+            tr.addEventListener("click", () => populateBusId(bus[0]));
+            pendingBusesTable.appendChild(tr);
+            showPersistentAlert('info', 'Nuevo Bus Pendiente', `Bus ${bus[0]} tiene una tarea pendiente.`);
+        }
+    });
+
+    lastPendingBusIds = newPendingBusIds;
+}
+
+// Función para llenar automáticamente el input de PPU Bus al clicar en un bus pendiente
+function populateBusId(busId) {
+    const busIdInput = document.getElementById("bus-id");
+    busIdInput.value = busId.toUpperCase();
+    document.getElementById("pending-buses-modal").style.display = "none";
+}
+
+// Función para actualizar contadores
+function updateCounts() {
+    const totalTasksCount = document.getElementById("total-tasks-count");
+    const totalAttendanceCount = document.getElementById("total-attendance-count");
+    const assignedTasksCount = document.getElementById("assigned-tasks-table").querySelector("tbody").rows.length;
+    const completedRecordsCount = document.getElementById("completed-records-table").querySelector("tbody").rows.length;
+
+    totalTasksCount.textContent = assignedTasksCount;
+    totalAttendanceCount.textContent = completedRecordsCount;
+}
+
+// -------------------------------
+// Funciones para manejar los gráficos con Chart.js
+// -------------------------------
+
+let taskChart, attendanceChart, aseadoresChart;
+
+function initializeCharts() {
+    const taskChartCtx = document.getElementById("taskChart").getContext("2d");
+    const attendanceChartCtx = document.getElementById("attendanceChart").getContext("2d");
+    const aseadoresChartCtx = document.getElementById("aseadoresChart").getContext("2d");
+
+    // Gráfico de Tareas Asignadas
+    taskChart = new Chart(taskChartCtx, {
+        type: 'bar',
+        data: {
+            labels: ["LAURA SOTO", "GALINDO SAEZ", "LAUREANO RAMIREZ", "PAMELA ANDRADES", "HUGO CARRASCO", "GLORIA ANGEL", "DANIELA SOLORZA", "SILVIA GONZALEZ", "SILVIA VILLALOBOS", "MARISOL AGUIRRE", "MARIA LAZCANO", "ISAAC MAGUINA", "AXIS MAURICE", "VITEL DESROSIERS", "VERONICA ORTIZ", "ROSA SMART", "PATRICIA QUIRILAO"],
+            datasets: [{
+                label: "Tareas Asignadas",
+                data: new Array(17).fill(0),
+                backgroundColor: "rgba(30, 61, 89, 0.7)"
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Tareas Asignadas por Aseador'
+                }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Gráfico de Aseos Realizados por Tipo
+    attendanceChart = new Chart(attendanceChartCtx, {
+        type: 'bar',
+        data: {
+            labels: ["Barrido", "Trapeado", "Barrido y Trapeado", "Buses por Inspección", "Revisado por ICA", "Programado por RTG", "Programado por DTPM", "Programado por APPLUS"],
+            datasets: [{
+                label: "Aseos Realizados",
+                data: [0, 0, 0, 0, 0, 0, 0, 0],
+                backgroundColor: "rgba(23, 162, 184, 0.7)"
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Aseos Realizados por Tipo'
+                }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Gráfico de Registros de Aseadores
+    aseadoresChart = new Chart(aseadoresChartCtx, {
+        type: 'bar',
+        data: {
+            labels: ["LAURA SOTO", "GALINDO SAEZ", "LAUREANO RAMIREZ", "PAMELA ANDRADES", "HUGO CARRASCO", "GLORIA ANGEL", "DANIELA SOLORZA", "SILVIA GONZALEZ", "SILVIA VILLALOBOS", "MARISOL AGUIRRE", "MARIA LAZCANO", "ISAAC MAGUINA", "AXIS MAURICE", "VITEL DESROSIERS", "VERONICA ORTIZ", "ROSA SMART", "PATRICIA QUIRILAO"],
+            datasets: [{
+                label: "Registros de Aseos",
+                data: new Array(17).fill(0),
+                backgroundColor: "rgba(75, 192, 192, 0.7)"
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Registros de Aseos por Aseador'
+                }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
     });
 }
+
+// Función para actualizar el gráfico de tareas asignadas
+async function updateTaskChart() {
+    const assignedTasks = await loadSheetData("aseo!A2:F");
+    const currentUser = localStorage.getItem("username").toUpperCase();
+
+    const taskCounts = {
+        "LAURA SOTO": 0,
+        "GALINDO SAEZ": 0,
+        "LAUREANO RAMIREZ": 0,
+        "PAMELA ANDRADES": 0,
+        "HUGO CARRASCO": 0,
+        "GLORIA ANGEL": 0,
+        "DANIELA SOLORZA": 0,
+        "SILVIA GONZALEZ": 0,
+        "SILVIA VILLALOBOS": 0,
+        "MARISOL AGUIRRE": 0,
+        "MARIA LAZCANO": 0,
+        "ISAAC MAGUINA": 0,
+        "AXIS MAURICE": 0,
+        "VITEL DESROSIERS": 0,
+        "VERONICA ORTIZ": 0,
+        "ROSA SMART": 0,
+        "PATRICIA QUIRILAO": 0
+    };
+
+    assignedTasks.forEach(task => {
+        const cleanerName = task[0].toUpperCase();
+        if (taskCounts.hasOwnProperty(cleanerName)) {
+            taskCounts[cleanerName]++;
+        }
+    });
+
+    taskChart.data.datasets[0].data = Object.values(taskCounts);
+    taskChart.update();
+}
+
+// Función para actualizar el gráfico de aseos realizados por tipo
+async function updateAttendanceChart() {
+    const completedRecords = await loadSheetData("aseo!I2:L");
+
+    const aseoCounts = {
+        "Barrido": 0,
+        "Trapeado": 0,
+        "Barrido y Trapeado": 0,
+        "Buses por Inspección": 0,
+        "Revisado por ICA": 0,
+        "Programado por RTG": 0,
+        "Programado por DTPM": 0,
+        "Programado por APPLUS": 0
+    };
+
+    completedRecords.forEach(record => {
+        const aseoType = record[2];
+        if (aseoCounts.hasOwnProperty(aseoType)) {
+            aseoCounts[aseoType]++;
+        }
+    });
+
+    attendanceChart.data.datasets[0].data = Object.values(aseoCounts);
+    attendanceChart.update();
+}
+
+// Función para actualizar el gráfico de registros de aseadores
+async function updateAseadoresChart() {
+    const completedRecords = await loadSheetData("aseo!I2:L");
+
+    const aseadoresCount = {
+        "LAURA SOTO": 0,
+        "GALINDO SAEZ": 0,
+        "LAUREANO RAMIREZ": 0,
+        "PAMELA ANDRADES": 0,
+        "HUGO CARRASCO": 0,
+        "GLORIA ANGEL": 0,
+        "DANIELA SOLORZA": 0,
+        "SILVIA GONZALEZ": 0,
+        "SILVIA VILLALOBOS": 0,
+        "MARISOL AGUIRRE": 0,
+        "MARIA LAZCANO": 0,
+        "ISAAC MAGUINA": 0,
+        "AXIS MAURICE": 0,
+        "VITEL DESROSIERS": 0,
+        "VERONICA ORTIZ": 0,
+        "ROSA SMART": 0,
+        "PATRICIA QUIRILAO": 0
+    };
+
+    completedRecords.forEach(record => {
+        const cleanerName = record[1].toUpperCase();
+        if (aseadoresCount.hasOwnProperty(cleanerName)) {
+            aseadoresCount[cleanerName]++;
+        }
+    });
+
+    aseadoresChart.data.datasets[0].data = Object.values(aseadoresCount);
+    aseadoresChart.update();
+}
+
+// Función para inicializar y configurar los gráficos y contadores
+function initializeChartsAndCounters() {
+    initializeCharts();
+    updateTaskChart();
+    updateAttendanceChart();
+    updateAseadoresChart();
+    updateCounts();
+}
+
+// Función para actualizar todos los gráficos
+function updateAllCharts() {
+    updateTaskChart();
+    updateAttendanceChart();
+    updateAseadoresChart();
+}
+
+// -------------------------------
+// Funciones para manejar los modales
+// -------------------------------
+const taskModal = document.getElementById('task-modal');
+const closeTaskModalBtn = document.getElementById('close-task-modal');
+const taskCompletedBtn = document.getElementById('task-completed-btn');
+
+const pendingBusesModal = document.getElementById('pending-buses-modal');
+const closePendingBusesModalBtn = document.getElementById('close-modal');
+const pendingBusesBtn = document.getElementById('pending-buses-btn');
+
+// Cerrar modal de tarea realizada
+closeTaskModalBtn.addEventListener('click', () => {
+    taskModal.style.display = 'none';
+});
+
+// Cerrar modal de buses pendientes
+closePendingBusesModalBtn.addEventListener('click', () => {
+    pendingBusesModal.style.display = 'none';
+});
+
+// Cerrar modales al hacer clic fuera del contenido
+window.addEventListener('click', (event) => {
+    if (event.target === taskModal) {
+        taskModal.style.display = 'none';
+    }
+    if (event.target === pendingBusesModal) {
+        pendingBusesModal.style.display = 'none';
+    }
+});
+
+// -------------------------------
+// Funciones para paginación de tablas
+// -------------------------------
+function paginateTable(tableBody, paginationContainerId, rowsPerPage = 10) {
+    const paginationContainer = document.getElementById(paginationContainerId);
+    let currentPage = 1;
+
+    function renderTable() {
+        const rows = Array.from(tableBody.rows);
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+        // Ocultar todas las filas
+        rows.forEach((row, index) => {
+            row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
+        });
+
+        // Limpiar paginación
+        paginationContainer.innerHTML = "";
+
+        // Crear botones de paginación
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement("button");
+            pageButton.textContent = i;
+            pageButton.classList.add("pagination-button");
+            if (i === currentPage) pageButton.classList.add("active");
+
+            pageButton.addEventListener("click", () => {
+                currentPage = i;
+                renderTable();
+            });
+
+            paginationContainer.appendChild(pageButton);
+        }
+    }
+
+    renderTable();
+}
+
+// Inicializar paginación para cada tabla
+function initializePagination() {
+    paginateTable(document.getElementById("assigned-tasks-table").querySelector("tbody"), "assignment-pagination");
+    paginateTable(document.getElementById("completed-records-table").querySelector("tbody"), "completed-records-pagination");
+    paginateTable(document.getElementById("pending-buses-table").querySelector("tbody"), "pending-buses-pagination");
+}
+
+// Observador para detectar cambios en las tablas y actualizar paginación
+function setupTableObservers() {
+    const observerOptions = { childList: true };
+
+    const assignmentObserver = new MutationObserver(() => {
+        paginateTable(document.getElementById("assigned-tasks-table").querySelector("tbody"), "assignment-pagination");
+        updateCounts();
+        updateTaskChart();
+    });
+
+    const completedRecordsObserver = new MutationObserver(() => {
+        paginateTable(document.getElementById("completed-records-table").querySelector("tbody"), "completed-records-pagination");
+        updateCounts();
+        updateAttendanceChart();
+        updateAseadoresChart();
+    });
+
+    const pendingBusesObserver = new MutationObserver(() => {
+        paginateTable(document.getElementById("pending-buses-table").querySelector("tbody"), "pending-buses-pagination");
+    });
+
+    assignmentObserver.observe(document.getElementById("assigned-tasks-table").querySelector("tbody"), observerOptions);
+    completedRecordsObserver.observe(document.getElementById("completed-records-table").querySelector("tbody"), observerOptions);
+    pendingBusesObserver.observe(document.getElementById("pending-buses-table").querySelector("tbody"), observerOptions);
+}
+
+// -------------------------------
+// Funciones para manejar las alertas
+// -------------------------------
+function showAlert(type, title, message) {
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: type,
+        confirmButtonText: 'OK',
+        position: 'top-end',
+        toast: true,
+        timer: 3000,
+        timerProgressBar: true
+    });
+}
+
+// Función para manejar la transición de tareas de pendientes a realizadas
+async function handleTaskCompletion(taskId) {
+    // Implementar lógica para mover la tarea de asignadas a completadas en Google Sheets
+    // Por ejemplo, actualizar el estado de la tarea
+    await updateSheetData(`aseo!D${taskId}`, [["Realizado"]]);
+    showAlert('success', 'Tarea Realizada', 'La tarea ha sido marcada como realizada.');
+    loadAssignedTasks();
+    loadCompletedRecords();
+}
+
+// Función para manejar clics en buses pendientes
+function handlePendingBusClick(busId) {
+    const busIdInput = document.getElementById("bus-id");
+    busIdInput.value = busId.toUpperCase();
+    pendingBusesModal.style.display = 'none';
+}
+
+// -------------------------------
+// Funciones para manejar los gráficos con Chart.js
+// Ya implementadas arriba
+// -------------------------------
+
+// Función para cargar buses pendientes desde Google Sheets
+async function loadPendingBuses() {
+    const pendingBusesTable = document.getElementById("pending-buses-table").querySelector("tbody");
+    const pendingBusesData = await loadSheetData("cleaner!A2:C");
+    const currentUser = localStorage.getItem("username").toUpperCase();
+
+    const userPendingBuses = pendingBusesData.filter(bus => bus[0].toUpperCase() === currentUser);
+    const newPendingBusIds = new Set(userPendingBuses.map(bus => bus[0].toUpperCase())); // IDs únicos
+
+    // Mostrar nuevos buses pendientes sin duplicados
+    userPendingBuses.forEach(bus => {
+        if (!lastPendingBusIds.has(bus[0].toUpperCase())) {
+            const tr = document.createElement("tr");
+            bus.forEach(cellData => {
+                const td = document.createElement("td");
+                td.textContent = cellData;
+                tr.appendChild(td);
+            });
+            tr.addEventListener("click", () => handlePendingBusClick(bus[0]));
+            pendingBusesTable.appendChild(tr);
+            showPersistentAlert('info', 'Nuevo Bus Pendiente', `Bus ${bus[0]} tiene una tarea pendiente.`);
+        }
+    });
+
+    lastPendingBusIds = newPendingBusIds;
+
+    // Actualizar paginación si es necesario
+    paginateTable(pendingBusesTable, "pending-buses-pagination");
+}
+
+// -------------------------------
+// Inicialización y configuración general
+// -------------------------------
+async function initializeData() {
+    await loadAssignedTasks();
+    await loadCompletedRecords();
+    initializeChartsAndCounters();
+    initializePagination();
+    setupTableObservers();
+}
+
+// Función para actualizar todos los gráficos y contadores
+async function updateAllChartsAndCounters() {
+    await loadAssignedTasks();
+    await loadCompletedRecords();
+    updateAllCharts();
+    updateCounts();
+}
+
+// Configurar la actualización automática cada 5 segundos
+function setupAutoUpdate() {
+    setInterval(async () => {
+        try {
+            await updateAllChartsAndCounters();
+        } catch (error) {
+            console.error("Error en la actualización automática:", error);
+            showAlert('error', 'Error de Actualización', 'Ocurrió un error al actualizar los datos.');
+        }
+    }, 5000); // 5000 ms = 5 segundos
+}
+
+// -------------------------------
+// Eventos de Formularios y Botones
+// -------------------------------
+
+// Manejar envío del formulario de tareas asignadas (si existe)
+document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    await registerAseo();
+});
+
+// Manejar clic en botón de buses pendientes
+document.getElementById("pending-buses-btn").addEventListener("click", () => {
+    document.getElementById("pending-buses-modal").style.display = "flex";
+    loadPendingBuses();
+});
+
+// Manejar cierre de modal de buses pendientes
+document.getElementById("close-modal").addEventListener("click", () => {
+    document.getElementById("pending-buses-modal").style.display = "none";
+});
