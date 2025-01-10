@@ -1,6 +1,14 @@
 // cleaner.js
 
-import { initializeGapiClient, loadSheetData, appendData, updateSheetData, isUserAuthenticated, redirectToRolePage, handleLogout } from '/RedLogistica/api/googleSheets.js';
+import { 
+    initializeGapiClient, 
+    loadSheetData, 
+    appendData, 
+    updateSheetData, 
+    isUserAuthenticated, 
+    redirectToRolePage, 
+    handleLogout 
+} from '/RedLogistica/api/googleSheets.js';
 
 let lastTaskIds = new Set();
 let lastCompletedIds = new Set();
@@ -8,13 +16,16 @@ let lastPendingBusIds = new Set();
 
 document.addEventListener("DOMContentLoaded", async function () {
     try {
+        console.log("Inicializando cliente de Google API...");
         await initializeGapiClient();
 
         if (isUserAuthenticated()) {
+            console.log("Usuario autenticado.");
             updateConnectionStatus(true);
             await initializeCleanerData();
             setInterval(updateAllChartsAndCounters, 5000); // Actualizar cada 5 segundos
         } else {
+            console.log("Usuario no autenticado.");
             updateConnectionStatus(false);
             alert('No se pudo autenticar con Google Sheets.');
         }
@@ -25,18 +36,30 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
 
         document.getElementById("pending-buses-btn").addEventListener("click", () => {
-            document.getElementById("pending-buses-modal").style.display = "flex";
-            loadPendingBuses();
+            openPendingBusesModal();
         });
 
         document.getElementById("close-modal").addEventListener("click", () => {
-            document.getElementById("pending-buses-modal").style.display = "none";
+            closePendingBusesModal();
         });
+
+        // Cerrar el modal al hacer clic fuera del contenido
+        window.addEventListener("click", (event) => {
+            const pendingBusesModal = document.getElementById("pending-buses-modal");
+            if (event.target === pendingBusesModal) {
+                closePendingBusesModal();
+            }
+        });
+
     } catch (error) {
         console.error("Error al inicializar la aplicación:", error);
     }
 });
 
+/**
+ * Actualiza el estado de conexión en la interfaz
+ * @param {boolean} connected - Indica si está conectado o no
+ */
 function updateConnectionStatus(connected) {
     const connectionStatus = document.getElementById("connection-status");
     if (connected) {
@@ -54,34 +77,71 @@ function updateConnectionStatus(connected) {
     usernameDisplay.textContent = username ? username.toUpperCase() : 'USUARIO DESCONOCIDO';
 }
 
+/**
+ * Inicializa los datos del Cleaner
+ */
 async function initializeCleanerData() {
+    console.log("Cargando tareas asignadas...");
     await loadAssignedTasks();
+    console.log("Cargando registros completados...");
     await loadCompletedRecords();
+    console.log("Inicializando gráficos y contadores...");
     initializeChartsAndCounters();
+    console.log("Inicializando paginación...");
     initializePagination();
+    console.log("Configurando observadores de tablas...");
     setupTableObservers();
 }
 
+/**
+ * Carga las tareas asignadas al usuario actual
+ */
 async function loadAssignedTasks() {
     const tasksTableBody = document.getElementById("assigned-tasks-table").querySelector("tbody");
     const assignedTasks = await loadSheetData("aseo!A2:F"); // Ajusta el rango según tu hoja
 
-    const currentUser = localStorage.getItem("username").toUpperCase();
-    const userTasks = assignedTasks.filter(task => task[0].toUpperCase() === currentUser);
+    console.log("Datos de tareas asignadas:", assignedTasks);
+
+    const currentUser = localStorage.getItem("username");
+    if (!currentUser) {
+        console.error("No se encontró el nombre de usuario en localStorage.");
+        return;
+    }
+    const userTasks = assignedTasks.filter(task => {
+        if (!task[0]) return false;
+        return task[0].trim().toUpperCase() === currentUser.toUpperCase();
+    });
+
+    console.log(`Tareas para el usuario ${currentUser}:`, userTasks);
 
     const newTaskIds = new Set(userTasks.map(task => task[1])); // Asumiendo que task[1] es un ID único
 
     userTasks.forEach(task => {
         if (!lastTaskIds.has(task[1])) {
             const tr = document.createElement("tr");
-            ["2", "3", "4"].forEach(i => { // PPU BUS, Tarea, Fecha Límite
-                const td = document.createElement("td");
-                td.textContent = task[i];
-                tr.appendChild(td);
-            });
+
+            // Crear celdas para PPU BUS, Tarea, Fecha Límite
+            const ppuBus = task[1] ? task[1].trim().toUpperCase() : 'N/A';
+            const tarea = task[2] ? task[2].trim() : 'N/A';
+            const fechaLimite = task[3] ? task[3].trim() : 'N/A';
+
+            const tdPpu = document.createElement("td");
+            tdPpu.textContent = ppuBus;
+            tr.appendChild(tdPpu);
+
+            const tdTarea = document.createElement("td");
+            tdTarea.textContent = tarea;
+            tr.appendChild(tdTarea);
+
+            const tdFecha = document.createElement("td");
+            tdFecha.textContent = fechaLimite;
+            tr.appendChild(tdFecha);
+
             tr.dataset.taskId = task[1];
             tr.dataset.rowNumber = task.rowNumber || ""; // Asigna el número de fila si está disponible
+
             tr.addEventListener("click", () => openTaskModal(task));
+
             tasksTableBody.appendChild(tr);
             showPersistentAlert('info', 'Nueva Asignación', 'Tienes nuevas tareas asignadas.');
         }
@@ -93,10 +153,14 @@ async function loadAssignedTasks() {
     updateTaskChart();
 }
 
+/**
+ * Abre el modal para marcar una tarea como realizada
+ * @param {Array} task - Información de la tarea
+ */
 function openTaskModal(task) {
     Swal.fire({
         title: 'Confirmación de Tarea',
-        text: `¿Marcar la tarea "${task[3]}" en el bus "${task[2]}" como realizada?`,
+        text: `¿Marcar la tarea "${task[2]}" en el bus "${task[1]}" como realizada?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Realizado',
@@ -113,19 +177,27 @@ function openTaskModal(task) {
                 timer: 2000,
                 showConfirmButton: false
             });
-            loadAssignedTasks(); // Recargar la tabla de asignadas
-            loadCompletedRecords(); // Recargar la tabla de completadas
+            await loadAssignedTasks(); // Recargar la tabla de asignadas
+            await loadCompletedRecords(); // Recargar la tabla de completadas
         }
     });
 }
 
+/**
+ * Marca una tarea como completada
+ * @param {Array} task - Información de la tarea
+ */
 async function markTaskAsCompleted(task) {
     const completedRecordsTableBody = document.getElementById("completed-records-table").querySelector("tbody");
     const tr = document.createElement("tr");
     const cleaner = localStorage.getItem("username").toUpperCase();
     const fecha = new Date().toISOString().split('T')[0]; // Fecha actual en formato YYYY-MM-DD
 
-    [task[2], cleaner, task[3], fecha].forEach(data => {
+    const ppuBus = task[1] ? task[1].trim().toUpperCase() : 'N/A';
+    const tarea = task[2] ? task[2].trim() : 'N/A';
+    const fechaRegistro = fecha;
+
+    [ppuBus, cleaner, tarea, fechaRegistro].forEach(data => {
         const td = document.createElement("td");
         td.textContent = data;
         tr.appendChild(td);
@@ -134,26 +206,46 @@ async function markTaskAsCompleted(task) {
 
     if (task.rowNumber) {
         await updateSheetData(`aseo!F${task.rowNumber}`, [['Realizado']]);
+        console.log(`Actualizado estado de tarea en la fila ${task.rowNumber}`);
     } else {
         console.warn("Número de fila no disponible para actualizar el estado de la tarea.");
     }
 }
 
+/**
+ * Carga los registros completados del usuario actual
+ */
 async function loadCompletedRecords() {
     const recordsTableBody = document.getElementById("completed-records-table").querySelector("tbody");
     const completedRecords = await loadSheetData("aseo!I2:L"); // Ajusta el rango según tu hoja
 
-    const currentUser = localStorage.getItem("username").toUpperCase();
-    const userCompleted = completedRecords.filter(record => record[1].toUpperCase() === currentUser);
+    console.log("Datos de registros completados:", completedRecords);
+
+    const currentUser = localStorage.getItem("username");
+    if (!currentUser) {
+        console.error("No se encontró el nombre de usuario en localStorage.");
+        return;
+    }
+    const userCompleted = completedRecords.filter(record => {
+        if (!record[1]) return false;
+        return record[1].trim().toUpperCase() === currentUser.toUpperCase();
+    });
+
+    console.log(`Registros completados para el usuario ${currentUser}:`, userCompleted);
 
     const newCompletedIds = new Set(userCompleted.map(record => record[1])); // Asumiendo que record[1] es un ID único
 
     userCompleted.forEach(record => {
         if (!lastCompletedIds.has(record[1])) {
             const tr = document.createElement("tr");
-            record.forEach(cellData => {
+            const ppuBus = record[0] ? record[0].trim().toUpperCase() : 'N/A';
+            const cleaner = record[1] ? record[1].trim().toUpperCase() : 'N/A';
+            const aseoRealizado = record[2] ? record[2].trim() : 'N/A';
+            const fecha = record[3] ? record[3].trim() : 'N/A';
+
+            [ppuBus, cleaner, aseoRealizado, fecha].forEach(data => {
                 const td = document.createElement("td");
-                td.textContent = cellData;
+                td.textContent = data;
                 tr.appendChild(td);
             });
             recordsTableBody.appendChild(tr);
@@ -167,6 +259,9 @@ async function loadCompletedRecords() {
     updateAseadoresChart();
 }
 
+/**
+ * Registra un nuevo aseo
+ */
 async function registerAseo() {
     const busIdInput = document.getElementById("bus-id");
     const aseoType = document.getElementById("aseo-type").value;
@@ -185,9 +280,20 @@ async function registerAseo() {
         return;
     }
 
-    const values = [[busId, localStorage.getItem("username").toUpperCase(), aseoRealizado, fecha]];
+    const currentUser = localStorage.getItem("username");
+    if (!currentUser) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de Usuario',
+            text: 'No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.',
+        });
+        return;
+    }
+
+    const values = [[busId, currentUser.toUpperCase(), aseoRealizado, fecha]];
     await appendData("aseo!I2:L", values);
-    loadCompletedRecords();
+    console.log("Aseo registrado:", values);
+    await loadCompletedRecords();
 
     Swal.fire({
         title: 'Registro Exitoso',
@@ -201,40 +307,133 @@ async function registerAseo() {
     });
 }
 
-async function loadPendingBuses() {
-    const pendingBusesTableBody = document.getElementById("pending-buses-table").querySelector("tbody");
-    const pendingBusesData = await loadSheetData("cleaner!A2:C"); // Ajusta el rango según tu hoja
+/**
+ * Abre el modal y carga los buses pendientes del usuario
+ */
+async function openPendingBusesModal() {
+    const pendingBusesTableBody = document.querySelector("#pending-buses-table tbody");
+    const busIdInput = document.getElementById("bus-id");
 
-    const currentUser = localStorage.getItem("username").toUpperCase();
-    const userPendingBuses = pendingBusesData.filter(bus => bus[0].toUpperCase() === currentUser);
+    try {
+        console.log("Cargando buses pendientes...");
+        pendingBusesTableBody.innerHTML = ''; // Limpiar la tabla
 
-    const newPendingBusIds = new Set(userPendingBuses.map(bus => bus[0].toUpperCase())); // IDs únicos
+        // Mostrar un mensaje de carga
+        const loadingRow = document.createElement("tr");
+        const loadingTd = document.createElement("td");
+        loadingTd.colSpan = 3;
+        loadingTd.textContent = "Cargando...";
+        loadingTd.style.textAlign = "center";
+        loadingRow.appendChild(loadingTd);
+        pendingBusesTableBody.appendChild(loadingRow);
 
-    userPendingBuses.forEach(bus => {
-        if (!lastPendingBusIds.has(bus[0].toUpperCase())) {
+        // Cargar datos desde Google Sheets (rango: cleaner!A2:C)
+        const busesData = await loadSheetData("cleaner!A2:C");
+        console.log("Datos de buses pendientes:", busesData);
+
+        // Limpiar el mensaje de carga
+        pendingBusesTableBody.innerHTML = '';
+
+        if (!busesData || busesData.length === 0) {
+            // Si no hay datos, mostrar un mensaje
             const tr = document.createElement("tr");
-            bus.forEach(cellData => {
-                const td = document.createElement("td");
-                td.textContent = cellData;
-                tr.appendChild(td);
-            });
-            tr.addEventListener("click", () => handlePendingBusClick(bus[0]));
+            const td = document.createElement("td");
+            td.colSpan = 3;
+            td.textContent = "No hay buses pendientes.";
+            td.style.textAlign = "center";
+            tr.appendChild(td);
             pendingBusesTableBody.appendChild(tr);
-            showPersistentAlert('info', 'Nuevo Bus Pendiente', `Bus ${bus[0]} tiene una tarea pendiente.`);
+        } else {
+            const currentUser = localStorage.getItem("username");
+            if (!currentUser) {
+                console.error("No se encontró el nombre de usuario en localStorage.");
+                return;
+            }
+
+            const userPendingBuses = busesData.filter(bus => {
+                if (!bus[0]) return false;
+                return bus[0].trim().toUpperCase() === currentUser.toUpperCase();
+            });
+
+            console.log(`Buses pendientes para el usuario ${currentUser}:`, userPendingBuses);
+
+            const newPendingBusIds = new Set(userPendingBuses.map(bus => bus[0].trim().toUpperCase()));
+
+            userPendingBuses.forEach(bus => {
+                const ppuBus = bus[0] ? bus[0].trim().toUpperCase() : 'N/A';
+                const motivo = bus[1] ? bus[1].trim() : 'N/A';
+                const fecha = bus[2] ? bus[2].trim() : 'N/A';
+
+                if (!lastPendingBusIds.has(ppuBus)) {
+                    const tr = document.createElement("tr");
+                    tr.style.cursor = "pointer";
+
+                    const tdPpu = document.createElement("td");
+                    tdPpu.textContent = ppuBus;
+                    tr.appendChild(tdPpu);
+
+                    const tdMotivo = document.createElement("td");
+                    tdMotivo.textContent = motivo;
+                    tr.appendChild(tdMotivo);
+
+                    const tdFecha = document.createElement("td");
+                    tdFecha.textContent = fecha;
+                    tr.appendChild(tdFecha);
+
+                    tr.addEventListener("click", () => {
+                        busIdInput.value = ppuBus;
+                        closePendingBusesModal();
+                        showAlert('success', 'PPU BUS Agregado', `Bus ${ppuBus} agregado al registro.`);
+                    });
+
+                    pendingBusesTableBody.appendChild(tr);
+                    showPersistentAlert('info', 'Nuevo Bus Pendiente', `Bus ${ppuBus} tiene una tarea pendiente.`);
+                }
+            });
+
+            lastPendingBusIds = newPendingBusIds;
         }
-    });
 
-    lastPendingBusIds = newPendingBusIds;
+        // Mostrar el modal
+        const pendingBusesModal = document.getElementById("pending-buses-modal");
+        pendingBusesModal.style.display = "flex";
 
-    paginateTable(pendingBusesTableBody, "pending-buses-pagination");
+    } catch (error) {
+        console.error("Error al cargar buses pendientes:", error);
+        const pendingBusesTableBody = document.querySelector("#pending-buses-table tbody");
+        pendingBusesTableBody.innerHTML = ''; // Limpiar cualquier mensaje
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 3;
+        td.textContent = "Error al cargar los datos.";
+        td.style.textAlign = "center";
+        tr.appendChild(td);
+        pendingBusesTableBody.appendChild(tr);
+        showAlert('error', 'Error de Carga', 'No se pudieron cargar los buses pendientes.');
+    }
 }
 
+/**
+ * Cierra el modal de buses pendientes
+ */
+function closePendingBusesModal() {
+    const pendingBusesModal = document.getElementById("pending-buses-modal");
+    pendingBusesModal.style.display = "none";
+}
+
+/**
+ * Función para manejar el clic en un bus pendiente
+ * @param {string} busId - PPU BUS seleccionado
+ */
 function handlePendingBusClick(busId) {
     const busIdInput = document.getElementById("bus-id");
     busIdInput.value = busId.toUpperCase();
-    document.getElementById("pending-buses-modal").style.display = 'none';
+    closePendingBusesModal();
 }
 
+/**
+ * Actualiza los contadores en la interfaz
+ */
 function updateCounts() {
     const totalTasksCount = document.getElementById("total-tasks-count");
     const totalAttendanceCount = document.getElementById("total-attendance-count");
@@ -340,6 +539,8 @@ function initializeCharts() {
 
 async function updateTaskChart() {
     const assignedTasks = await loadSheetData("aseo!A2:F");
+    console.log("Actualizando gráfico de tareas asignadas con:", assignedTasks);
+
     const taskCounts = {
         "LAURA SOTO": 0,
         "GALINDO SAEZ": 0,
@@ -361,18 +562,19 @@ async function updateTaskChart() {
     };
 
     assignedTasks.forEach(task => {
-        const cleanerName = task[0].toUpperCase();
-        if (taskCounts.hasOwnProperty(cleanerName)) {
-            taskCounts[cleanerName]++;
+        if (task[0] && task[0].trim().toUpperCase() in taskCounts) {
+            taskCounts[task[0].trim().toUpperCase()]++;
         }
     });
 
     taskChart.data.datasets[0].data = Object.values(taskCounts);
     taskChart.update();
+    console.log("Gráfico de tareas asignadas actualizado.");
 }
 
 async function updateAttendanceChart() {
     const completedRecords = await loadSheetData("aseo!I2:L");
+    console.log("Actualizando gráfico de aseos realizados con:", completedRecords);
 
     const aseoCounts = {
         "Barrido": 0,
@@ -386,18 +588,20 @@ async function updateAttendanceChart() {
     };
 
     completedRecords.forEach(record => {
-        const aseoType = record[2];
-        if (aseoCounts.hasOwnProperty(aseoType)) {
+        const aseoType = record[2] ? record[2].trim() : '';
+        if (aseoType in aseoCounts) {
             aseoCounts[aseoType]++;
         }
     });
 
     attendanceChart.data.datasets[0].data = Object.values(aseoCounts);
     attendanceChart.update();
+    console.log("Gráfico de aseos realizados actualizado.");
 }
 
 async function updateAseadoresChart() {
     const completedRecords = await loadSheetData("aseo!I2:L");
+    console.log("Actualizando gráfico de registros de aseadores con:", completedRecords);
 
     const aseadoresCount = {
         "LAURA SOTO": 0,
@@ -420,14 +624,15 @@ async function updateAseadoresChart() {
     };
 
     completedRecords.forEach(record => {
-        const cleanerName = record[1].toUpperCase();
-        if (aseadoresCount.hasOwnProperty(cleanerName)) {
+        const cleanerName = record[1] ? record[1].trim().toUpperCase() : '';
+        if (cleanerName in aseadoresCount) {
             aseadoresCount[cleanerName]++;
         }
     });
 
     aseadoresChart.data.datasets[0].data = Object.values(aseadoresCount);
     aseadoresChart.update();
+    console.log("Gráfico de registros de aseadores actualizado.");
 }
 
 function initializeChartsAndCounters() {
@@ -450,7 +655,6 @@ async function updateAllChartsAndCounters() {
 /**
  * Funciones para paginación de tablas
  */
-
 function paginateTable(tableBody, paginationContainerId, rowsPerPage = 10) {
     const paginationContainer = document.getElementById(paginationContainerId);
     let currentPage = 1;
@@ -492,6 +696,9 @@ function initializePagination() {
     paginateTable(document.getElementById("pending-buses-table").querySelector("tbody"), "pending-buses-pagination");
 }
 
+/**
+ * Configura observadores para las tablas y actualiza paginación y gráficos al modificar
+ */
 function setupTableObservers() {
     const observerOptions = { childList: true };
 
@@ -518,9 +725,8 @@ function setupTableObservers() {
 }
 
 /**
- * Funciones para manejar las alertas
+ * Funciones para manejar las alertas usando SweetAlert2
  */
-
 function showPersistentAlert(type, title, message) {
     Swal.fire({
         title: title,
@@ -539,159 +745,15 @@ function showPersistentAlert(type, title, message) {
 
 function showAlert(type, title, message) {
     Swal.fire({
+        icon: type,
         title: title,
         text: message,
-        icon: type,
         confirmButtonText: 'OK',
         position: 'top-end',
         toast: true,
         timer: 3000,
-        timerProgressBar: true
+        timerProgressBar: true,
+        background: '#1e3d59',
+        color: '#fff'
     });
 }
-
-/**
- * Funciones para manejar los gráficos con Chart.js
- */
-
-// Ya implementadas arriba
-
-// Asegúrate de implementar las funciones de gráficos y contadores aquí o en otro archivo si están separados
-
-
-
-// pendingBuses.js
-
-import { loadSheetData } from './googleSheets.js'; // Asegúrate de que la ruta es correcta
-
-document.addEventListener("DOMContentLoaded", () => {
-    // Seleccionar los elementos del DOM
-    const pendingBusesBtn = document.getElementById("pending-buses-btn");
-    const pendingBusesModal = document.getElementById("pending-buses-modal");
-    const pendingBusesTableBody = document.querySelector("#pending-buses-table tbody");
-    const closeModalBtn = document.getElementById("close-modal");
-    const busIdInput = document.getElementById("bus-id");
-
-    /**
-     * Función para mostrar alertas utilizando SweetAlert2
-     * @param {string} type - Tipo de alerta ('success', 'error', 'info', 'warning')
-     * @param {string} title - Título de la alerta
-     * @param {string} message - Mensaje de la alerta
-     */
-    function showAlert(type, title, message) {
-        Swal.fire({
-            icon: type,
-            title: title,
-            text: message,
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-            position: 'top-end',
-            toast: true,
-            background: '#1e3d59',
-            color: '#fff'
-        });
-    }
-
-    /**
-     * Función para abrir el modal y cargar los buses pendientes
-     */
-    const openPendingBusesModal = async () => {
-        try {
-            // Limpiar la tabla antes de cargar nuevos datos
-            pendingBusesTableBody.innerHTML = '';
-
-            // Mostrar un mensaje de carga
-            const loadingRow = document.createElement("tr");
-            const loadingTd = document.createElement("td");
-            loadingTd.colSpan = 3;
-            loadingTd.textContent = "Cargando...";
-            loadingTd.style.textAlign = "center";
-            loadingRow.appendChild(loadingTd);
-            pendingBusesTableBody.appendChild(loadingRow);
-
-            // Cargar datos desde Google Sheets (rango: cleaner!A2:C)
-            const busesData = await loadSheetData("cleaner!A2:C");
-            console.log("Buses Data:", busesData); // Para depuración
-
-            // Limpiar el mensaje de carga
-            pendingBusesTableBody.innerHTML = '';
-
-            if (!busesData || busesData.length === 0) {
-                // Si no hay datos, mostrar un mensaje
-                const tr = document.createElement("tr");
-                const td = document.createElement("td");
-                td.colSpan = 3;
-                td.textContent = "No hay buses pendientes.";
-                td.style.textAlign = "center";
-                tr.appendChild(td);
-                pendingBusesTableBody.appendChild(tr);
-            } else {
-                // Iterar sobre cada bus y crear una fila en la tabla
-                busesData.forEach((bus, index) => {
-                    const tr = document.createElement("tr");
-                    tr.style.cursor = "pointer";
-
-                    // Asumiendo que bus[0] = PPU BUS, bus[1] = Motivo, bus[2] = Fecha
-                    const ppuBus = bus[0] ? bus[0].trim().toUpperCase() : '';
-                    const motivo = bus[1] ? bus[1].trim() : '';
-                    const fecha = bus[2] ? bus[2].trim() : '';
-
-                    // Crear celdas
-                    const tdPpu = document.createElement("td");
-                    tdPpu.textContent = ppuBus;
-                    tr.appendChild(tdPpu);
-
-                    const tdMotivo = document.createElement("td");
-                    tdMotivo.textContent = motivo;
-                    tr.appendChild(tdMotivo);
-
-                    const tdFecha = document.createElement("td");
-                    tdFecha.textContent = fecha;
-                    tr.appendChild(tdFecha);
-
-                    // Añadir evento de clic a la fila
-                    tr.addEventListener("click", () => {
-                        busIdInput.value = ppuBus;
-                        closePendingBusesModal();
-                        showAlert('success', 'PPU BUS Agregado', `Bus ${ppuBus} agregado al registro.`);
-                    });
-
-                    pendingBusesTableBody.appendChild(tr);
-                });
-            }
-
-            // Mostrar el modal
-            pendingBusesModal.style.display = "flex";
-        } catch (error) {
-            console.error("Error al cargar buses pendientes:", error);
-            pendingBusesTableBody.innerHTML = ''; // Limpiar cualquier mensaje
-            const tr = document.createElement("tr");
-            const td = document.createElement("td");
-            td.colSpan = 3;
-            td.textContent = "Error al cargar los datos.";
-            td.style.textAlign = "center";
-            tr.appendChild(td);
-            pendingBusesTableBody.appendChild(tr);
-            showAlert('error', 'Error de Carga', 'No se pudieron cargar los buses pendientes.');
-        }
-    };
-
-    /**
-     * Función para cerrar el modal
-     */
-    const closePendingBusesModal = () => {
-        pendingBusesModal.style.display = "none";
-    };
-
-    // Asignar eventos
-    pendingBusesBtn.addEventListener("click", openPendingBusesModal);
-    closeModalBtn.addEventListener("click", closePendingBusesModal);
-
-    // Cerrar el modal al hacer clic fuera del contenido
-    window.addEventListener("click", (event) => {
-        if (event.target === pendingBusesModal) {
-            closePendingBusesModal();
-        }
-    });
-});
