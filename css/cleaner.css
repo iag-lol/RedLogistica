@@ -176,7 +176,39 @@ select {
     align-items: center;
     z-index: 1000;
 }
-/* Estilos para la sección de estado de usuario y conexión */
+
+.modal-content {
+    background-color: var(--white);
+    border-radius: 12px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content h2 {
+    font-size: 1.3em;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.5em;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-btn:hover {
+    color: var(--secondary-color);
+}
+
+/* Estilo para la sección de estado de usuario y conexión */
 .user-status-section {
     background-color: #f8f9fa;
     padding: 15px;
@@ -253,58 +285,15 @@ select {
     font-weight: bold;
 }
 
-.modal-content {
-    background-color: var(--white);
-    border-radius: 12px;
-    padding: 20px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
-    position: relative;
-    animation: fadeIn 0.3s ease;
-}
-
-.modal-content h2 {
-    font-size: 1.3em;
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
-
-.close-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 1.5em;
-    color: #aaa;
+.button {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
-    transition: color 0.3s;
-}
-
-.close-btn:hover {
-    color: var(--secondary-color);
-}
-
-/* Responsividad */
-@media (max-width: 480px) {
-    h2 {
-        font-size: 1.3em;
-    }
-
-    table th, table td {
-        font-size: 0.8em;
-        padding: 10px;
-    }
-
-    .btn-primary, .btn-secondary {
-        font-size: 0.9em;
-        padding: 10px;
-    }
-
-    .modal-content {
-        width: 100%;
-        max-width: 350px;
-        padding: 15px;
-    }
+    font-size: 16px;
+    margin-top: 10px;
 }
 
 /* Animación de entrada para el modal */
@@ -318,54 +307,64 @@ select {
         transform: translateY(0);
     }
 }
-.modal {
-    display: none;
+
+/* Estilos para los Toasts (Alertas Flotantes) */
+#toast-container {
     position: fixed;
-    z-index: 10;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 10% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 300px;
-    text-align: center;
-    border-radius: 8px;
-    position: relative;
-}
-
-.close {
-    position: absolute;
-    top: 10px;
+    top: 20px;
     right: 20px;
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
+.toast {
+    min-width: 250px;
+    background-color: #ffffff;
+    border-left: 5px solid #4a90e2; /* Color primario */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-.button {
-    background-color: #28a745;
-    color: white;
-    padding: 10px 20px;
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast .close-button {
+    background: none;
     border: none;
-    border-radius: 5px;
+    color: #aaaaaa;
+    font-size: 1.2rem;
     cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
+    transition: color 0.3s;
+}
+
+.toast .close-button:hover {
+    color: #000000;
+}
+
+/* Responsividad para los Toasts */
+@media (max-width: 480px) {
+    .toast {
+        min-width: 200px;
+        padding: 8px 12px;
+    }
+
+    .toast .close-button {
+        font-size: 1rem;
+    }
+
+    #toast-container {
+        top: 10px;
+        right: 10px;
+    }
 }
