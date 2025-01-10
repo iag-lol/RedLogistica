@@ -437,20 +437,14 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateTaskChart() {
         const cleanerCounts = {
             "Laura Soto": 0,
-            "Deisy Toribio": 0,
-            "Virginia Mosquera": 0,
-            "Pierre Joseph": 0,
             "Galindo Saez": 0,
             "Laureano Ramirez": 0,
             "Pamela Andrades": 0,
             "Hugo Carrasco": 0,
-            "Patricia Cerda": 0,
             "Gloria Angel": 0,
-            "Paulina Morales": 0,
             "Daniela Solorza": 0,
             "Silvia Gonzalez": 0,
             "Silvia Villalobos": 0,
-            "Daniela Sanchez": 0,
             "Marisol Aguirre": 0,
             "Maria Lazcano": 0,
             "Isaac Maguiña": 0,
@@ -480,10 +474,10 @@ document.addEventListener("DOMContentLoaded", function () {
             "Barrido": 0,
             "Trapeado": 0,
             "Barrido y Trapeado": 0,
+            "Programado por Inspeccion": 0,
             "Revisado por ICA": 0,
             "Progamado por RTG": 0,
             "Programado por DTPM": 0,
-            "Programado por Inspeccion": 0,
             "Programado por APPLUS": 0
         };
 
