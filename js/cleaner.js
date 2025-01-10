@@ -1,3 +1,5 @@
+// cleaner.js
+
 import { initializeGapiClient, loadSheetData, appendData, isUserAuthenticated, updateSheetData } from '../api/googleSheets.js';
 
 // Función para reproducir sonido
@@ -8,34 +10,50 @@ function playSound(soundPath) {
     });
 }
 
-// Función para mostrar alerta flotante persistente hasta que el usuario la cierre
-function showPersistentAlert(type, title, message) {
-    let icon, color, soundPath;
-
-    switch (type) {
-        case 'info':
-            icon = 'info';
-            color = '#17a2b8';
-            soundPath = '/sounds/nueva-tarea.mp3';
-            break;
-        default:
-            icon = 'info';
-            color = '#17a2b8';
-    }
-
+// Función para mostrar alertas mejoradas con SweetAlert2
+function showAlert(type, title, message) {
     Swal.fire({
         title: title,
         text: message,
-        icon: icon,
-        background: color,
-        color: '#fff',
+        icon: type, // 'success', 'error', 'warning', 'info', 'question'
+        confirmButtonText: 'OK',
+        position: 'top-end',
+        toast: true,
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        background: type === 'success' ? '#d4edda' :
+                   type === 'error' ? '#f8d7da' :
+                   type === 'warning' ? '#fff3cd' :
+                   '#cce5ff',
+        color: '#333',
+        customClass: {
+            popup: 'animated fadeInDown'
+        }
+    });
+}
+
+// Función para mostrar alertas persistentes hasta que el usuario las cierre
+function showPersistentAlert(type, title, message) {
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: type, // 'success', 'error', 'warning', 'info', 'question'
         showConfirmButton: true,
         confirmButtonText: 'Entendido',
         position: 'top-end',
-        toast: true
+        toast: true,
+        background: type === 'success' ? '#d4edda' :
+                   type === 'error' ? '#f8d7da' :
+                   type === 'warning' ? '#fff3cd' :
+                   '#cce5ff',
+        color: '#333',
+        customClass: {
+            popup: 'animated fadeInDown'
+        }
     }).then(() => {
-        if (soundPath) {
-            playSound(soundPath);
+        if (type === 'info') {
+            playSound('/sounds/nueva-tarea.mp3'); // Asegúrate de que esta ruta sea correcta
         }
     });
 }
@@ -63,28 +81,62 @@ document.addEventListener("DOMContentLoaded", async function () {
     } else {
         connectionStatus.textContent = 'DESCONECTADO';
         connectionStatus.classList.remove('connected');
-        alert("No se pudo autenticar con Google Sheets");
+        showAlert("error", "Autenticación Fallida", "No se pudo autenticar con Google Sheets");
     }
 
+    // Event Listener para el formulario de registro de aseo
     document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         await registerAseo();
     });
 
+    // Event Listener para el botón de buses pendientes
     document.getElementById("pending-buses-btn").addEventListener("click", () => {
-        document.getElementById("pending-buses-modal").style.display = "block";
+        document.getElementById("pending-buses-modal").style.display = "flex";
         loadPendingBuses();
     });
 
+    // Event Listener para cerrar el modal de buses pendientes
     document.getElementById("close-modal").addEventListener("click", () => {
         document.getElementById("pending-buses-modal").style.display = "none";
     });
-});
 
-async function initializeData() {
-    await loadAssignedTasks();
-    await loadCompletedRecords();
-}
+    // Event Listener para clicks en filas de buses pendientes
+    document.getElementById("pending-buses-table").querySelector("tbody").addEventListener("click", (e) => {
+        const row = e.target.closest("tr");
+        if (row) {
+            const ppuBus = row.cells[0].textContent.trim();
+            const busIdInput = document.getElementById("bus-id");
+            busIdInput.value = ppuBus.toUpperCase(); // Colocar PPU en mayúsculas
+            document.getElementById("pending-buses-modal").style.display = "none"; // Cerrar modal
+            showAlert("info", "PPU Seleccionado", `El PPU ${ppuBus} ha sido seleccionado para registro.`);
+        }
+    });
+
+    // Event Listener para cerrar el modal de tarea realizada
+    document.getElementById("close-task-modal").addEventListener("click", () => {
+        document.getElementById("task-modal").style.display = "none";
+    });
+
+    // Event Listener para marcar tarea como realizada
+    document.getElementById("task-completed-btn").addEventListener("click", async () => {
+        const taskId = document.getElementById("task-modal").getAttribute('data-task-id');
+        if (taskId) {
+            await markTaskAsCompleted(taskId);
+            showAlert("success", "Tarea Completada", "La tarea ha sido marcada como realizada.");
+            document.getElementById("task-modal").style.display = "none";
+            await loadAssignedTasks(); // Recargar tareas asignadas
+            await loadCompletedRecords(); // Recargar registros realizados
+        } else {
+            showAlert("warning", "Error", "No se pudo identificar la tarea.");
+        }
+    });
+
+    // Convertir automáticamente a mayúsculas el input de PPU
+    document.getElementById("bus-id").addEventListener("input", (e) => {
+        e.target.value = e.target.value.toUpperCase();
+    });
+});
 
 // Función para verificar el estado de conexión y actualizar visualmente
 function checkConnectionStatus() {
@@ -93,12 +145,12 @@ function checkConnectionStatus() {
     
     if (isUserAuthenticated()) {
         statusElement.textContent = 'CONECTADO';
-        statusElement.style.color = 'green';
+        statusElement.classList.remove('disconnected');
         statusElement.classList.add('connected');
     } else {
         statusElement.textContent = 'DESCONECTADO';
-        statusElement.style.color = 'red';
         statusElement.classList.remove('connected');
+        statusElement.classList.add('disconnected');
     }
 
     const username = localStorage.getItem('username');
@@ -121,6 +173,12 @@ async function loadAssignmentAndBreakTime(username) {
 
 let lastTaskIds = new Set();
 
+// Inicializar datos cargados
+async function initializeData() {
+    await loadAssignedTasks();
+    await loadCompletedRecords();
+}
+
 // Cargar tareas asignadas para el usuario
 async function loadAssignedTasks() {
     const tasksTable = document.getElementById("assigned-tasks-table").querySelector("tbody");
@@ -134,7 +192,8 @@ async function loadAssignedTasks() {
     userTasks.forEach(task => {
         if (!lastTaskIds.has(task[1])) {
             const tr = document.createElement("tr");
-            ["1", "2", "4"].forEach(i => { // PPU BUS, Tarea, Fecha Límite
+            tr.setAttribute('data-task-id', task[1]); // Asignar ID de tarea al atributo data
+            ["0", "2", "4"].forEach(i => { // PPU BUS, Tarea, Fecha Límite (A, C, E)
                 const td = document.createElement("td");
                 td.textContent = task[i];
                 tr.appendChild(td);
@@ -147,7 +206,7 @@ async function loadAssignedTasks() {
 
     // Quitar tareas que ya no están
     Array.from(tasksTable.rows).forEach(row => {
-        const taskId = row.cells[0].textContent;
+        const taskId = row.getAttribute('data-task-id');
         if (!newTaskIds.has(taskId)) {
             row.remove();
         }
@@ -158,35 +217,50 @@ async function loadAssignedTasks() {
 
 // Abrir modal de tarea realizada
 function openTaskModal(task) {
-    Swal.fire({
-        title: 'Confirmación de Tarea',
-        text: `¿Marcar la tarea "${task[2]}" como realizada?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Realizado',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#dc3545'
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            await deleteTask(task[1]); // Borrar la tarea de Google Sheets usando el ID
-            showAlert('success', 'Tarea Realizada', 'La tarea ha sido marcada como realizada.');
-            loadAssignedTasks(); // Recargar la tabla
-        }
-    });
+    const taskModal = document.getElementById("task-modal");
+    taskModal.setAttribute('data-task-id', task[1]);
+    taskModal.style.display = "flex";
 }
 
-// Borrar tarea de Google Sheets
-async function deleteTask(taskId) {
+// Marcar tarea como realizada
+async function markTaskAsCompleted(taskId) {
+    // Obtener los datos de la tarea
     const assignedTasks = await loadSheetData("aseo!A2:F");
-    const rowIndex = assignedTasks.findIndex(row => row[1] === taskId) + 2;
-    if (rowIndex > 1) {
-        const range = `aseo!A${rowIndex}:F${rowIndex}`;
-        await updateSheetData(range, [['', '', '', '', '', '']]);
+    const task = assignedTasks.find(row => row[1] === taskId);
+
+    if (task) {
+        // Agregar la tarea a los registros realizados
+        const completedValues = [[task[0], task[2], task[3], getCurrentDateTime()]];
+        await appendData("aseo!I2:L", completedValues);
+
+        // Actualizar la tarea en asignaciones como "Realizada"
+        const rowIndex = assignedTasks.indexOf(task) + 2; // +2 porque las hojas de cálculo comienzan en 1 y hay encabezados
+        const updateRange = `aseo!F${rowIndex}`; // Columna F para el estado
+        await updateSheetData(updateRange, [["Realizada"]]);
+    } else {
+        showAlert("error", "Error", "No se encontró la tarea para marcar como realizada.");
     }
 }
 
-// Actualizar tareas
+// Obtener la fecha y hora actual en formato 'DD/MM/YYYY HH:MM:SS'
+function getCurrentDateTime() {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Enero es 0
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+}
+
+// Borrar tarea de Google Sheets (Ahora se marca como realizada)
+async function deleteTask(taskId) {
+    // Ya no se usa esta función porque ahora movemos la tarea a completadas
+    // Mantenerla en caso de futuras modificaciones
+}
+
+// Actualizar tareas asignadas
 async function updateAssignedTasks() {
     await loadAssignedTasks();
 }
@@ -195,15 +269,17 @@ async function updateAssignedTasks() {
 async function registerAseo() {
     const busIdInput = document.getElementById("bus-id");
     const aseoType = document.getElementById("aseo-type").value;
-    
-    // Configuración de fecha y hora en formato 24 horas (sin "a.m." o "p.m.")
-    const date = new Intl.DateTimeFormat('es-ES', {
-        dateStyle: 'short',
-        timeStyle: 'medium',
-        hour12: false // Formato 24 horas
-    }).format(new Date());
+    const cleanerName = localStorage.getItem("username");
 
-    const values = [[busIdInput.value, localStorage.getItem("username"), aseoType, date]];
+    if (!cleanerName) {
+        showAlert("error", "Error", "Usuario no identificado.");
+        return;
+    }
+
+    // Obtener la fecha y hora actual en formato 24 horas
+    const date = getCurrentDateTime();
+
+    const values = [[busIdInput.value, cleanerName, aseoType, date]];
     await appendData("aseo!I2:L", values);
     loadCompletedRecords();
 
@@ -218,14 +294,19 @@ async function registerAseo() {
     });
 }
 
+// Cargar registros realizados para el usuario
 async function loadCompletedRecords() {
     const recordsTable = document.getElementById("completed-records-table").querySelector("tbody");
-    recordsTable.innerHTML = "";
-
     const recordsData = await loadSheetData("aseo!I2:L");
     const currentUser = localStorage.getItem("username");
 
-    recordsData.filter(record => record[1] === currentUser).forEach(row => {
+    // Filtrar registros realizados por el usuario
+    const userRecords = recordsData.filter(record => record[1] === currentUser);
+
+    // Limpiar la tabla antes de cargar los nuevos registros
+    recordsTable.innerHTML = "";
+
+    userRecords.forEach(row => {
         const tr = document.createElement("tr");
         row.forEach(cellData => {
             const td = document.createElement("td");
@@ -236,11 +317,14 @@ async function loadCompletedRecords() {
     });
 }
 
+// Cargar buses pendientes
 async function loadPendingBuses() {
     const pendingBusesTable = document.getElementById("pending-buses-table").querySelector("tbody");
+    const pendingBusesData = await loadSheetData("cleaner!A2:C");
+
+    // Limpiar la tabla antes de cargar los nuevos datos
     pendingBusesTable.innerHTML = "";
 
-    const pendingBusesData = await loadSheetData("cleaner!A2:C");
     pendingBusesData.forEach(row => {
         const tr = document.createElement("tr");
         row.forEach(cellData => {
