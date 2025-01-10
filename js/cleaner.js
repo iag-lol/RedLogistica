@@ -40,6 +40,7 @@ function showPersistentAlert(type, title, message) {
             color = '#17a2b8';
     }
 
+    
     Swal.fire({
         title: title,
         text: message,
