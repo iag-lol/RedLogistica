@@ -6,14 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma de Aseadores</title>
     <!-- Enlace a los estilos CSS -->
-    <link rel="stylesheet" href="/RedLogistica/css/cleaner.css">
+    <link rel="stylesheet" href="cleaner.css">
     <!-- Librerías externas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <!-- Scripts JavaScript -->
-    <script src="/RedLogistica/api/googleSheets.js" type="module" defer></script>
-    <script src="/RedLogistica/js/cleaner.js" type="module" defer></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="googleSheets.js" type="module" defer></script>
+    <script src="cleaner.js" type="module" defer></script>
 </head>
 
 <body>
@@ -32,7 +34,7 @@
         <div id="task-modal" class="modal" data-task-id="">
             <div class="modal-content">
                 <span id="close-task-modal" class="close">&times;</span>
-                <h2>Marcar tarea como realizada</h2>
+                <h2>Marcar Tarea como Realizada</h2>
                 <p>¿Deseas marcar esta tarea como realizada?</p>
                 <button id="task-completed-btn" class="button">REALIZADO</button>
             </div>
