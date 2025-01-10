@@ -14,6 +14,7 @@ let lastTaskIds = new Set();
 let lastCompletedIds = new Set();
 let lastPendingBusIds = new Set();
 
+// Espera a que el DOM esté completamente cargado
 document.addEventListener("DOMContentLoaded", async function () {
     try {
         console.log("Inicializando cliente de Google API...");
@@ -27,18 +28,28 @@ document.addEventListener("DOMContentLoaded", async function () {
         } else {
             console.log("Usuario no autenticado.");
             updateConnectionStatus(false);
-            alert('No se pudo autenticar con Google Sheets.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de Autenticación',
+                text: 'No se pudo autenticar con Google Sheets.',
+                confirmButtonText: 'Reintentar'
+            }).then(() => {
+                // Opcional: Puedes redirigir al usuario o intentar reautenticar
+            });
         }
 
+        // Manejo del formulario de registro de aseo
         document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
             e.preventDefault();
             await registerAseo();
         });
 
+        // Manejo del botón para ver buses pendientes
         document.getElementById("pending-buses-btn").addEventListener("click", () => {
             openPendingBusesModal();
         });
 
+        // Manejo del botón para cerrar el modal de buses pendientes
         document.getElementById("close-modal").addEventListener("click", () => {
             closePendingBusesModal();
         });
@@ -53,6 +64,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     } catch (error) {
         console.error("Error al inicializar la aplicación:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de Inicialización',
+            text: 'Ocurrió un error al inicializar la aplicación. Revisa la consola para más detalles.',
+            confirmButtonText: 'Reintentar'
+        });
     }
 });
 
@@ -105,10 +122,19 @@ async function loadAssignedTasks() {
     const currentUser = localStorage.getItem("username");
     if (!currentUser) {
         console.error("No se encontró el nombre de usuario en localStorage.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de Usuario',
+            text: 'No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.',
+            confirmButtonText: 'Reiniciar'
+        }).then(() => {
+            // Opcional: Redirigir al usuario o manejar el error de otra manera
+        });
         return;
     }
+
     const userTasks = assignedTasks.filter(task => {
-        if (!task[0]) return false;
+        if (!task[0]) return false; // Asegura que la columna A (nombre de usuario) exista
         return task[0].trim().toUpperCase() === currentUser.toUpperCase();
     });
 
@@ -224,10 +250,19 @@ async function loadCompletedRecords() {
     const currentUser = localStorage.getItem("username");
     if (!currentUser) {
         console.error("No se encontró el nombre de usuario en localStorage.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de Usuario',
+            text: 'No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.',
+            confirmButtonText: 'Reiniciar'
+        }).then(() => {
+            // Opcional: Redirigir al usuario o manejar el error de otra manera
+        });
         return;
     }
+
     const userCompleted = completedRecords.filter(record => {
-        if (!record[1]) return false;
+        if (!record[1]) return false; // Asegura que la columna B (Cleaner) exista
         return record[1].trim().toUpperCase() === currentUser.toUpperCase();
     });
 
@@ -347,11 +382,19 @@ async function openPendingBusesModal() {
             const currentUser = localStorage.getItem("username");
             if (!currentUser) {
                 console.error("No se encontró el nombre de usuario en localStorage.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de Usuario',
+                    text: 'No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.',
+                    confirmButtonText: 'Reiniciar'
+                }).then(() => {
+                    // Opcional: Redirigir al usuario o manejar el error de otra manera
+                });
                 return;
             }
 
             const userPendingBuses = busesData.filter(bus => {
-                if (!bus[0]) return false;
+                if (!bus[0]) return false; // Asegura que la columna A (nombre de usuario) exista
                 return bus[0].trim().toUpperCase() === currentUser.toUpperCase();
             });
 
@@ -400,7 +443,6 @@ async function openPendingBusesModal() {
 
     } catch (error) {
         console.error("Error al cargar buses pendientes:", error);
-        const pendingBusesTableBody = document.querySelector("#pending-buses-table tbody");
         pendingBusesTableBody.innerHTML = ''; // Limpiar cualquier mensaje
         const tr = document.createElement("tr");
         const td = document.createElement("td");
@@ -422,16 +464,6 @@ function closePendingBusesModal() {
 }
 
 /**
- * Función para manejar el clic en un bus pendiente
- * @param {string} busId - PPU BUS seleccionado
- */
-function handlePendingBusClick(busId) {
-    const busIdInput = document.getElementById("bus-id");
-    busIdInput.value = busId.toUpperCase();
-    closePendingBusesModal();
-}
-
-/**
  * Actualiza los contadores en la interfaz
  */
 function updateCounts() {
@@ -450,6 +482,9 @@ function updateCounts() {
 
 let taskChart, attendanceChart, aseadoresChart;
 
+/**
+ * Inicializa los gráficos utilizando Chart.js
+ */
 function initializeCharts() {
     const taskChartCtx = document.getElementById("taskChart").getContext("2d");
     const attendanceChartCtx = document.getElementById("attendanceChart").getContext("2d");
@@ -537,6 +572,9 @@ function initializeCharts() {
     });
 }
 
+/**
+ * Actualiza el gráfico de tareas asignadas
+ */
 async function updateTaskChart() {
     const assignedTasks = await loadSheetData("aseo!A2:F");
     console.log("Actualizando gráfico de tareas asignadas con:", assignedTasks);
@@ -572,6 +610,9 @@ async function updateTaskChart() {
     console.log("Gráfico de tareas asignadas actualizado.");
 }
 
+/**
+ * Actualiza el gráfico de aseos realizados por tipo
+ */
 async function updateAttendanceChart() {
     const completedRecords = await loadSheetData("aseo!I2:L");
     console.log("Actualizando gráfico de aseos realizados con:", completedRecords);
@@ -599,6 +640,9 @@ async function updateAttendanceChart() {
     console.log("Gráfico de aseos realizados actualizado.");
 }
 
+/**
+ * Actualiza el gráfico de registros de aseadores
+ */
 async function updateAseadoresChart() {
     const completedRecords = await loadSheetData("aseo!I2:L");
     console.log("Actualizando gráfico de registros de aseadores con:", completedRecords);
@@ -635,6 +679,9 @@ async function updateAseadoresChart() {
     console.log("Gráfico de registros de aseadores actualizado.");
 }
 
+/**
+ * Inicializa los gráficos y contadores
+ */
 function initializeChartsAndCounters() {
     initializeCharts();
     updateTaskChart();
@@ -643,6 +690,9 @@ function initializeChartsAndCounters() {
     updateCounts();
 }
 
+/**
+ * Actualiza todos los gráficos y contadores
+ */
 async function updateAllChartsAndCounters() {
     await loadAssignedTasks();
     await loadCompletedRecords();

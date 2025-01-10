@@ -16,7 +16,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="/RedLogistica/api/googleSheets.js" type="module" defer></script>
     <script src="/RedLogistica/js/cleaner.js" type="module" defer></script>
-    <script src="/RedLogistica/js/aseo.js" type="module" defer></script>
+    <!-- Elimina o evita cargar otros scripts que puedan causar conflictos -->
 </head>
 
 <body>
@@ -31,7 +31,7 @@
             </div>
         </section>
 
-        <!-- Modal para Marcar Tarea como Realizada -->
+        <!-- Modal para Marcar Tarea como Realizada (No se usa directamente en cleaner.js) -->
         <div id="task-modal" class="modal" data-task-id="">
             <div class="modal-content">
                 <span id="close-task-modal" class="close">&times;</span>
@@ -129,14 +129,13 @@
             </div>
         </div>
 
-
         <!-- Contadores -->
         <section class="counters-section">
             <p>Total de Tareas Asignadas: <span id="total-tasks-count">0</span></p>
             <p>Total de Aseos Realizados: <span id="total-attendance-count">0</span></p>
         </section>
 
-        <!-- Toast Container -->
+        <!-- Toast Container (opcional si usas SweetAlert2 como en el JS) -->
         <div id="toast-container"></div>
     </div>
 </body>
