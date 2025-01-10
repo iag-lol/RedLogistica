@@ -119,21 +119,13 @@ async function loadTablesData() {
 // Función para cargar datos de la tabla de asignación de tareas a aseadores
 // -------------------------------
 async function loadAssignmentData() {
-    assignmentTableBody.innerHTML = '';
-
     try {
         const assignmentData = await loadSheetData('aseo!A2:F');  // Ajusta el rango según tus datos
         assignmentData.forEach(row => {
             const uniqueId = `${row[0]}|${row[1]}|${row[2]}|${row[3]}|${row[4]}`; // Crear un ID único
             if (!existingAssignmentRecords.has(uniqueId)) {
                 existingAssignmentRecords.add(uniqueId);
-                const tr = document.createElement('tr');
-                row.forEach(cellData => {
-                    const td = document.createElement('td');
-                    td.textContent = cellData;
-                    tr.appendChild(td);
-                });
-                assignmentTableBody.appendChild(tr);
+                addRowToAssignmentTable(row);
             }
         });
     } catch (error) {
@@ -145,22 +137,13 @@ async function loadAssignmentData() {
 // Función para cargar datos de la tabla de ingresos de aseo diarios
 // -------------------------------
 async function loadDailyAseoData() {
-    dailyAseoTableBody.innerHTML = '';
-
     try {
         const dailyAseoData = await loadSheetData('aseo!I2:L'); // Ajusta el rango según tus datos
         dailyAseoData.forEach(row => {
             const uniqueId = `${row[0]}|${row[1]}|${row[2]}|${row[3]}`; // Crear un ID único
             if (!existingAseoRecords.has(uniqueId)) {
                 existingAseoRecords.add(uniqueId);
-                const tr = document.createElement('tr');
-                row.forEach(cellData => {
-                    const td = document.createElement('td');
-                    td.textContent = cellData;
-                    tr.appendChild(td);
-                });
-                dailyAseoTableBody.appendChild(tr);
-
+                addRowToDailyAseoTable(row);
                 // Mostrar alerta para el nuevo registro
                 showAseoToast(row[1], row[2], row[0]);
             }
@@ -239,7 +222,7 @@ function showAseoToast(cleanerName, aseoType, busPPU) {
     toast.style.backgroundColor = '#ffffff';
     toast.style.borderLeft = '5px solid #4a90e2'; // Color primario
     toast.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-    toast.style.padding = '15px 20px';
+    toast.style.padding = '10px 15px';
     toast.style.borderRadius = '8px';
     toast.style.display = 'flex';
     toast.style.justifyContent = 'space-between';
@@ -250,7 +233,7 @@ function showAseoToast(cleanerName, aseoType, busPPU) {
 
     // Contenido del toast
     const message = document.createElement('div');
-    message.innerHTML = `<strong>${cleanerName}</strong> ha realizado el <strong>${aseoType}</strong> del bus <strong>${busPPU}</strong>.`;
+    message.innerHTML = `<strong>${cleanerName}</strong> realizó <strong>${aseoType}</strong> en el bus <strong>${busPPU}</strong>.`;
     message.style.fontSize = '0.9rem';
     message.style.color = '#333333';
 
@@ -262,7 +245,7 @@ function showAseoToast(cleanerName, aseoType, busPPU) {
     closeButton.style.color = '#aaaaaa';
     closeButton.style.fontSize = '1.2rem';
     closeButton.style.cursor = 'pointer';
-    closeButton.style.marginLeft = '15px';
+    closeButton.style.marginLeft = '10px';
     closeButton.style.transition = 'color 0.3s';
     closeButton.onclick = () => {
         toast.style.opacity = '0';
@@ -363,16 +346,12 @@ document.getElementById('task-assignment-form').addEventListener('submit', async
 // -------------------------------
 function addRowToAssignmentTable(rowData) {
     const tr = document.createElement('tr');
-    const uniqueId = rowData.join('|');
-    if (!existingAssignmentRecords.has(uniqueId)) {
-        existingAssignmentRecords.add(uniqueId);
-        rowData.forEach(cellData => {
-            const td = document.createElement('td');
-            td.textContent = cellData;
-            tr.appendChild(td);
-        });
-        assignmentTableBody.appendChild(tr);
-    }
+    rowData.forEach(cellData => {
+        const td = document.createElement('td');
+        td.textContent = cellData;
+        tr.appendChild(td);
+    });
+    assignmentTableBody.appendChild(tr);
 }
 
 // -------------------------------
@@ -380,19 +359,12 @@ function addRowToAssignmentTable(rowData) {
 // -------------------------------
 function addRowToDailyAseoTable(rowData) {
     const tr = document.createElement('tr');
-    const uniqueId = rowData.join('|');
-    if (!existingAseoRecords.has(uniqueId)) {
-        existingAseoRecords.add(uniqueId);
-        rowData.forEach(cellData => {
-            const td = document.createElement('td');
-            td.textContent = cellData;
-            tr.appendChild(td);
-        });
-        dailyAseoTableBody.appendChild(tr);
-
-        // Mostrar alerta para el nuevo registro
-        showAseoToast(rowData[1], rowData[2], rowData[0]);
-    }
+    rowData.forEach(cellData => {
+        const td = document.createElement('td');
+        td.textContent = cellData;
+        tr.appendChild(td);
+    });
+    dailyAseoTableBody.appendChild(tr);
 }
 
 // -------------------------------
