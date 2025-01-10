@@ -58,6 +58,20 @@ function showPersistentAlert(type, title, message) {
     });
 }
 
+// Función para mostrar alertas temporales
+function showAlert(type, title, message) {
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: type,
+        confirmButtonText: 'OK',
+        position: 'top-end',
+        toast: true,
+        timer: 3000,
+        timerProgressBar: true
+    });
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
     const currentUser = localStorage.getItem("username");
     const usernameDisplay = document.getElementById("username-display");
@@ -69,23 +83,24 @@ document.addEventListener("DOMContentLoaded", async function () {
         usernameDisplay.textContent = "USUARIO NO IDENTIFICADO";
     }
 
-    await initializeGapiClient();
+    try {
+        await initializeGapiClient();
+    } catch (error) {
+        console.error("Error al inicializar GAPI:", error);
+        showAlert('error', 'Error de Inicialización', 'No se pudo inicializar la conexión con Google API.');
+        return;
+    }
 
     checkConnectionStatus();
     if (isUserAuthenticated()) {
         connectionStatus.textContent = 'CONECTADO';
         connectionStatus.classList.add('connected');
         await initializeData();
-        setInterval(updateAssignedTasks, 5000); // Actualizar tareas cada 5 segundos
-        loadAssignmentAndBreakTime(currentUser); // Cargar asignación y hora de colación
+        setInterval(updateAllChartsAndCounters, 5000); // Actualizar cada 5 segundos
     } else {
         connectionStatus.textContent = 'DESCONECTADO';
         connectionStatus.classList.remove('connected');
-        Swal.fire({
-            icon: 'error',
-            title: 'Error de Autenticación',
-            text: 'No se pudo autenticar con Google Sheets.',
-        });
+        showAlert('error', 'Error de Autenticación', 'No se pudo autenticar con Google Sheets.');
     }
 
     document.getElementById("register-aseo-form").addEventListener("submit", async (e) => {
@@ -109,6 +124,7 @@ async function initializeData() {
     initializeChartsAndCounters();
     initializePagination();
     setupTableObservers();
+    setupAutoUpdate();
 }
 
 // Función para verificar el estado de conexión y actualizar visualmente
@@ -150,7 +166,7 @@ let lastPendingBusIds = new Set();
 
 // Cargar tareas asignadas para el usuario
 async function loadAssignedTasks() {
-    const tasksTable = document.getElementById("assigned-tasks-table").querySelector("tbody");
+    const tasksTableBody = document.getElementById("assigned-tasks-table").querySelector("tbody");
     const assignedTasks = await loadSheetData("aseo!A2:F");
     const currentUser = localStorage.getItem("username").toUpperCase();
 
@@ -161,21 +177,24 @@ async function loadAssignedTasks() {
     userTasks.forEach(task => {
         if (!lastTaskIds.has(task[1])) {
             const tr = document.createElement("tr");
-            ["0", "1", "4"].forEach(i => { // PPU BUS, Tarea, Fecha Límite
+            // Asumiendo que las columnas son:
+            // 0: Nombre Cleaner, 1: Task ID, 2: PPU BUS, 3: Tarea, 4: Fecha Límite, 5: Estado
+            ["2", "3", "4"].forEach(i => { // PPU BUS, Tarea, Fecha Límite
                 const td = document.createElement("td");
                 td.textContent = task[i];
                 tr.appendChild(td);
             });
             tr.dataset.taskId = task[1];
+            tr.dataset.rowNumber = task.rowNumber || ""; // Asigna el número de fila si está disponible
             tr.addEventListener("click", () => openTaskModal(task));
-            tasksTable.appendChild(tr);
+            tasksTableBody.appendChild(tr);
             showPersistentAlert('info', 'Nueva Asignación', 'Tienes nuevas tareas asignadas.');
         }
     });
 
     lastTaskIds = newTaskIds;
 
-    // Actualizar gráficos y contadores
+    // Actualizar contadores y gráficos
     updateCounts();
     updateTaskChart();
 }
@@ -184,7 +203,7 @@ async function loadAssignedTasks() {
 function openTaskModal(task) {
     Swal.fire({
         title: 'Confirmación de Tarea',
-        text: `¿Marcar la tarea "${task[2]}" en el bus "${task[0]}" como realizada?`,
+        text: `¿Marcar la tarea "${task[3]}" en el bus "${task[2]}" como realizada?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Realizado',
@@ -204,22 +223,31 @@ function openTaskModal(task) {
 // Marcar tarea como realizada
 async function markTaskAsCompleted(task) {
     // Añadir la tarea a la tabla de completadas
-    const completedRecordsTable = document.getElementById("completed-records-table").querySelector("tbody");
+    const completedRecordsTableBody = document.getElementById("completed-records-table").querySelector("tbody");
     const tr = document.createElement("tr");
-    [0, 1, 2, 4].forEach(i => { // PPU BUS, Cleaner (usuario), Aseo Realizado, Fecha
+    // 0: PPU BUS, 1: Cleaner (usuario), 2: Aseo Realizado, 3: Fecha
+    const cleaner = localStorage.getItem("username").toUpperCase();
+    const fecha = new Date().toISOString().split('T')[0]; // Fecha actual en formato YYYY-MM-DD
+
+    [task[2], cleaner, task[3], fecha].forEach(data => {
         const td = document.createElement("td");
-        td.textContent = (i === 1) ? localStorage.getItem("username").toUpperCase() : task[i];
+        td.textContent = data;
         tr.appendChild(td);
     });
-    completedRecordsTable.appendChild(tr);
+    completedRecordsTableBody.appendChild(tr);
 
-    // Actualizar el estado de la tarea en Google Sheets (columna D)
-    await updateSheetData(`aseo!D${task.rowNumber}`, [["Realizado"]]); // Asegúrate de que `rowNumber` esté correctamente definido
+    // Actualizar el estado de la tarea en Google Sheets (columna F)
+    // Asegúrate de que `task.rowNumber` esté correctamente definido
+    if (task.rowNumber) {
+        await updateSheetData(`aseo!F${task.rowNumber}`, [["Realizado"]]);
+    } else {
+        console.warn("Número de fila no disponible para actualizar el estado de la tarea.");
+    }
 }
 
 // Cargar registros completados
 async function loadCompletedRecords() {
-    const recordsTable = document.getElementById("completed-records-table").querySelector("tbody");
+    const recordsTableBody = document.getElementById("completed-records-table").querySelector("tbody");
     const completedRecords = await loadSheetData("aseo!I2:L");
     const currentUser = localStorage.getItem("username").toUpperCase();
 
@@ -235,21 +263,16 @@ async function loadCompletedRecords() {
                 td.textContent = cellData;
                 tr.appendChild(td);
             });
-            recordsTable.appendChild(tr);
+            recordsTableBody.appendChild(tr);
         }
     });
 
     lastCompletedIds = newCompletedIds;
 
-    // Actualizar gráficos y contadores
+    // Actualizar contadores y gráficos
     updateCounts();
     updateAttendanceChart();
     updateAseadoresChart();
-}
-
-// Actualizar tareas
-async function updateAssignedTasks() {
-    await loadAssignedTasks();
 }
 
 // Registrar el aseo y limpiar el campo `bus-id`
@@ -290,7 +313,7 @@ async function registerAseo() {
 
 // Cargar buses pendientes
 async function loadPendingBuses() {
-    const pendingBusesTable = document.getElementById("pending-buses-table").querySelector("tbody");
+    const pendingBusesTableBody = document.getElementById("pending-buses-table").querySelector("tbody");
     const pendingBusesData = await loadSheetData("cleaner!A2:C");
     const currentUser = localStorage.getItem("username").toUpperCase();
 
@@ -307,7 +330,7 @@ async function loadPendingBuses() {
                 tr.appendChild(td);
             });
             tr.addEventListener("click", () => handlePendingBusClick(bus[0]));
-            pendingBusesTable.appendChild(tr);
+            pendingBusesTableBody.appendChild(tr);
             showPersistentAlert('info', 'Nuevo Bus Pendiente', `Bus ${bus[0]} tiene una tarea pendiente.`);
         }
     });
@@ -315,7 +338,7 @@ async function loadPendingBuses() {
     lastPendingBusIds = newPendingBusIds;
 
     // Actualizar paginación si es necesario
-    paginateTable(pendingBusesTable, "pending-buses-pagination");
+    paginateTable(pendingBusesTableBody, "pending-buses-pagination");
 }
 
 // Función para llenar automáticamente el input de PPU Bus al clicar en un bus pendiente
@@ -432,8 +455,6 @@ function initializeCharts() {
 // Función para actualizar el gráfico de tareas asignadas
 async function updateTaskChart() {
     const assignedTasks = await loadSheetData("aseo!A2:F");
-    const currentUser = localStorage.getItem("username").toUpperCase();
-
     const taskCounts = {
         "LAURA SOTO": 0,
         "GALINDO SAEZ": 0,
@@ -543,18 +564,6 @@ async function updateAllChartsAndCounters() {
     updateCounts();
 }
 
-// Función para configurar la actualización automática cada 5 segundos
-function setupAutoUpdate() {
-    setInterval(async () => {
-        try {
-            await updateAllChartsAndCounters();
-        } catch (error) {
-            console.error("Error en la actualización automática:", error);
-            showAlert('error', 'Error de Actualización', 'Ocurrió un error al actualizar los datos.');
-        }
-    }, 5000); // 5000 ms = 5 segundos
-}
-
 // -------------------------------
 // Funciones para manejar los modales
 // -------------------------------
@@ -660,18 +669,14 @@ function setupTableObservers() {
 // -------------------------------
 // Funciones para manejar las alertas
 // -------------------------------
-function showAlert(type, title, message) {
-    Swal.fire({
-        title: title,
-        text: message,
-        icon: type,
-        confirmButtonText: 'OK',
-        position: 'top-end',
-        toast: true,
-        timer: 3000,
-        timerProgressBar: true
-    });
-}
+
+// Ya están definidas las funciones showPersistentAlert y showAlert arriba
+
+// -------------------------------
+// Funciones para manejar los gráficos con Chart.js
+// -------------------------------
+
+// Ya implementadas arriba
 
 // -------------------------------
 // Inicialización y configuración general
@@ -685,10 +690,14 @@ async function initializeData() {
     setupAutoUpdate();
 }
 
-// Función para actualizar todos los gráficos y contadores
-async function updateAllChartsAndCounters() {
-    await loadAssignedTasks();
-    await loadCompletedRecords();
-    updateAllCharts();
-    updateCounts();
+// Función para configurar la actualización automática cada 5 segundos
+function setupAutoUpdate() {
+    setInterval(async () => {
+        try {
+            await updateAllChartsAndCounters();
+        } catch (error) {
+            console.error("Error en la actualización automática:", error);
+            showAlert('error', 'Error de Actualización', 'Ocurrió un error al actualizar los datos.');
+        }
+    }, 5000); // 5000 ms = 5 segundos
 }
