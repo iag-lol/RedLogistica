@@ -5,181 +5,211 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Aseo</title>
+    <!-- Enlaces a estilos CSS -->
     <link rel="stylesheet" href="/RedLogistica/css/aseo.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/RedLogistica/js/aseo.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google API -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <!-- Script de la aplicación -->
+    <script src="/RedLogistica/js/aseo.js" defer></script>
 </head>
 
 <body>
+    <!-- Barra de Navegación -->
+    <header class="navbar">
+        <div class="navbar-container">
+            <h1>Panel de Aseo</h1>
+            <nav>
+                <ul>
+                    <li><a href="/RedLogistica/index.html"><i class="fas fa-home"></i> Inicio</a></li>
+                    <li><a href="/RedLogistica/logout.html"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal -->
     <div class="container">
-        <div class="main-content">
-            <!-- Sección de formularios y gráficos/conteos -->
-            <div class="top-section">
-                <!-- Formulario de ingreso de aseo -->
+        <main class="main-content">
+            <!-- Sección Superior: Formularios y Gráficos -->
+            <section class="top-section">
+                <!-- Formulario de Ingreso de Aseo -->
                 <section class="form-section">
-                    <h3>Formulario de Ingreso Aseo</h3>
+                    <h2>Registrar Aseo</h2>
                     <form id="aseo-form">
-                        <label for="bus-id">PPU de Bus:</label>
-                        <input type="text" id="bus-id" placeholder="Ingrese el PPU del bus">
-                        <label for="nombreaseador">Nombre Cleaner:</label>
-                        <select name="aseadores">
-                            <option value="Ingrese Nombre">Ingrese Nombre</option>
-                            <option value="Laura Soto">Laura Soto</option>
-                            <option value="Galindo Saez">Galindo Saez</option>
-                            <option value="Laureano Ramirez">Laureano Ramirez</option>
-                            <option value="Pamela Andrades">Pamela Andrades</option>
-                            <option value="Hugo Carrasco">Hugo Carrasco</option>
-                            <option value="Gloria Angel">Gloria Angel</option>
-                            <option value="Paulina Morales">Paulina Morales</option>
-                            <option value="Daniela Solorza">Daniela Solorza</option>
-                            <option value="Silvia Gonzalez">Silvia Gonzalez</option>
-                            <option value="Silvia Villalobos">Silvia Villalobos</option>
-                            <option value="Marisol Aguirre">Marisol Aguirre</option>
-                            <option value="Maria Lazcano">Maria Lazcano</option>
-                            <option value="Isaac Maguiña">Isaac Maguiña</option>
-                            <option value="Axis Maurice">Axis Maurice</option>
-                            <option value="Vitel Desrosiers">Vitel Desrosiers</option>
-                            <option value="Veronica Ortiz">Veronica Ortiz</option>
-                             <option value="Rosa Smart">Rosa Smart</option>
-                             <option value="Patricia Quirilao">Patricia Quirilao</option>
-                        </select>
-
-                        <label for="aseo-status">Aseo Realizado:</label>
-                        <select id="aseo-status">
-                            <option value="Barrido">Barrido</option>
-                            <option value="Trapeado">Trapeado</option>
-                            <option value="Barrido y Trapeado">Barrido y Trapeado</option>
-                            <option value="Revisado por ICA">Revisado por ICA</option>
-                            <option value="Progamado por RTG">Progamado por RTG</option>
-                            <option value="Buses por Inspeccion">Buses por Inspeccion</option>
-                            <option value="Programado por DTPM">Programado por DTPM</option>
-                            <option value="Programado por APPLUS">Programado por APPLUS</option>
-                        </select>
-
-                        <label for="task-deadline">Fecha de Realización:</label>
-                        <input type="date" id="task-deadline">
-
+                        <div class="form-group">
+                            <label for="bus-id">PPU de Bus:</label>
+                            <input type="text" id="bus-id" placeholder="Ingrese el PPU del bus" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nombreaseador">Nombre Cleaner:</label>
+                            <select name="aseadores" id="nombreaseador" required>
+                                <option value="" disabled selected>Seleccione un aseador</option>
+                                <option value="Laura Soto">Laura Soto</option>
+                                <option value="Galindo Saez">Galindo Saez</option>
+                                <option value="Laureano Ramirez">Laureano Ramirez</option>
+                                <option value="Pamela Andrades">Pamela Andrades</option>
+                                <option value="Hugo Carrasco">Hugo Carrasco</option>
+                                <option value="Gloria Angel">Gloria Angel</option>
+                                <option value="Paulina Morales">Paulina Morales</option>
+                                <option value="Daniela Solorza">Daniela Solorza</option>
+                                <option value="Silvia Gonzalez">Silvia Gonzalez</option>
+                                <option value="Silvia Villalobos">Silvia Villalobos</option>
+                                <option value="Marisol Aguirre">Marisol Aguirre</option>
+                                <option value="Maria Lazcano">Maria Lazcano</option>
+                                <option value="Isaac Maguiña">Isaac Maguiña</option>
+                                <option value="Axis Maurice">Axis Maurice</option>
+                                <option value="Vitel Desrosiers">Vitel Desrosiers</option>
+                                <option value="Veronica Ortiz">Veronica Ortiz</option>
+                                <option value="Rosa Smart">Rosa Smart</option>
+                                <option value="Patricia Quirilao">Patricia Quirilao</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="aseo-status">Aseo Realizado:</label>
+                            <select id="aseo-status" required>
+                                <option value="" disabled selected>Seleccione el tipo de aseo</option>
+                                <option value="Barrido">Barrido</option>
+                                <option value="Trapeado">Trapeado</option>
+                                <option value="Barrido y Trapeado">Barrido y Trapeado</option>
+                                <option value="Revisado por ICA">Revisado por ICA</option>
+                                <option value="Programado por RTG">Programado por RTG</option>
+                                <option value="Buses por Inspeccion">Buses por Inspección</option>
+                                <option value="Programado por DTPM">Programado por DTPM</option>
+                                <option value="Programado por APPLUS">Programado por APPLUS</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="task-deadline">Fecha de Realización:</label>
+                            <input type="date" id="task-deadline" required>
+                        </div>
                         <button type="submit" class="btn-primary">Registrar Aseo</button>
                     </form>
-
-                  
-
                 </section>
-                <section class="conteo-diario">
-                    <div class="count-box">
-                        <h4>Total Aseos Realizados</h4>
-                        <p id="total-attendance-count">0</p>
-                    </div>
-                    <div class="chart-box">
-                        <h4>Gráfico</h4>
-                        <canvas id="attendanceChart"></canvas>
-                    </div>
-                </section>
-                  <!-- Tabla de ingresos de aseo diarios -->
-            <section class="table-section">
-                <h3>Registro de Ingresos de Aseo Diarios</h3>
-            <!-- Tabla de Ingresos de Aseo Diarios -->
-<table id="daily-aseo-table" class="styled-table">
-    <thead>
-        <tr>
-            <th>PPU BUS</th>
-            <th>CLEANER</th>
-            <th id="aseo-realizado-column">ASEO REALIZADO</th>
-            <th>FECHA</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!-- Los datos se cargarán aquí -->
-    </tbody>
-</table>
-<div id="daily-aseo-pagination" class="pagination-controls"></div>
-            </section>
 
-
-
-
-
-
-                <!-- Formulario de asignación de tareas a aseadores -->
+                <!-- Formulario de Asignación de Tareas -->
                 <section class="tasks-assignment-section">
-                    <h3>Asignación de Tareas a Aseadores</h3>
+                    <h2>Asignar Tarea</h2>
                     <form id="task-assignment-form">
-                        <label for="cleaner-name">Aseador:</label>
-                        <select name="aseadorestareas">
-                          <option value="Ingrese Nombre">Ingrese Nombre</option>
-                            <option value="Laura Soto">Laura Soto</option>
-                            <option value="Galindo Saez">Galindo Saez</option>
-                            <option value="Laureano Ramirez">Laureano Ramirez</option>
-                            <option value="Pamela Andrades">Pamela Andrades</option>
-                            <option value="Hugo Carrasco">Hugo Carrasco</option>
-                            <option value="Gloria Angel">Gloria Angel</option>
-                            <option value="Paulina Morales">Paulina Morales</option>
-                            <option value="Daniela Solorza">Daniela Solorza</option>
-                            <option value="Silvia Gonzalez">Silvia Gonzalez</option>
-                            <option value="Silvia Villalobos">Silvia Villalobos</option>
-                            <option value="Marisol Aguirre">Marisol Aguirre</option>
-                            <option value="Maria Lazcano">Maria Lazcano</option>
-                            <option value="Isaac Maguiña">Isaac Maguiña</option>
-                            <option value="Axis Maurice">Axis Maurice</option>
-                            <option value="Vitel Desrosiers">Vitel Desrosiers</option>
-                            <option value="Veronica Ortiz">Veronica Ortiz</option>
-                             <option value="Rosa Smart">Rosa Smart</option>
-                             <option value="Patricia Quirilao">Patricia Quirilao</option>
-                        </select>
-
-                        <label for="bus-idtarea">PPU de Bus:</label>
-                        <input type="text" id="bus-idtarea" placeholder="Ingrese el PPU del bus">
-
-                        <label for="task-desc">Descripción de la Tarea:</label>
-                        <input type="text" id="task-desc" placeholder="Descripción de la tarea">
-
-                        <label for="assignment-deadline">Fecha Límite:</label>
-                        <input type="date" id="assignment-deadline"> <!-- Cambié el ID para evitar conflictos -->
-
+                        <div class="form-group">
+                            <label for="cleaner-name">Aseador:</label>
+                            <select name="aseadorestareas" id="cleaner-name" required>
+                                <option value="" disabled selected>Seleccione un aseador</option>
+                                <option value="Laura Soto">Laura Soto</option>
+                                <option value="Galindo Saez">Galindo Saez</option>
+                                <option value="Laureano Ramirez">Laureano Ramirez</option>
+                                <option value="Pamela Andrades">Pamela Andrades</option>
+                                <option value="Hugo Carrasco">Hugo Carrasco</option>
+                                <option value="Gloria Angel">Gloria Angel</option>
+                                <option value="Paulina Morales">Paulina Morales</option>
+                                <option value="Daniela Solorza">Daniela Solorza</option>
+                                <option value="Silvia Gonzalez">Silvia Gonzalez</option>
+                                <option value="Silvia Villalobos">Silvia Villalobos</option>
+                                <option value="Marisol Aguirre">Marisol Aguirre</option>
+                                <option value="Maria Lazcano">Maria Lazcano</option>
+                                <option value="Isaac Maguiña">Isaac Maguiña</option>
+                                <option value="Axis Maurice">Axis Maurice</option>
+                                <option value="Vitel Desrosiers">Vitel Desrosiers</option>
+                                <option value="Veronica Ortiz">Veronica Ortiz</option>
+                                <option value="Rosa Smart">Rosa Smart</option>
+                                <option value="Patricia Quirilao">Patricia Quirilao</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="bus-idtarea">PPU de Bus:</label>
+                            <input type="text" id="bus-idtarea" placeholder="Ingrese el PPU del bus" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="task-desc">Descripción de la Tarea:</label>
+                            <input type="text" id="task-desc" placeholder="Descripción de la tarea" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="assignment-deadline">Fecha Límite:</label>
+                            <input type="date" id="assignment-deadline" required>
+                        </div>
                         <button type="submit" class="btn-primary">Asignar Tarea</button>
                     </form>
-                    
-                    
                 </section>
-
-                <section class="coneto-tareas">
-                    <div class="count-box">
-                        <h4>Total Tareas Asignadas</h4>
-                        <p id="total-tasks-count">0</p>
-                    </div>
-                    <div class="chart-box">
-                        <h4>Gráfico</h4>
-                        <canvas id="taskChart"></canvas>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Tabla de registros de asignación de tareas -->
-            <section class="table-section">
-                <h3>Registro de Asignación de Tareas</h3>
-         <!-- Tabla de Asignación de Tareas -->
-<table id="assignment-table" class="styled-table">
-    <thead>
-        <tr>
-            <th id="cleaner-column">CLEANER</th>
-            <th>PPU BUS</th>
-            <th>TRABAJO A REALIZAR</th>
-            <th>ESTADO</th>
-            <th>FECHA LIMITE</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!-- Los datos se cargarán aquí -->
-    </tbody>
-</table>
-<div id="assignment-pagination" class="pagination-controls"></div>
             </section>
 
-          
-        </div>
+            <!-- Sección de Contadores y Gráficos -->
+            <section class="charts-section">
+                <!-- Contador y Gráfico de Aseos Realizados -->
+                <div class="chart-container">
+                    <div class="count-box">
+                        <h3>Total Aseos Realizados</h3>
+                        <p id="total-attendance-count">0</p>
+                    </div>
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+
+                <!-- Contador y Gráfico de Tareas Asignadas -->
+                <div class="chart-container">
+                    <div class="count-box">
+                        <h3>Total Tareas Asignadas</h3>
+                        <p id="total-tasks-count">0</p>
+                    </div>
+                    <canvas id="taskChart"></canvas>
+                </div>
+
+                <!-- Nuevo Gráfico de Registros de Ingresos Diarios por Aseador -->
+                <div class="chart-container">
+                    <h3>Registros de Ingresos Diarios por Aseador</h3>
+                    <canvas id="aseadoresChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Sección de Tablas -->
+            <section class="tables-section">
+                <!-- Tabla de Ingresos de Aseo Diarios -->
+                <section class="table-section">
+                    <h2>Registro de Ingresos de Aseo Diarios</h2>
+                    <table id="daily-aseo-table" class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>PPU BUS</th>
+                                <th>CLEANER</th>
+                                <th>ASEO REALIZADO</th>
+                                <th>FECHA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Los datos se cargarán aquí -->
+                        </tbody>
+                    </table>
+                    <div id="daily-aseo-pagination" class="pagination-controls"></div>
+                </section>
+
+                <!-- Tabla de Asignación de Tareas -->
+                <section class="table-section">
+                    <h2>Registro de Asignación de Tareas</h2>
+                    <table id="assignment-table" class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>CLEANER</th>
+                                <th>PPU BUS</th>
+                                <th>TRABAJO A REALIZAR</th>
+                                <th>ESTADO</th>
+                                <th>FECHA LIMITE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Los datos se cargarán aquí -->
+                        </tbody>
+                    </table>
+                    <div id="assignment-pagination" class="pagination-controls"></div>
+                </section>
+            </section>
+        </main>
     </div>
+
+    <!-- Footer Opcional -->
+    <footer class="footer">
+        <p>&copy; 2025 RedLogistica. Todos los derechos reservados.</p>
+    </footer>
 </body>
 
 </html>
+
