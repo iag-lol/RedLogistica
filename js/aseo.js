@@ -8,6 +8,10 @@ const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 let tokenClient;
 let isAuthenticated = false;
 
+// Sets para rastrear registros existentes
+let existingAseoRecords = new Set();
+let existingAssignmentRecords = new Set();
+
 // -------------------------------
 // Cargar y verificar Google API
 // -------------------------------
@@ -113,13 +117,17 @@ async function loadAssignmentData() {
     try {
         const assignmentData = await loadSheetData('aseo!A2:F');  // Modificado para incluir el campo PPU
         assignmentData.forEach(row => {
-            const tr = document.createElement('tr');
-            row.forEach(cellData => {
-                const td = document.createElement('td');
-                td.textContent = cellData;
-                tr.appendChild(td);
-            });
-            assignmentTable.appendChild(tr);
+            const uniqueId = `${row[0]}|${row[1]}|${row[2]}|${row[3]}|${row[4]}`; // Crear un ID único
+            if (!existingAssignmentRecords.has(uniqueId)) {
+                existingAssignmentRecords.add(uniqueId);
+                const tr = document.createElement('tr');
+                row.forEach(cellData => {
+                    const td = document.createElement('td');
+                    td.textContent = cellData;
+                    tr.appendChild(td);
+                });
+                assignmentTable.appendChild(tr);
+            }
         });
     } catch (error) {
         console.error("Error al cargar datos de asignación de tareas:", error);
@@ -136,13 +144,20 @@ async function loadDailyAseoData() {
     try {
         const dailyAseoData = await loadSheetData('aseo!I2:L');
         dailyAseoData.forEach(row => {
-            const tr = document.createElement('tr');
-            row.forEach(cellData => {
-                const td = document.createElement('td');
-                td.textContent = cellData;
-                tr.appendChild(td);
-            });
-            dailyAseoTable.appendChild(tr);
+            const uniqueId = `${row[0]}|${row[1]}|${row[2]}|${row[3]}`; // Crear un ID único
+            if (!existingAseoRecords.has(uniqueId)) {
+                existingAseoRecords.add(uniqueId);
+                const tr = document.createElement('tr');
+                row.forEach(cellData => {
+                    const td = document.createElement('td');
+                    td.textContent = cellData;
+                    tr.appendChild(td);
+                });
+                dailyAseoTable.appendChild(tr);
+
+                // Mostrar alerta para el nuevo registro
+                showAseoAlert(row[1], row[2], row[0]);
+            }
         });
     } catch (error) {
         console.error("Error al cargar datos de ingresos de aseo:", error);
@@ -168,6 +183,54 @@ async function loadSheetData(range) {
         console.error('Error al cargar datos desde Google Sheets:', error);
         return [];
     }
+}
+
+// -------------------------------
+// Función para agregar una fila a Google Sheets
+// -------------------------------
+async function appendData(range, values) {
+    if (!isAuthenticated) {
+        console.log("Usuario no autenticado.");
+        tokenClient.requestAccessToken({ prompt: '' });
+    }
+
+    try {
+        await gapi.client.sheets.spreadsheets.values.append({
+            spreadsheetId: SPREADSHEET_ID,
+            range: range,
+            valueInputOption: 'USER_ENTERED',
+            resource: { values: values },
+        });
+        console.log('Datos agregados a Google Sheets');
+    } catch (error) {
+        console.error('Error al agregar datos a Google Sheets:', error);
+    }
+}
+
+// -------------------------------
+// Función para mostrar la alerta de nuevo registro de aseo
+// -------------------------------
+function showAseoAlert(cleanerName, aseoType, busPPU) {
+    const alertModal = document.getElementById('alert-modal');
+    const alertMessage = document.getElementById('alert-message');
+    const alertButton = document.getElementById('alert-button');
+    const notificationSound = document.getElementById('notification-sound');
+
+    // Actualizar el mensaje de la alerta
+    alertMessage.textContent = `"${cleanerName}" ha realizado el "${aseoType}" del bus "${busPPU}".`;
+
+    // Mostrar el modal
+    alertModal.classList.remove('hidden');
+
+    // Reproducir sonido de notificación
+    notificationSound.play().catch(error => {
+        console.warn("No se pudo reproducir el sonido automáticamente:", error);
+    });
+
+    // Manejar el clic en el botón "Entendido" para cerrar la alerta
+    alertButton.onclick = () => {
+        alertModal.classList.add('hidden');
+    };
 }
 
 // -------------------------------
@@ -220,12 +283,16 @@ document.getElementById('task-assignment-form').addEventListener('submit', async
 function addRowToAssignmentTable(rowData) {
     const assignmentTable = document.getElementById('assignment-table').querySelector('tbody');
     const tr = document.createElement('tr');
-    rowData.forEach(cellData => {
-        const td = document.createElement('td');
-        td.textContent = cellData;
-        tr.appendChild(td);
-    });
-    assignmentTable.appendChild(tr);
+    const uniqueId = rowData.join('|');
+    if (!existingAssignmentRecords.has(uniqueId)) {
+        existingAssignmentRecords.add(uniqueId);
+        rowData.forEach(cellData => {
+            const td = document.createElement('td');
+            td.textContent = cellData;
+            tr.appendChild(td);
+        });
+        assignmentTable.appendChild(tr);
+    }
 }
 
 // -------------------------------
@@ -234,33 +301,18 @@ function addRowToAssignmentTable(rowData) {
 function addRowToDailyAseoTable(rowData) {
     const dailyAseoTable = document.getElementById('daily-aseo-table').querySelector('tbody');
     const tr = document.createElement('tr');
-    rowData.forEach(cellData => {
-        const td = document.createElement('td');
-        td.textContent = cellData;
-        tr.appendChild(td);
-    });
-    dailyAseoTable.appendChild(tr);
-}
-
-// -------------------------------
-// Función para agregar una fila a Google Sheets
-// -------------------------------
-async function appendData(range, values) {
-    if (!isAuthenticated) {
-        console.log("Usuario no autenticado.");
-        tokenClient.requestAccessToken({ prompt: '' });
-    }
-
-    try {
-        await gapi.client.sheets.spreadsheets.values.append({
-            spreadsheetId: SPREADSHEET_ID,
-            range: range,
-            valueInputOption: 'USER_ENTERED',
-            resource: { values: values },
+    const uniqueId = rowData.join('|');
+    if (!existingAseoRecords.has(uniqueId)) {
+        existingAseoRecords.add(uniqueId);
+        rowData.forEach(cellData => {
+            const td = document.createElement('td');
+            td.textContent = cellData;
+            tr.appendChild(td);
         });
-        console.log('Datos agregados a Google Sheets');
-    } catch (error) {
-        console.error('Error al agregar datos a Google Sheets:', error);
+        dailyAseoTable.appendChild(tr);
+
+        // Mostrar alerta para el nuevo registro
+        showAseoAlert(rowData[1], rowData[2], rowData[0]);
     }
 }
 
