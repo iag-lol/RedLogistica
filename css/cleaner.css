@@ -12,9 +12,7 @@
     --success-color: #28a745;
     --warning-color: #ffc107;
     --info-color: #17a2b8;
-    --toast-bg-color: rgba(30, 61, 89, 0.9);
-    --toast-text-color: #ffffff;
-    --modal-bg-color: rgba(30, 61, 89, 0.95);
+    --modal-bg-color: rgba(30, 61, 89, 0.8);
 }
 
 /* Reset y estilos básicos */
@@ -38,7 +36,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 480px;
+    max-width: 1200px;
     background-color: var(--white);
     border-radius: 12px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
@@ -49,15 +47,14 @@ body {
     gap: 20px;
 }
 
-/* Sección de encabezado */
+/* Títulos */
 h2 {
-    font-size: 1.6em;
+    font-size: 1.5em;
     color: var(--primary-color);
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 5px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     text-align: center;
-    letter-spacing: 1px;
 }
 
 /* Sección de estado de usuario y conexión */
@@ -142,7 +139,7 @@ select {
     padding-right: 30px;
 }
 
-/* Botones principales */
+/* Botones */
 .btn-primary,
 .btn-secondary {
     padding: 12px;
@@ -153,11 +150,9 @@ select {
     color: var(--white);
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     width: 100%;
     margin-top: 10px;
+    text-align: center;
 }
 
 .btn-primary {
@@ -179,7 +174,7 @@ select {
 }
 
 /* Tablas */
-table {
+.styled-table {
     width: 100%;
     border-collapse: collapse;
     border-radius: 8px;
@@ -188,34 +183,35 @@ table {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-table thead {
+.styled-table thead {
     background-color: var(--primary-color);
     color: var(--white);
     font-weight: 600;
-    text-align: left;
+    text-align: center;
 }
 
-table th,
-table td {
+.styled-table th,
+.styled-table td {
     padding: 12px;
     font-size: 0.9em;
     word-wrap: break-word;
+    text-align: center;
 }
 
-table tbody tr {
+.styled-table tbody tr {
     border-bottom: 1px solid #e0e0e0;
     transition: background-color 0.3s;
 }
 
-table tbody tr:nth-child(even) {
+.styled-table tbody tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-table tbody tr:hover {
+.styled-table tbody tr:hover {
     background-color: #eaf3ff;
 }
 
-table th {
+.styled-table th {
     text-transform: uppercase;
     font-size: 0.85em;
 }
@@ -244,11 +240,11 @@ table th {
     background-color: var(--primary-color);
 }
 
-/* Modal */
+/* Modales */
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 999;
     left: 0;
     top: 0;
     width: 100%;
@@ -264,9 +260,9 @@ table th {
     background-color: var(--white);
     border-radius: 12px;
     padding: 20px;
-    width: 100%;
-    max-width: 400px;
-    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     position: relative;
     animation: fadeIn 0.3s ease;
 }
@@ -278,7 +274,6 @@ table th {
     text-align: center;
 }
 
-.close,
 .close-btn {
     position: absolute;
     top: 15px;
@@ -289,7 +284,6 @@ table th {
     transition: color 0.3s;
 }
 
-.close:hover,
 .close-btn:hover {
     color: var(--secondary-color);
 }
@@ -301,7 +295,7 @@ table th {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 1em;
     margin-top: 10px;
     transition: background-color 0.3s, transform 0.2s;
 }
@@ -314,8 +308,9 @@ table th {
 /* Contadores */
 .counters-section {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 20px;
     padding: 10px;
     background-color: var(--accent-color);
     border-radius: 8px;
@@ -325,6 +320,7 @@ table th {
 .counters-section p {
     font-size: 1em;
     font-weight: 500;
+    text-align: center;
 }
 
 /* Gráficos */
@@ -339,6 +335,9 @@ table th {
     height: auto !important;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    padding: 10px;
+    margin-top: 20px;
 }
 
 /* Animación de entrada para el modal */
@@ -347,141 +346,16 @@ table th {
         opacity: 0;
         transform: translateY(-10px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-/* Alertas Flotantes (Toasts) */
-#toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 3000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.toast {
-    min-width: 250px;
-    background-color: var(--toast-bg-color);
-    border-left: 5px solid #4a90e2; /* Color primario */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 10px 15px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    opacity: 0;
-    transform: translateX(100%);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-.toast.show {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.toast .close-button {
-    background: none;
-    border: none;
-    color: #aaaaaa;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: color 0.3s;
-}
-
-.toast .close-button:hover {
-    color: #000000;
-}
-
 /* Responsividad */
 @media (max-width: 768px) {
-    .user-status-section {
+    .counters-section {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
     }
-
-    #connection-status-section p {
-        font-size: 0.9em;
-    }
-
-    h2 {
-        font-size: 1.4em;
-    }
-
-    table th,
-    table td {
-        font-size: 0.85em;
-        padding: 10px;
-    }
-
-    .btn-primary,
-    .btn-secondary {
-        font-size: 0.95em;
-        padding: 10px;
-    }
-
-    .modal-content {
-        width: 100%;
-        max-width: 350px;
-        padding: 15px;
-    }
-
-    .button {
-        font-size: 14px;
-        padding: 8px 16px;
-    }
-}
-
-@media (max-width: 480px) {
-    .toast {
-        min-width: 200px;
-        padding: 8px 12px;
-    }
-
-    .toast .close-button {
-        font-size: 1rem;
-    }
-
-    #toast-container {
-        top: 10px;
-        right: 10px;
-    }
-
-    .charts-section canvas {
-        height: 150px !important;
-    }
-}
-
-
-/* CSS para mejorar la calidad del gráfico attendanceChart */
-
-#attendanceChart {
-    /* Asegura que el canvas ocupe el 100% del ancho de su contenedor */
-    width: 100% !important;
-    height: auto !important;
-    
-    /* Define un tamaño máximo para evitar que el gráfico se extienda demasiado */
-    max-width: 800px; /* Puedes ajustar este valor según tus necesidades */
-    max-height: 400px; /* Puedes ajustar este valor según tus necesidades */
-    
-    /* Centra el canvas dentro de su contenedor */
-    display: block;
-    margin: 0 auto;
-    
-    /* Añade un borde sutil y una sombra para darle profundidad */
-    border: 1px solid #ddd;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    
-    /* Fondo blanco para asegurar buena visibilidad */
-    background-color: #fff;
-    
-    /* Mejora la nitidez en pantallas de alta densidad de píxeles */
-    image-rendering: optimizeQuality;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }

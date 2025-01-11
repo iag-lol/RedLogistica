@@ -2,21 +2,23 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Plataforma de Aseadores</title>
-    <!-- Enlace a los estilos CSS -->
-    <link rel="stylesheet" href="/RedLogistica/css/cleaner.css">
+
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="/RedLogistica/css/cleaner.css" />
+
     <!-- Librerías externas -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <!-- Scripts JavaScript -->
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+
+    <!-- Scripts JavaScript (API y lógica) -->
     <script src="/RedLogistica/api/googleSheets.js" type="module" defer></script>
     <script src="/RedLogistica/js/cleaner.js" type="module" defer></script>
-    <!-- Elimina o evita cargar otros scripts que puedan causar conflictos -->
 </head>
 
 <body>
@@ -31,29 +33,19 @@
             </div>
         </section>
 
-        <!-- Modal para Marcar Tarea como Realizada (No se usa directamente en cleaner.js) -->
-        <div id="task-modal" class="modal" data-task-id="">
-            <div class="modal-content">
-                <span id="close-task-modal" class="close">&times;</span>
-                <h2>Marcar Tarea como Realizada</h2>
-                <p>¿Deseas marcar esta tarea como realizada?</p>
-                <button id="task-completed-btn" class="button">REALIZADO</button>
-            </div>
-        </div>
-
         <!-- Sección de Tareas Asignadas -->
         <section class="assigned-tasks-section">
             <h2>Tareas Asignadas</h2>
-            <table id="assigned-tasks-table">
+            <table id="assigned-tasks-table" class="styled-table">
                 <thead>
                     <tr>
                         <th>PPU BUS</th>
-                        <th>Tarea</th>
-                        <th>Fecha Límite</th>
+                        <th>TAREA</th>
+                        <th>FECHA LÍMITE</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Datos se cargarán dinámicamente aquí -->
+                    <!-- Datos dinámicos -->
                 </tbody>
             </table>
             <div id="assignment-pagination" class="pagination"></div>
@@ -64,7 +56,7 @@
             <h2>Registrar Aseo</h2>
             <form id="register-aseo-form">
                 <label for="bus-id">PPU de Bus:</label>
-                <input type="text" id="bus-id" placeholder="Ingrese el PPU del bus" required>
+                <input type="text" id="bus-id" placeholder="Ingrese el PPU del bus" required />
 
                 <label for="aseo-type">Aseo Realizado:</label>
                 <select id="aseo-type" required>
@@ -80,7 +72,7 @@
                 </select>
 
                 <label for="date">Fecha:</label>
-                <input type="date" id="date" required>
+                <input type="date" id="date" required />
 
                 <button type="submit" class="btn-primary">Registrar Aseo</button>
             </form>
@@ -89,17 +81,17 @@
         <!-- Sección de Registros Realizados -->
         <section class="completed-records-section">
             <h2>Registros Realizados</h2>
-            <table id="completed-records-table">
+            <table id="completed-records-table" class="styled-table">
                 <thead>
                     <tr>
                         <th>PPU BUS</th>
-                        <th>Cleaner</th>
-                        <th>Aseo Realizado</th>
-                        <th>Fecha</th>
+                        <th>CLEANER</th>
+                        <th>ASEO REALIZADO</th>
+                        <th>FECHA</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Datos se cargarán dinámicamente aquí -->
+                    <!-- Datos dinámicos -->
                 </tbody>
             </table>
             <div id="completed-records-pagination" class="pagination"></div>
@@ -113,16 +105,16 @@
             <div class="modal-content">
                 <span id="close-modal" class="close-btn">&times;</span>
                 <h2>Buses Pendientes</h2>
-                <table id="pending-buses-table">
+                <table id="pending-buses-table" class="styled-table">
                     <thead>
                         <tr>
                             <th>PPU BUS</th>
-                            <th>Motivo</th>
-                            <th>Fecha</th>
+                            <th>MOTIVO</th>
+                            <th>FECHA</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Datos se cargarán dinámicamente aquí -->
+                        <!-- Datos dinámicos -->
                     </tbody>
                 </table>
                 <div id="pending-buses-pagination" class="pagination"></div>
@@ -135,7 +127,14 @@
             <p>Total de Aseos Realizados: <span id="total-attendance-count">0</span></p>
         </section>
 
-        <!-- Toast Container (opcional si usas SweetAlert2 como en el JS) -->
+        <!-- Gráficos (opcional) -->
+        <section class="charts-section">
+            <canvas id="taskChart"></canvas>
+            <canvas id="attendanceChart"></canvas>
+            <canvas id="aseadoresChart"></canvas>
+        </section>
+
+        <!-- Toast Container (opcional) -->
         <div id="toast-container"></div>
     </div>
 </body>
