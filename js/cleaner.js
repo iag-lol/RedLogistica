@@ -8,7 +8,7 @@ import {
     isUserAuthenticated
   } from '/RedLogistica/api/googleSheets.js';
   
-  // Para controlar que no se borren o dupliquen datos repetidamente
+  // Controlar datos existentes para evitar duplicados o borrado completo
   let lastTaskIds = new Set();
   let lastCompletedIds = new Set();
   let lastPendingBusIds = new Set();
@@ -21,28 +21,30 @@ import {
       if (isUserAuthenticated()) {
         console.log("Usuario autenticado con Google Sheets.");
         updateConnectionStatus(true);
+  
+        // Cargar datos y configurar la plataforma
         await initializeCleanerData();
   
-        // Actualiza datos cada 5 segundos sin borrar todo
+        // Intervalo de actualización cada 5s
         setInterval(updateAllChartsAndCounters, 5000);
       } else {
         console.warn("No se pudo autenticar con Google Sheets.");
         updateConnectionStatus(false);
-        alert('Autenticación fallida. Revisa credenciales o conexión.');
+        alert('Fallo en autenticación. Revisa credenciales o conexión.');
       }
   
-      // Formulario de registro de Aseo
+      // Manejador para el formulario de Aseo
       const registerForm = document.getElementById("register-aseo-form");
       registerForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         await registerAseo();
       });
   
-      // Botón para ver Buses Pendientes
+      // Botón para ver buses pendientes
       const pendingBusesBtn = document.getElementById("pending-buses-btn");
       pendingBusesBtn.addEventListener("click", openPendingBusesModal);
   
-      // Cerrar modal de Buses Pendientes
+      // Cerrar el modal de buses pendientes
       const closeModalBtn = document.getElementById("close-modal");
       closeModalBtn.addEventListener("click", closePendingBusesModal);
   
@@ -56,12 +58,12 @@ import {
   
     } catch (error) {
       console.error("Error al inicializar la aplicación:", error);
-      alert("Error al inicializar. Revisa la consola para más detalles.");
+      alert("Error al inicializar. Verifica la consola para más detalles.");
     }
   });
   
   /**
-   * Actualiza el estado de conexión
+   * Actualiza el estado de conexión (CONECTADO / DESCONECTADO)
    */
   function updateConnectionStatus(connected) {
     const connectionStatus = document.getElementById("connection-status");
@@ -82,7 +84,7 @@ import {
   }
   
   /**
-   * Inicializa los datos del cleaner
+   * Inicializa datos y configuración principal
    */
   async function initializeCleanerData() {
     await loadAssignedTasks();
@@ -93,11 +95,18 @@ import {
   }
   
   /**
-   * Carga las tareas asignadas (aseo!A2:F) sin vaciar completamente la tabla
+   * Carga Tareas Asignadas desde aseo!A2:F
+   * Sin vaciar toda la tabla para evitar parpadeos
    */
   async function loadAssignedTasks() {
-    const tasksTableBody = document.getElementById("assigned-tasks-table").querySelector("tbody");
+    const tasksTableBody = document.getElementById("assigned-tasks-table")?.querySelector("tbody");
+    if (!tasksTableBody) {
+      console.warn("No existe la tabla de tareas asignadas (assigned-tasks-table).");
+      return;
+    }
+  
     const assignedTasks = await loadSheetData("aseo!A2:F") || [];
+    console.log("Tareas asignadas:", assignedTasks);
   
     const currentUser = localStorage.getItem("username");
     if (!currentUser) {
@@ -105,21 +114,20 @@ import {
       return;
     }
   
-    // Filtra las tareas de este usuario
+    // Filtrar solo tareas del usuario actual
     const userTasks = assignedTasks.filter(task => {
       if (!task[0]) return false;
       return task[0].trim().toUpperCase() === currentUser.trim().toUpperCase();
     });
   
-    // Identificamos nuevos IDs
-    const newTaskIds = new Set(userTasks.map(task => task[1]));
+    const newTaskIds = new Set(userTasks.map(t => t[1]));
   
-    // Agregamos SOLO las tareas que no existían antes
+    // Agregar SOLO nuevas tareas
     userTasks.forEach(task => {
       const taskId = task[1];
       if (!lastTaskIds.has(taskId)) {
         const tr = document.createElement("tr");
-        // Suponiendo: task[1] => PPU, task[2] => Tarea, task[3] => Fecha Límite
+        // Se asume: task[1]=PPU, task[2]=Tarea, task[3]=Fecha Límite
         const ppu = task[1] ? task[1].trim().toUpperCase() : "N/A";
         const tarea = task[2] || "N/A";
         const fecha = task[3] || "N/A";
@@ -141,11 +149,17 @@ import {
   }
   
   /**
-   * Carga los registros completados (aseo!I2:L) sin vaciar la tabla
+   * Carga Registros Completados desde aseo!I2:L
    */
   async function loadCompletedRecords() {
-    const recordsTableBody = document.getElementById("completed-records-table").querySelector("tbody");
+    const recordsTableBody = document.getElementById("completed-records-table")?.querySelector("tbody");
+    if (!recordsTableBody) {
+      console.warn("No existe la tabla de registros completados (completed-records-table).");
+      return;
+    }
+  
     const completedRecords = await loadSheetData("aseo!I2:L") || [];
+    console.log("Registros completados:", completedRecords);
   
     const currentUser = localStorage.getItem("username");
     if (!currentUser) {
@@ -153,22 +167,22 @@ import {
       return;
     }
   
-    const userCompleted = completedRecords.filter(record => {
-      if (!record[1]) return false; // record[1] => Cleaner
-      return record[1].trim().toUpperCase() === currentUser.trim().toUpperCase();
+    const userCompleted = completedRecords.filter(r => {
+      if (!r[1]) return false; // r[1] => Cleaner
+      return r[1].trim().toUpperCase() === currentUser.trim().toUpperCase();
     });
   
-    const newCompletedSet = new Set(userCompleted.map(r => r[1]));
+    const newCompleted = new Set(userCompleted.map(r => r[1]));
   
-    userCompleted.forEach(record => {
-      const completedId = record[1];
+    userCompleted.forEach(row => {
+      const completedId = row[1];
       if (!lastCompletedIds.has(completedId)) {
         const tr = document.createElement("tr");
-        // record[0]=PPU, record[1]=Cleaner, record[2]=Aseo, record[3]=Fecha
-        const ppu = record[0] ? record[0].trim().toUpperCase() : "N/A";
-        const cleaner = record[1] ? record[1].trim().toUpperCase() : "N/A";
-        const aseo = record[2] ? record[2].trim() : "N/A";
-        const fecha = record[3] ? record[3].trim() : "N/A";
+        // row[0]=PPU, row[1]=Cleaner, row[2]=Aseo, row[3]=Fecha
+        const ppu = row[0] ? row[0].trim().toUpperCase() : "N/A";
+        const cleaner = row[1] ? row[1].trim().toUpperCase() : "N/A";
+        const aseo = row[2] ? row[2].trim() : "N/A";
+        const fecha = row[3] ? row[3].trim() : "N/A";
   
         [ppu, cleaner, aseo, fecha].forEach(val => {
           const td = document.createElement("td");
@@ -180,7 +194,7 @@ import {
       }
     });
   
-    lastCompletedIds = newCompletedSet;
+    lastCompletedIds = newCompleted;
   
     updateCounts();
     updateAttendanceChart();
@@ -188,14 +202,14 @@ import {
   }
   
   /**
-   * Registra un nuevo aseo en aseo!I2:L
+   * Registra un nuevo Aseo en aseo!I2:L
    */
   async function registerAseo() {
     const busIdInput = document.getElementById("bus-id");
     const aseoType = document.getElementById("aseo-type").value;
-    const fechaValue = document.getElementById("date").value;
+    const dateValue = document.getElementById("date").value;
   
-    if (!busIdInput.value || !aseoType || !fechaValue) {
+    if (!busIdInput?.value || !aseoType || !dateValue) {
       Swal.fire({
         icon: 'warning',
         title: 'Campos Incompletos',
@@ -214,17 +228,18 @@ import {
       return;
     }
   
+    // Insertamos en la hoja: [PPU BUS, CLEANER, ASEO, FECHA]
     const values = [[
       busIdInput.value.trim().toUpperCase(),
       currentUser.trim().toUpperCase(),
       aseoType.trim(),
-      fechaValue.trim()
+      dateValue.trim()
     ]];
   
     await appendData("aseo!I2:L", values);
     console.log("Aseo registrado:", values);
   
-    // Solo cargamos de nuevo registros completados
+    // Volver a cargar registros completados
     await loadCompletedRecords();
   
     Swal.fire({
@@ -241,11 +256,16 @@ import {
   }
   
   /**
-   * Abre el modal y muestra los buses pendientes (cleaner!A2:C)
+   * Muestra el modal y los buses pendientes desde cleaner!A2:C
    */
   async function openPendingBusesModal() {
     const modal = document.getElementById("pending-buses-modal");
-    const tableBody = document.getElementById("pending-buses-table").querySelector("tbody");
+    const tableBody = document.getElementById("pending-buses-table")?.querySelector("tbody");
+    if (!tableBody || !modal) {
+      console.warn("No existe la tabla de buses pendientes o el modal.");
+      return;
+    }
+  
     tableBody.innerHTML = "";
   
     try {
@@ -255,7 +275,7 @@ import {
         return;
       }
   
-      // Mensaje de carga
+      // Mostrar "Cargando..."
       const loadingRow = document.createElement("tr");
       const loadingTd = document.createElement("td");
       loadingTd.colSpan = 3;
@@ -265,13 +285,12 @@ import {
       tableBody.appendChild(loadingRow);
   
       const busesData = await loadSheetData("cleaner!A2:C") || [];
-      console.log("Buses Pendientes (cleaner!A2:C):", busesData);
+      console.log("Buses pendientes (cleaner!A2:C):", busesData);
   
       tableBody.innerHTML = "";
   
-      // Filtrar buses del usuario
+      // Filtrar buses del usuario actual
       const userPending = busesData.filter(row => {
-        // row[0] => Nombre de Usuario
         if (!row[0]) return false;
         return row[0].trim().toUpperCase() === currentUser.trim().toUpperCase();
       });
@@ -285,13 +304,13 @@ import {
         tr.appendChild(td);
         tableBody.appendChild(tr);
       } else {
-        const newPending = new Set(userPending.map(b => b[1])); // b[1] => PPU
+        const newPending = new Set(userPending.map(r => r[1]?.trim().toUpperCase()));
   
-        userPending.forEach(bus => {
-          // bus[0]=Usuario, bus[1]=PPU, bus[2]=Motivo/Fecha
-          const ppu = bus[1] ? bus[1].trim().toUpperCase() : "N/A";
-          const motivo = bus[2] ? bus[2].trim() : "N/A";
-          const fecha = ""; // si tuvieras un 3er campo, ajusta aquí
+        userPending.forEach(row => {
+          // row[0]=Usuario, row[1]=PPU, row[2]=Motivo/Fecha
+          const ppu = row[1] ? row[1].trim().toUpperCase() : "N/A";
+          const motivo = row[2] ? row[2].trim() : "N/A";
+          const fecha = ""; // ajusta si tienes un 3er campo
   
           if (!lastPendingBusIds.has(ppu)) {
             const tr = document.createElement("tr");
@@ -308,7 +327,7 @@ import {
               closePendingBusesModal();
               Swal.fire({
                 icon: 'success',
-                title: 'PPU BUS Agregado',
+                title: 'PPU Agregado',
                 text: `Bus ${ppu} agregado al formulario.`,
                 timer: 1500,
                 showConfirmButton: false,
@@ -345,15 +364,16 @@ import {
    */
   function closePendingBusesModal() {
     const modal = document.getElementById("pending-buses-modal");
-    modal.style.display = "none";
+    if (modal) modal.style.display = "none";
   }
   
   /**
-   * Actualiza los contadores
+   * Actualiza contadores en la interfaz
    */
   function updateCounts() {
-    const assignedBody = document.getElementById("assigned-tasks-table").querySelector("tbody");
-    const completedBody = document.getElementById("completed-records-table").querySelector("tbody");
+    const assignedBody = document.getElementById("assigned-tasks-table")?.querySelector("tbody");
+    const completedBody = document.getElementById("completed-records-table")?.querySelector("tbody");
+    if (!assignedBody || !completedBody) return;
   
     const totalTasksCount = document.getElementById("total-tasks-count");
     const totalAttendanceCount = document.getElementById("total-attendance-count");
@@ -374,7 +394,7 @@ import {
   }
   
   /**
-   * Actualiza todo cada 5s
+   * Actualiza todo sin borrar los datos en tablas
    */
   async function updateAllChartsAndCounters() {
     await loadAssignedTasks();
@@ -389,13 +409,16 @@ import {
    * Paginación
    */
   function initializePagination() {
-    paginateTable(document.getElementById("assigned-tasks-table").querySelector("tbody"), "assignment-pagination");
-    paginateTable(document.getElementById("completed-records-table").querySelector("tbody"), "completed-records-pagination");
-    paginateTable(document.getElementById("pending-buses-table").querySelector("tbody"), "pending-buses-pagination");
+    paginateTable(document.getElementById("assigned-tasks-table")?.querySelector("tbody"), "assignment-pagination");
+    paginateTable(document.getElementById("completed-records-table")?.querySelector("tbody"), "completed-records-pagination");
+    paginateTable(document.getElementById("pending-buses-table")?.querySelector("tbody"), "pending-buses-pagination");
   }
   
   function paginateTable(tableBody, paginationContainerId, rowsPerPage = 10) {
+    if (!tableBody) return;
     const paginationContainer = document.getElementById(paginationContainerId);
+    if (!paginationContainer) return;
+  
     let currentPage = 1;
   
     function renderTable() {
@@ -403,7 +426,7 @@ import {
       const totalPages = Math.ceil(rows.length / rowsPerPage);
   
       rows.forEach((row, index) => {
-        row.style.display = (index >= (currentPage - 1)*rowsPerPage && index < currentPage*rowsPerPage) ? "" : "none";
+        row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
       });
   
       paginationContainer.innerHTML = "";
@@ -426,41 +449,61 @@ import {
   }
   
   /**
-   * Observadores de tablas para refrescar paginación
+   * Observadores de tablas para recalcular paginación y gráficos
    */
   function setupTableObservers() {
     const observerOptions = { childList: true };
   
-    const assignedObserver = new MutationObserver(() => {
-      paginateTable(document.getElementById("assigned-tasks-table").querySelector("tbody"), "assignment-pagination");
-      updateCounts();
-      updateTaskChart();
-    });
-    assignedObserver.observe(document.getElementById("assigned-tasks-table").querySelector("tbody"), observerOptions);
+    const assignedBody = document.getElementById("assigned-tasks-table")?.querySelector("tbody");
+    const completedBody = document.getElementById("completed-records-table")?.querySelector("tbody");
+    const pendingBody = document.getElementById("pending-buses-table")?.querySelector("tbody");
   
-    const completedObserver = new MutationObserver(() => {
-      paginateTable(document.getElementById("completed-records-table").querySelector("tbody"), "completed-records-pagination");
-      updateCounts();
-      updateAttendanceChart();
-      updateAseadoresChart();
-    });
-    completedObserver.observe(document.getElementById("completed-records-table").querySelector("tbody"), observerOptions);
+    if (assignedBody) {
+      const assignedObserver = new MutationObserver(() => {
+        paginateTable(assignedBody, "assignment-pagination");
+        updateCounts();
+        updateTaskChart();
+      });
+      assignedObserver.observe(assignedBody, observerOptions);
+    }
   
-    const pendingObserver = new MutationObserver(() => {
-      paginateTable(document.getElementById("pending-buses-table").querySelector("tbody"), "pending-buses-pagination");
-    });
-    pendingObserver.observe(document.getElementById("pending-buses-table").querySelector("tbody"), observerOptions);
+    if (completedBody) {
+      const completedObserver = new MutationObserver(() => {
+        paginateTable(completedBody, "completed-records-pagination");
+        updateCounts();
+        updateAttendanceChart();
+        updateAseadoresChart();
+      });
+      completedObserver.observe(completedBody, observerOptions);
+    }
+  
+    if (pendingBody) {
+      const pendingObserver = new MutationObserver(() => {
+        paginateTable(pendingBody, "pending-buses-pagination");
+      });
+      pendingObserver.observe(pendingBody, observerOptions);
+    }
   }
   
   /**
-   * Manejo de gráficos con Chart.js
+   * Manejo de Gráficos con Chart.js (verifica que existan antes de usarlos)
    */
   let taskChart, attendanceChart, aseadoresChart;
   
   function initializeCharts() {
-    const taskCtx = document.getElementById("taskChart").getContext("2d");
-    const attendanceCtx = document.getElementById("attendanceChart").getContext("2d");
-    const aseadoresCtx = document.getElementById("aseadoresChart").getContext("2d");
+    const taskCanvas = document.getElementById("taskChart");
+    const attendanceCanvas = document.getElementById("attendanceChart");
+    const aseadoresCanvas = document.getElementById("aseadoresChart");
+  
+    // Si no existen, evitamos errores
+    if (!taskCanvas || !attendanceCanvas || !aseadoresCanvas) {
+      console.warn("No se encontraron algunos canvas para los gráficos. Se omiten.");
+      return;
+    }
+  
+    const taskCtx = taskCanvas.getContext("2d");
+    const attendanceCtx = attendanceCanvas.getContext("2d");
+    const aseadoresCtx = aseadoresCanvas.getContext("2d");
   
     // Gráfico Tareas Asignadas
     taskChart = new Chart(taskCtx, {
@@ -478,10 +521,7 @@ import {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          title: {
-            display: true,
-            text: "Tareas Asignadas por Aseador"
-          }
+          title: { display: true, text: "Tareas Asignadas por Aseador" }
         },
         scales: {
           y: { beginAtZero: true }
@@ -505,10 +545,7 @@ import {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          title: {
-            display: true,
-            text: "Aseos Realizados por Tipo"
-          }
+          title: { display: true, text: "Aseos Realizados por Tipo" }
         },
         scales: {
           y: { beginAtZero: true }
@@ -532,10 +569,7 @@ import {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          title: {
-            display: true,
-            text: "Registros de Aseos por Aseador"
-          }
+          title: { display: true, text: "Registros de Aseos por Aseador" }
         },
         scales: {
           y: { beginAtZero: true }
@@ -545,9 +579,13 @@ import {
   }
   
   /**
-   * Actualiza gráfico Tareas Asignadas
+   * Actualiza gráfico Tareas Asignadas sin romper si no existe
    */
   async function updateTaskChart() {
+    if (!taskChart || !taskChart.data || !taskChart.data.datasets) {
+      return; // Evita errores si no hay canvas
+    }
+  
     const assignedTasks = await loadSheetData("aseo!A2:F") || [];
     const taskCounts = {
       "LAURA SOTO":0,"GALINDO SAEZ":0,"LAUREANO RAMIREZ":0,"PAMELA ANDRADES":0,"HUGO CARRASCO":0,
@@ -559,9 +597,7 @@ import {
     assignedTasks.forEach(row => {
       if (!row[0]) return;
       const user = row[0].trim().toUpperCase();
-      if (user in taskCounts) {
-        taskCounts[user]++;
-      }
+      if (user in taskCounts) taskCounts[user]++;
     });
   
     taskChart.data.datasets[0].data = Object.values(taskCounts);
@@ -569,9 +605,13 @@ import {
   }
   
   /**
-   * Actualiza gráfico Aseos Realizados por Tipo
+   * Actualiza gráfico Aseos Realizados por Tipo sin romper si no existe
    */
   async function updateAttendanceChart() {
+    if (!attendanceChart || !attendanceChart.data || !attendanceChart.data.datasets) {
+      return;
+    }
+  
     const completedRecords = await loadSheetData("aseo!I2:L") || [];
     const aseoCounts = {
       "Barrido":0,"Trapeado":0,"Barrido y Trapeado":0,"Buses por Inspección":0,"Revisado por ICA":0,
@@ -579,7 +619,7 @@ import {
     };
   
     completedRecords.forEach(row => {
-      if (!row[2]) return;
+      if (!row[2]) return; // row[2] => Aseo
       const aseoType = row[2].trim();
       if (aseoType in aseoCounts) {
         aseoCounts[aseoType]++;
@@ -591,9 +631,13 @@ import {
   }
   
   /**
-   * Actualiza gráfico Registros de Aseadores
+   * Actualiza gráfico Registros de Aseadores sin romper si no existe
    */
   async function updateAseadoresChart() {
+    if (!aseadoresChart || !aseadoresChart.data || !aseadoresChart.data.datasets) {
+      return;
+    }
+  
     const completedRecords = await loadSheetData("aseo!I2:L") || [];
     const aseadoresCount = {
       "LAURA SOTO":0,"GALINDO SAEZ":0,"LAUREANO RAMIREZ":0,"PAMELA ANDRADES":0,"HUGO CARRASCO":0,
@@ -603,7 +647,7 @@ import {
     };
   
     completedRecords.forEach(row => {
-      if (!row[1]) return;
+      if (!row[1]) return; // row[1] => Nombre de Usuario
       const cleanerName = row[1].trim().toUpperCase();
       if (cleanerName in aseadoresCount) {
         aseadoresCount[cleanerName]++;
