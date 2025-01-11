@@ -1,11 +1,16 @@
-/* cleaner.css */
+/* ==============================================
+   cleaner.css
+   Versión Avanzada y Responsiva para Móvil
+   ============================================== */
 
-/* Variables de color */
+/* -------------------- */
+/* VARIABLES DE COLOR   */
+/* -------------------- */
 :root {
     --primary-color: #1e3d59;
     --secondary-color: #162447;
     --accent-color: #e0e1dd;
-    --background-color: #f7f7f7;
+    --background-color: #fafafa;
     --text-color: #333;
     --white: #ffffff;
     --danger-color: #dc3545;
@@ -15,7 +20,9 @@
     --modal-bg-color: rgba(30, 61, 89, 0.8);
   }
   
-  /* Reset y estilos básicos */
+  /* -------------------- */
+  /* RESET Y ESTILOS BÁSICOS */
+  /* -------------------- */
   * {
     margin: 0;
     padding: 0;
@@ -31,9 +38,11 @@
     align-items: flex-start;
     min-height: 100vh;
     padding: 10px;
-    overflow-x: hidden; /* Evita scroll horizontal */
+    /* Evita scroll horizontal en pantallas móviles */
+    overflow-x: hidden;
   }
   
+  /* Contenedor principal */
   .container {
     width: 100%;
     max-width: 1200px;
@@ -47,7 +56,9 @@
     gap: 20px;
   }
   
-  /* Títulos */
+  /* -------------------- */
+  /* TÍTULOS Y CABECERAS  */
+  /* -------------------- */
   h2 {
     font-size: 1.5em;
     color: var(--primary-color);
@@ -55,9 +66,12 @@
     padding-bottom: 5px;
     margin-bottom: 10px;
     text-align: center;
+    letter-spacing: 0.5px;
   }
   
-  /* Sección de estado de usuario y conexión */
+  /* -------------------- */
+  /* SECCIÓN DE USUARIO Y CONEXIÓN */
+  /* -------------------- */
   .user-status-section {
     background-color: var(--accent-color);
     padding: 15px;
@@ -69,7 +83,11 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
- 
+  .user-status-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  }
+  
   #connection-status-section p {
     font-size: 0.95em;
     font-weight: 500;
@@ -97,7 +115,9 @@
     color: var(--primary-color);
   }
   
-  /* Formularios */
+  /* -------------------- */
+  /* FORMULARIOS          */
+  /* -------------------- */
   form {
     display: flex;
     flex-direction: column;
@@ -129,13 +149,15 @@
   
   select {
     appearance: none;
-    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><polygon points="70,105 105,35 35,35" /></svg>');
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><polygon points="70,105 105,35 35,35" fill="%23fff" /></svg>');
     background-repeat: no-repeat;
     background-position: right 10px center;
     padding-right: 30px;
   }
   
-  /* Botones */
+  /* -------------------- */
+  /* BOTONES              */
+  /* -------------------- */
   .btn-primary,
   .btn-secondary {
     padding: 12px;
@@ -145,17 +167,16 @@
     font-weight: bold;
     color: var(--white);
     cursor: pointer;
+    background-color: var(--primary-color);
     transition: background-color 0.3s, transform 0.2s;
     width: 100%;
     margin-top: 10px;
     text-align: center;
   }
   
-  .btn-primary {
-    background-color: var(--primary-color);
-  }
-  
-  .btn-primary:hover {
+  /* Efecto hover ligero y futurista */
+  .btn-primary:hover,
+  .btn-secondary:hover {
     background-color: var(--secondary-color);
     transform: translateY(-2px);
   }
@@ -164,12 +185,9 @@
     background-color: var(--secondary-color);
   }
   
-  .btn-secondary:hover {
-    background-color: var(--primary-color);
-    transform: translateY(-2px);
-  }
-  
-  /* Tablas */
+  /* -------------------- */
+  /* TABLAS               */
+  /* -------------------- */
   .styled-table {
     width: 100%;
     border-collapse: collapse;
@@ -186,9 +204,10 @@
     text-align: center;
   }
   
-  .styled-table th, .styled-table td {
+  .styled-table th,
+  .styled-table td {
     padding: 12px;
-    font-size: 0.5em;
+    font-size: 0.9em;
     word-wrap: break-word;
     text-align: center;
   }
@@ -202,13 +221,65 @@
     background-color: #f9f9f9;
   }
   
- 
-  .styled-table th {
-    text-transform: uppercase;
-    font-size: 0.70em;
+  .styled-table tbody tr:hover {
+    background-color: #eaf3ff;
   }
   
-  /* Paginación */
+  .styled-table th {
+    text-transform: uppercase;
+    font-size: 0.85em;
+  }
+  
+  /* Para pantallas muy pequeñas, que no haya scroll horizontal */
+  .styled-table,
+  .styled-table thead,
+  .styled-table tbody,
+  .styled-table th,
+  .styled-table td,
+  .styled-table tr {
+    display: block;
+  }
+  
+  .styled-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  .styled-table tr {
+    margin-bottom: 15px;
+  }
+  
+  .styled-table td {
+    border: none;
+    position: relative;
+    padding-left: 50%;
+  }
+  
+  .styled-table td:before {
+    position: absolute;
+    left: 15px;
+    width: 40%;
+    white-space: nowrap;
+    font-weight: bold;
+  }
+  
+  .styled-table td:nth-of-type(1):before { content: "PPU BUS"; }
+  .styled-table td:nth-of-type(2):before { content: "TAREA"; }
+  .styled-table td:nth-of-type(3):before { content: "FECHA LÍMITE"; }
+  
+  /* Ajuste para la tabla "completed-records-table" (4 columnas) */
+  .completed-records-section td:nth-of-type(1):before { content: "PPU BUS"; }
+  .completed-records-section td:nth-of-type(2):before { content: "CLEANER"; }
+  .completed-records-section td:nth-of-type(3):before { content: "ASEO REALIZADO"; }
+  .completed-records-section td:nth-of-type(4):before { content: "FECHA"; }
+  
+  /* Ajuste para la tabla "pending-buses-table" (3 columnas) */
+  #pending-buses-table td:nth-of-type(1):before { content: "PPU BUS"; }
+  #pending-buses-table td:nth-of-type(2):before { content: "MOTIVO"; }
+  #pending-buses-table td:nth-of-type(3):before { content: "FECHA"; }
+  
+  /* La paginación en móvil se mantiene */
   .pagination {
     display: flex;
     justify-content: center;
@@ -224,7 +295,7 @@
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
-    font-size: 0.8em;
+    font-size: 0.9em;
   }
   
   .pagination button.active,
@@ -232,7 +303,9 @@
     background-color: var(--primary-color);
   }
   
-  /* Modales */
+  /* -------------------- */
+  /* MODALES             */
+  /* -------------------- */
   .modal {
     display: none;
     position: fixed;
@@ -280,7 +353,9 @@
     color: var(--secondary-color);
   }
   
-  /* Contadores */
+  /* -------------------- */
+  /* CONTADORES          */
+  /* -------------------- */
   .counters-section {
     display: flex;
     flex-direction: row;
@@ -298,7 +373,9 @@
     text-align: center;
   }
   
-  /* Gráficos */
+  /* -------------------- */
+  /* GRÁFICOS            */
+  /* -------------------- */
   .charts-section {
     display: flex;
     flex-direction: column;
@@ -315,7 +392,9 @@
     margin-top: 20px;
   }
   
-  /* Animación de entrada para el modal */
+  /* -------------------- */
+  /* EFECTOS DE ANIMACIÓN */
+  /* -------------------- */
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -327,11 +406,91 @@
     }
   }
   
-  /* Responsividad */
+  /* -------------------- */
+  /* ALERTAS (SweetAlert2) */
+  /* -------------------- */
+  /* Ajustes de estilo para las alertas flotantes. */
+  .swal2-popup {
+    background-color: #ffffff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+  }
+  
+  .swal2-title {
+    color: var(--secondary-color) !important;
+    font-size: 1.2em !important;
+    font-weight: bold !important;
+  }
+  
+  .swal2-html-container {
+    color: var(--text-color) !important;
+    font-size: 0.95em !important;
+  }
+  
+  /* Para los íconos de error, success, warning, etc. */
+  .swal2-icon {
+    border-radius: 50% !important;
+  }
+  
+  /* -------------------- */
+  /* RESPONSIVIDAD ADICIONAL */
+  /* -------------------- */
   @media (max-width: 768px) {
     .counters-section {
       flex-direction: column;
       align-items: center;
+    }
+    
+    .modal-content {
+      max-width: 90% !important;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+      font-size: 0.95em;
+      padding: 10px;
+    }
+    
+    /* Ajusta el font-size en tablas para pantallas medianas */
+    .styled-table th,
+    .styled-table td {
+      font-size: 0.85em;
+      padding: 10px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    /* Ajusta aún más el tamaño de fuente en pantallas muy pequeñas */
+    .btn-primary,
+    .btn-secondary {
+      font-size: 0.88em;
+      padding: 10px;
+    }
+    
+    .styled-table th,
+    .styled-table td {
+      font-size: 0.8em;
+      padding: 8px;
+    }
+    
+    label {
+      font-size: 0.85em;
+    }
+    
+    h2 {
+      font-size: 1.3em;
+    }
+    
+    .counters-section p {
+      font-size: 0.9em;
+    }
+    
+    .swal2-title {
+      font-size: 1.1em !important;
+    }
+    
+    .swal2-html-container {
+      font-size: 0.88em !important;
     }
   }
   
