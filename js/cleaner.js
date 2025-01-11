@@ -8,26 +8,33 @@ import {
     isUserAuthenticated
   } from '/RedLogistica/api/googleSheets.js';
   
-  // Controlar datos existentes para evitar duplicados o borrado completo
+  // Para controlar no duplicar filas
   let lastTaskIds = new Set();
   let lastCompletedIds = new Set();
   let lastPendingBusIds = new Set();
   
+  // Para detectar nuevas filas y mostrar alertas
+  let previousTaskCount = 0;
+  let previousCompletedCount = 0;
+  
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       console.log("Inicializando GAPI Client...");
-      // Inicializa el cliente de Google Sheets sin reautenticar a cada rato
       await initializeGapiClient();
   
       if (isUserAuthenticated()) {
         console.log("Usuario autenticado con Google Sheets.");
         updateConnectionStatus(true);
   
-        // Cargar datos y configurar la plataforma
+        // Cargar datos iniciales
         await initializeCleanerData();
   
-        // Ya NO se llama setInterval para reautenticar o recargar datos:
-        // El token se mantendrá si no expira; si expira, Google pedirá reautenticación.
+        // (1) Intervalo para refrescar datos en tiempo real sin reautenticar
+        // Ajusta a tu gusto el intervalo (en ms). Ej.: 10000 = cada 10s
+        setInterval(async () => {
+          await realTimeUpdate();
+        }, 10000);
+  
       } else {
         console.warn("No se pudo autenticar con Google Sheets.");
         updateConnectionStatus(false);
@@ -67,9 +74,23 @@ import {
   
     } catch (error) {
       console.error("Error al inicializar la aplicación:", error);
-      alert("Error al inicializar. Verifica la consola para más detalles.");
+      alert("Error al inicializar. Revisa la consola para más detalles.");
     }
   });
+  
+  /**
+   * Función para refrescar datos en “tiempo real” sin reautenticación forzada.
+   * Llama a loadAssignedTasks() y loadCompletedRecords() + gráficos y contadores.
+   */
+  async function realTimeUpdate() {
+    console.log("RealTimeUpdate: Cargando datos en segundo plano...");
+    await loadAssignedTasks();
+    await loadCompletedRecords();
+    updateTaskChart();
+    updateAttendanceChart();
+    updateAseadoresChart();
+    updateCounts();
+  }
   
   /**
    * Actualiza el estado de conexión (CONECTADO / DESCONECTADO)
@@ -96,7 +117,6 @@ import {
    * Inicializa datos y configuración principal
    */
   async function initializeCleanerData() {
-    // Cargar tablas y gráficos
     await loadAssignedTasks();
     await loadCompletedRecords();
     initializeChartsAndCounters();
@@ -105,7 +125,7 @@ import {
   }
   
   /**
-   * Carga Tareas Asignadas desde aseo!A2:F
+   * Carga Tareas Asignadas (aseo!A2:F)
    */
   async function loadAssignedTasks() {
     const tasksTableBody = document.getElementById("assigned-tasks-table")?.querySelector("tbody");
@@ -123,7 +143,7 @@ import {
       return;
     }
   
-    // Filtrar solo tareas del usuario actual
+    // Filtrar solo las tareas para el usuario actual
     const userTasks = assignedTasks.filter(task => {
       if (!task[0]) return false;
       return task[0].trim().toUpperCase() === currentUser.trim().toUpperCase();
@@ -131,34 +151,56 @@ import {
   
     const newTaskIds = new Set(userTasks.map(t => t[1]));
   
-    // Agregar SOLO nuevas tareas que no existían antes
+    // Limpiar y volver a llenar la tabla para que se sincronicen altas y bajas
+    tasksTableBody.innerHTML = "";
+  
     userTasks.forEach(task => {
-      const taskId = task[1];
-      if (!lastTaskIds.has(taskId)) {
-        const tr = document.createElement("tr");
-        // Se asume: task[1] => PPU, task[2] => Tarea, task[3] => Fecha Límite
-        const ppu = task[1] ? task[1].trim().toUpperCase() : "N/A";
-        const tarea = task[2] || "N/A";
-        const fecha = task[3] || "N/A";
+      const tr = document.createElement("tr");
+      const ppu = task[1] ? task[1].trim().toUpperCase() : "N/A";
+      const tarea = task[2] || "N/A";
+      const fecha = task[3] || "N/A";
   
-        [ppu, tarea, fecha].forEach(val => {
-          const td = document.createElement("td");
-          td.textContent = val;
-          tr.appendChild(td);
-        });
-  
-        tasksTableBody.appendChild(tr);
-      }
+      [ppu, tarea, fecha].forEach(val => {
+        const td = document.createElement("td");
+        td.textContent = val;
+        tr.appendChild(td);
+      });
+      tasksTableBody.appendChild(tr);
     });
   
+    // Detectar si se han agregado nuevas tareas
+    if (newTaskIds.size > lastTaskIds.size) {
+      // Mostrar alerta de nuevas tareas
+      Swal.fire({
+        icon: 'info',
+        title: 'Nuevas Tareas Asignadas',
+        text: 'Se han asignado nuevas tareas a tu usuario.',
+        toast: true,
+        position: 'top-end',
+        timer: 3000,
+        showConfirmButton: false,
+        timerProgressBar: true,
+        background: '#1e3d59',
+        color: '#fff'
+      });
+    }
+  
     lastTaskIds = newTaskIds;
+  
+    // Alertas en caso de cambio en el número de filas
+    const currentTaskCount = userTasks.length;
+    if (currentTaskCount > previousTaskCount) {
+      // Muestra un toast adicional si quieres
+      // ...
+    }
+    previousTaskCount = currentTaskCount;
   
     updateCounts();
     updateTaskChart();
   }
   
   /**
-   * Carga Registros Completados desde aseo!I2:L
+   * Carga Registros Completados (aseo!I2:L)
    */
   async function loadCompletedRecords() {
     const recordsTableBody = document.getElementById("completed-records-table")?.querySelector("tbody");
@@ -176,34 +218,63 @@ import {
       return;
     }
   
+    // Filtrar registros para el usuario actual
     const userCompleted = completedRecords.filter(r => {
-      if (!r[1]) return false; // r[1] => Cleaner
+      if (!r[1]) return false; // r[1] => CLEANER
       return r[1].trim().toUpperCase() === currentUser.trim().toUpperCase();
     });
   
-    const newCompleted = new Set(userCompleted.map(r => r[1]));
+    const newCompleted = new Set(userCompleted.map(r => r[0] + r[3])); 
+    // Usamos PPU + FECHA como ID de unique, o algo que no se repita
+  
+    // Volver a llenar la tabla de cero
+    recordsTableBody.innerHTML = "";
   
     userCompleted.forEach(row => {
-      const completedId = row[1];
-      if (!lastCompletedIds.has(completedId)) {
-        const tr = document.createElement("tr");
-        // row[0] = PPU, row[1] = Cleaner, row[2] = Aseo, row[3] = Fecha+Hora
-        const ppu = row[0] ? row[0].trim().toUpperCase() : "N/A";
-        const cleaner = row[1] ? row[1].trim().toUpperCase() : "N/A";
-        const aseo = row[2] ? row[2].trim() : "N/A";
-        const fechaHora = row[3] ? row[3].trim() : "N/A";
+      const completedId = row[0] + row[3]; // PPU + FECHA+HORA
+      const tr = document.createElement("tr");
   
-        [ppu, cleaner, aseo, fechaHora].forEach(val => {
-          const td = document.createElement("td");
-          td.textContent = val;
-          tr.appendChild(td);
-        });
+      // row[0] = PPU, row[1] = Cleaner, row[2] = Aseo, row[3] = Fecha+Hora
+      const ppu = row[0] ? row[0].trim().toUpperCase() : "N/A";
+      const cleaner = row[1] ? row[1].trim().toUpperCase() : "N/A";
+      const aseo = row[2] ? row[2].trim() : "N/A";
+      const fechaHora = row[3] ? row[3].trim() : "N/A";
   
-        recordsTableBody.appendChild(tr);
-      }
+      [ppu, cleaner, aseo, fechaHora].forEach(val => {
+        const td = document.createElement("td");
+        td.textContent = val;
+        tr.appendChild(td);
+      });
+  
+      recordsTableBody.appendChild(tr);
     });
   
+    // Detectar si hay nuevos registros
+    if (newCompleted.size > lastCompletedIds.size) {
+      // Alerta de nuevos aseos
+      Swal.fire({
+        icon: 'info',
+        title: 'Nuevos Registros de Aseos',
+        text: 'Se han registrado nuevos aseos en la plataforma.',
+        toast: true,
+        position: 'top-end',
+        timer: 3000,
+        showConfirmButton: false,
+        timerProgressBar: true,
+        background: '#1e3d59',
+        color: '#fff'
+      });
+    }
+  
     lastCompletedIds = newCompleted;
+  
+    // Alertas en caso de cambio en el número de filas
+    const currentCompletedCount = userCompleted.length;
+    if (currentCompletedCount > previousCompletedCount) {
+      // Podrías mostrar otro toast si lo deseas
+      // ...
+    }
+    previousCompletedCount = currentCompletedCount;
   
     updateCounts();
     updateAttendanceChart();
@@ -211,7 +282,7 @@ import {
   }
   
   /**
-   * Registra un nuevo Aseo en aseo!I2:L con DD-MM-AAAA HH:MM:SS
+   * Registra un nuevo Aseo en aseo!I2:L con formato DD-MM-AAAA HH:MM:SS
    */
   async function registerAseo() {
     const busIdInput = document.getElementById("bus-id");
@@ -237,23 +308,20 @@ import {
       return;
     }
   
-    // Obtener fecha del input en formato AAAA-MM-DD
-    // Dividirla para rearmarla en DD-MM-AAAA
-    const [year, month, day] = dateValue.split("-");
-    const ddmmyyyy = `${day}-${month}-${year}`; // Formato DD-MM-AAAA
+    // Convertir AAAA-MM-DD a DD-MM-AAAA
+    const [yyyy, mm, dd] = dateValue.split("-");
+    const ddmmyyyy = `${dd}-${mm}-${yyyy}`;
   
     // Obtener hora actual
     const now = new Date();
     const hour = String(now.getHours()).padStart(2, '0');
     const minute = String(now.getMinutes()).padStart(2, '0');
     const second = String(now.getSeconds()).padStart(2, '0');
-  
     const time = `${hour}:${minute}:${second}`;
   
-    // Fecha+Hora final: "DD-MM-AAAA HH:MM:SS"
     const dateTime = `${ddmmyyyy} ${time}`;
   
-    // Insertamos en la hoja: [PPU BUS, CLEANER, ASEO, FECHA+HORA]
+    // Fila: [PPU, CLEANER, ASEO, FECHA+HORA]
     const values = [[
       busIdInput.value.trim().toUpperCase(),
       currentUser.trim().toUpperCase(),
@@ -264,7 +332,7 @@ import {
     await appendData("aseo!I2:L", values);
     console.log("Aseo registrado:", values);
   
-    // Refrescar tablas para ver resultados de inmediato
+    // Recargar tablas para ver de inmediato
     await loadCompletedRecords();
     await loadAssignedTasks();
   
@@ -283,8 +351,7 @@ import {
   }
   
   /**
-   * Muestra el modal y los buses pendientes desde cleaner!A2:C
-   * En un solo listado (sin paginación).
+   * Muestra el modal y los buses pendientes de cleaner!A2:C en un listado
    */
   async function openPendingBusesModal() {
     const modal = document.getElementById("pending-buses-modal");
@@ -297,7 +364,6 @@ import {
     tableBody.innerHTML = "";
   
     try {
-      // Cargar todos los datos de "cleaner!A2:C" (no se filtra)
       const busesData = await loadSheetData("cleaner!A2:C") || [];
       console.log("Buses pendientes (cleaner!A2:C):", busesData);
   
@@ -310,15 +376,13 @@ import {
         tr.appendChild(td);
         tableBody.appendChild(tr);
       } else {
-        // No paginamos, así que mostramos todo en un listado
-        // Revisamos si hay buses nuevos
+        // Un solo listado sin paginación
         const newPending = new Set(busesData.map(row => row[1]?.trim().toUpperCase()));
   
         busesData.forEach(row => {
-          // row[0] = Usuario, row[1] = PPU, row[2] = Motivo
           const ppu = row[1] ? row[1].trim().toUpperCase() : "N/A";
           const motivo = row[2] ? row[2].trim() : "N/A";
-          const fecha = ""; // Ajusta si tienes un 4to campo
+          const fecha = ""; // Ajustar si hay un 4to campo
   
           if (!lastPendingBusIds.has(ppu)) {
             const tr = document.createElement("tr");
@@ -330,7 +394,6 @@ import {
               tr.appendChild(td);
             });
   
-            // Al hacer clic, pasa PPU al input y cierra
             tr.addEventListener("click", () => {
               document.getElementById("bus-id").value = ppu;
               closePendingBusesModal();
@@ -406,12 +469,11 @@ import {
    * Paginación
    */
   function initializePagination() {
-    // Mantener paginación para tareas y registros, pero SIN paginar buses pendientes
     paginateTable(document.getElementById("assigned-tasks-table")?.querySelector("tbody"), "assignment-pagination");
     paginateTable(document.getElementById("completed-records-table")?.querySelector("tbody"), "completed-records-pagination");
-    // Quitar la paginación de pending-buses, ya que lo pediste "en un solo listado"
-    // Si lo deseas quitar por completo:
-    document.getElementById("pending-buses-pagination").innerHTML = "";
+    // Elimino la paginación de pending-buses
+    const pbPagination = document.getElementById("pending-buses-pagination");
+    if (pbPagination) pbPagination.innerHTML = "";
   }
   
   function paginateTable(tableBody, paginationContainerId, rowsPerPage = 10) {
@@ -478,10 +540,9 @@ import {
     }
   
     if (pendingBody) {
-      // Si decides no paginar buses pendientes, no llamamos paginateTable.
+      // Sin paginación en buses pendientes
       const pendingObserver = new MutationObserver(() => {
-        // Sin paginación, no hacemos nada o:
-        // paginateTable(pendingBody, "pending-buses-pagination"); // Comentado
+        // no paginamos
       });
       pendingObserver.observe(pendingBody, observerOptions);
     }
@@ -584,7 +645,7 @@ import {
    */
   async function updateTaskChart() {
     if (!taskChart || !taskChart.data || !taskChart.data.datasets) {
-      return; // Evita errores si no hay canvas
+      return; 
     }
   
     const assignedTasks = await loadSheetData("aseo!A2:F") || [];
@@ -622,7 +683,7 @@ import {
     };
   
     completedRecords.forEach(row => {
-      if (!row[2]) return; // row[2] => Aseo
+      if (!row[2]) return;
       const aseoType = row[2].trim();
       if (aseoType in aseoCounts) {
         aseoCounts[aseoType]++;
@@ -650,7 +711,7 @@ import {
     };
   
     completedRecords.forEach(row => {
-      if (!row[1]) return; // row[1] => Nombre de Usuario
+      if (!row[1]) return;
       const cleanerName = row[1].trim().toUpperCase();
       if (cleanerName in aseadoresCount) {
         aseadoresCount[cleanerName]++;

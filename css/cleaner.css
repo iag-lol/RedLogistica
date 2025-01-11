@@ -276,22 +276,34 @@
     background-color: var(--primary-color);
   }
   
-  /* --------------------------
-     9. MODAL
-  --------------------------- */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--modal-bg-color);
-    justify-content: center;
-    align-items: center;
-    overflow-y: auto;
-    padding: 20px;
+  /* ===============================
+   MODAL (Versión Mejorada)
+=============================== */
+.modal {
+    display: none;                   /* Por defecto oculto */
+    position: fixed;                 /* Se queda fijo en pantalla */
+    top: 0;                          /* Anclado arriba */
+    left: 0;                         /* Anclado a la izquierda */
+    width: 100%;                     /* Ocupa todo el ancho de la ventana */
+    height: 100%;                    /* Ocupa todo el alto de la ventana */
+    background-color: var(--modal-bg-color); /* Fondo semitransparente o con opacidad */
+    z-index: 999;                    /* Por encima de casi todo */
+    
+    /* Centrado con Flexbox */
+    display: flex;                   
+    justify-content: center;         /* Centrado horizontal */
+    align-items: center;             /* Centrado vertical */
+    
+    overflow-y: auto;                /* Si es muy alto, scroll vertical */
+    padding: 20px;                   /* Margen interior */
+    transition: opacity 0.4s ease;   /* Transición para suavizar aparición */
+  }
+  
+  .modal.is-visible {
+    /* Clase auxiliar para mostrar el modal
+       si tu HTML la usa al abrirlo */
+    display: flex;
+    opacity: 1;                      /* Si deseas usar un fade in/out */
   }
   
   .modal-content {
@@ -301,8 +313,13 @@
     max-width: 600px;
     padding: 20px;
     position: relative;
-    animation: fadeIn 0.4s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.4s ease;
+    
+    /* Opcional: Si deseas algo más futurista, puedes
+       añadir un pequeño efecto blur en el fondo:
+       backdrop-filter: blur(4px); 
+    */
   }
   
   .modal-content h2 {
@@ -327,6 +344,19 @@
   .close-btn:hover {
     color: var(--secondary-color);
   }
+  
+  /* Animación para la entrada del contenido del modal */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
   
   /* --------------------------
      10. CONTADORES
