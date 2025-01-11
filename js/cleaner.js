@@ -40,6 +40,14 @@ import {
         await registerAseo();
       });
   
+      // **(1) Forzar PPU en mayúscula mientras se escribe**
+      const busIdInput = document.getElementById("bus-id");
+      if (busIdInput) {
+        busIdInput.addEventListener("input", () => {
+          busIdInput.value = busIdInput.value.toUpperCase();
+        });
+      }
+  
       // Botón para ver buses pendientes
       const pendingBusesBtn = document.getElementById("pending-buses-btn");
       pendingBusesBtn.addEventListener("click", openPendingBusesModal);
@@ -95,8 +103,7 @@ import {
   }
   
   /**
-   * Carga Tareas Asignadas desde aseo!A2:F
-   * Sin vaciar toda la tabla para evitar parpadeos
+   * Carga Tareas Asignadas desde aseo!A2:F sin vaciar toda la tabla
    */
   async function loadAssignedTasks() {
     const tasksTableBody = document.getElementById("assigned-tasks-table")?.querySelector("tbody");
@@ -127,7 +134,7 @@ import {
       const taskId = task[1];
       if (!lastTaskIds.has(taskId)) {
         const tr = document.createElement("tr");
-        // Se asume: task[1]=PPU, task[2]=Tarea, task[3]=Fecha Límite
+        // Se asume: task[1] => PPU, task[2] => Tarea, task[3] => Fecha Límite
         const ppu = task[1] ? task[1].trim().toUpperCase() : "N/A";
         const tarea = task[2] || "N/A";
         const fecha = task[3] || "N/A";
@@ -178,7 +185,7 @@ import {
       const completedId = row[1];
       if (!lastCompletedIds.has(completedId)) {
         const tr = document.createElement("tr");
-        // row[0]=PPU, row[1]=Cleaner, row[2]=Aseo, row[3]=Fecha
+        // row[0] = PPU, row[1] = Cleaner, row[2] = Aseo, row[3] = Fecha
         const ppu = row[0] ? row[0].trim().toUpperCase() : "N/A";
         const cleaner = row[1] ? row[1].trim().toUpperCase() : "N/A";
         const aseo = row[2] ? row[2].trim() : "N/A";
@@ -239,8 +246,9 @@ import {
     await appendData("aseo!I2:L", values);
     console.log("Aseo registrado:", values);
   
-    // Volver a cargar registros completados
+    // **(3) Recargar ambas tablas** (completados y asignadas) para que se vean inmediatamente
     await loadCompletedRecords();
+    await loadAssignedTasks();
   
     Swal.fire({
       icon: 'success',
@@ -269,33 +277,11 @@ import {
     tableBody.innerHTML = "";
   
     try {
-      const currentUser = localStorage.getItem("username");
-      if (!currentUser) {
-        console.warn("No se encontró username en localStorage.");
-        return;
-      }
-  
-      // Mostrar "Cargando..."
-      const loadingRow = document.createElement("tr");
-      const loadingTd = document.createElement("td");
-      loadingTd.colSpan = 3;
-      loadingTd.textContent = "Cargando...";
-      loadingTd.style.textAlign = "center";
-      loadingRow.appendChild(loadingTd);
-      tableBody.appendChild(loadingRow);
-  
+      // (2) Ya no filtramos por usuario actual: mostraremos TODOS los datos de "cleaner!A2:C"
       const busesData = await loadSheetData("cleaner!A2:C") || [];
       console.log("Buses pendientes (cleaner!A2:C):", busesData);
   
-      tableBody.innerHTML = "";
-  
-      // Filtrar buses del usuario actual
-      const userPending = busesData.filter(row => {
-        if (!row[0]) return false;
-        return row[0].trim().toUpperCase() === currentUser.trim().toUpperCase();
-      });
-  
-      if (userPending.length === 0) {
+      if (busesData.length === 0) {
         const tr = document.createElement("tr");
         const td = document.createElement("td");
         td.colSpan = 3;
@@ -304,10 +290,10 @@ import {
         tr.appendChild(td);
         tableBody.appendChild(tr);
       } else {
-        const newPending = new Set(userPending.map(r => r[1]?.trim().toUpperCase()));
+        const newPending = new Set(busesData.map(r => r[1]?.trim().toUpperCase()));
   
-        userPending.forEach(row => {
-          // row[0]=Usuario, row[1]=PPU, row[2]=Motivo/Fecha
+        busesData.forEach(row => {
+          // row[0] = Usuario, row[1] = PPU, row[2] = Motivo/Fecha
           const ppu = row[1] ? row[1].trim().toUpperCase() : "N/A";
           const motivo = row[2] ? row[2].trim() : "N/A";
           const fecha = ""; // ajusta si tienes un 3er campo
@@ -486,7 +472,7 @@ import {
   }
   
   /**
-   * Manejo de Gráficos con Chart.js (verifica que existan antes de usarlos)
+   * Manejo de Gráficos con Chart.js
    */
   let taskChart, attendanceChart, aseadoresChart;
   
@@ -495,7 +481,6 @@ import {
     const attendanceCanvas = document.getElementById("attendanceChart");
     const aseadoresCanvas = document.getElementById("aseadoresChart");
   
-    // Si no existen, evitamos errores
     if (!taskCanvas || !attendanceCanvas || !aseadoresCanvas) {
       console.warn("No se encontraron algunos canvas para los gráficos. Se omiten.");
       return;
