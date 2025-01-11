@@ -1,321 +1,282 @@
-/* ==============================================
-   cleaner.css
-   Versión Avanzada y Responsiva para Móvil
-   ============================================== */
+/* =========================================================
+   cleaner.css - Diseño Responsivo Futurista y Profesional
+   ========================================================= */
 
-/* -------------------- */
-/* VARIABLES DE COLOR   */
-/* -------------------- */
+/* ---------------------------- */
+/* VARIABLES DE COLOR Y FUENTE */
+/* ---------------------------- */
 :root {
     --primary-color: #1e3d59;
     --secondary-color: #162447;
-    --accent-color: #e0e1dd;
-    --background-color: #fafafa;
-    --text-color: #333;
+    --accent-color: #f0f1f2;
+    --background-color: #ffffff;
+    --text-color: #333333;
     --white: #ffffff;
+  
     --danger-color: #dc3545;
     --success-color: #28a745;
     --warning-color: #ffc107;
     --info-color: #17a2b8;
+  
     --modal-bg-color: rgba(30, 61, 89, 0.8);
+  
+    --border-radius: 10px;
+    --box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    --transition: 0.3s ease;
+    --font-main: 'Roboto', sans-serif;
   }
   
-  /* -------------------- */
-  /* RESET Y ESTILOS BÁSICOS */
-  /* -------------------- */
+  /* ---------------------------- */
+  /* RESET Y ESTILOS BÁSICOS     */
+  /* ---------------------------- */
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Roboto', sans-serif;
+    font-family: var(--font-main);
+  }
+  
+  html, body {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    width: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   body {
-    background-color: var(--background-color);
-    color: var(--text-color);
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: 100vh;
+    overflow-x: hidden; /* Evita scroll horizontal en móvil */
     padding: 10px;
-    /* Evita scroll horizontal en pantallas móviles */
-    overflow-x: hidden;
   }
   
-  /* Contenedor principal */
+  /* ---------------------------- */
+  /* CONTENEDOR PRINCIPAL        */
+  /* ---------------------------- */
   .container {
     width: 100%;
     max-width: 1200px;
     background-color: var(--white);
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    overflow: hidden;
-    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
     display: flex;
     flex-direction: column;
     gap: 20px;
+    padding: 20px;
   }
   
-  /* -------------------- */
-  /* TÍTULOS Y CABECERAS  */
-  /* -------------------- */
+  /* ---------------------------- */
+  /* ENCABEZADOS Y TÍTULOS       */
+  /* ---------------------------- */
   h2 {
-    font-size: 1.5em;
+    font-size: 1.4rem;
     color: var(--primary-color);
     border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 5px;
-    margin-bottom: 10px;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
     text-align: center;
     letter-spacing: 0.5px;
   }
   
-  /* -------------------- */
-  /* SECCIÓN DE USUARIO Y CONEXIÓN */
-  /* -------------------- */
+  /* ---------------------------- */
+  /* SECCIÓN ESTADO DE USUARIO   */
+  /* ---------------------------- */
   .user-status-section {
     background-color: var(--accent-color);
     padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
     display: flex;
     flex-direction: column;
     gap: 10px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  .user-status-section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    transition: var(--transition);
   }
   
   #connection-status-section p {
     font-size: 0.95em;
-    font-weight: 500;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-weight: 500;
   }
   
+  /* Estado de conexión */
   #connection-status {
     font-weight: bold;
-    color: var(--danger-color); /* Rojo por defecto */
-    padding: 4px 8px;
-    border-radius: 5px;
+    color: var(--danger-color);
     background-color: #f8d7da;
-    transition: color 0.3s ease, background-color 0.3s ease;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: var(--transition);
   }
   
   #connection-status.connected {
-    color: var(--success-color); /* Verde si está conectado */
+    color: var(--success-color);
     background-color: #d4edda;
   }
   
   #username-display {
-    font-weight: bold;
     color: var(--primary-color);
+    font-weight: 700;
   }
   
-  /* -------------------- */
-  /* FORMULARIOS          */
-  /* -------------------- */
+  /* ---------------------------- */
+  /* FORMULARIOS                 */
+  /* ---------------------------- */
   form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
   }
   
   label {
-    font-size: 0.9em;
-    font-weight: 500;
+    font-size: 0.9rem;
+    font-weight: 600;
     color: var(--primary-color);
+    margin-bottom: 3px;
   }
   
   input,
   select {
-    padding: 12px;
-    font-size: 1em;
     border: 1px solid #ccc;
-    border-radius: 8px;
-    outline: none;
-    transition: border-color 0.3s, box-shadow 0.3s;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 0.95rem;
+    transition: var(--transition);
     background-color: var(--white);
   }
   
   input:focus,
   select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(30, 61, 89, 0.2);
+    border-color: var(--secondary-color);
+    box-shadow: 0 2px 10px rgba(22,36,71,0.1);
+    outline: none;
   }
   
+  /* Estilo del select (flecha) */
   select {
     appearance: none;
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><polygon points="70,105 105,35 35,35" fill="%23fff" /></svg>');
-    background-repeat: no-repeat;
-    background-position: right 10px center;
+    background: url("data:image/svg+xml;charset=UTF8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14'><polygon points='0,0 14,0 7,7' fill='rgba(30,61,89,0.7)'/></svg>") no-repeat right 10px center / 10px;
     padding-right: 30px;
   }
   
-  /* -------------------- */
-  /* BOTONES              */
-  /* -------------------- */
+  /* ---------------------------- */
+  /* BOTONES                     */
+  /* ---------------------------- */
   .btn-primary,
   .btn-secondary {
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1em;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1rem;
     font-weight: bold;
     color: var(--white);
-    cursor: pointer;
     background-color: var(--primary-color);
-    transition: background-color 0.3s, transform 0.2s;
-    width: 100%;
-    margin-top: 10px;
+    border: none;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: var(--transition);
     text-align: center;
+    text-decoration: none;
+    width: 100%;
   }
   
-  /* Efecto hover ligero y futurista */
+  /* Hover: efecto futurista ligero */
   .btn-primary:hover,
   .btn-secondary:hover {
     background-color: var(--secondary-color);
     transform: translateY(-2px);
   }
   
+  /* Estilo secundario */
   .btn-secondary {
     background-color: var(--secondary-color);
   }
   
-  /* -------------------- */
-  /* TABLAS               */
-  /* -------------------- */
+  /* ---------------------------- */
+  /* TABLAS                      */
+  /* ---------------------------- */
   .styled-table {
     width: 100%;
     border-collapse: collapse;
-    border-radius: 8px;
-    overflow: hidden;
     margin-top: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.06);
   }
   
   .styled-table thead {
     background-color: var(--primary-color);
     color: var(--white);
+    text-transform: uppercase;
     font-weight: 600;
-    text-align: center;
+    font-size: 0.85rem;
   }
   
   .styled-table th,
   .styled-table td {
     padding: 12px;
-    font-size: 0.9em;
-    word-wrap: break-word;
     text-align: center;
+    font-size: 0.9rem;
   }
   
   .styled-table tbody tr {
-    border-bottom: 1px solid #e0e0e0;
-    transition: background-color 0.3s;
+    border-bottom: 1px solid #eee;
+    transition: var(--transition);
   }
   
   .styled-table tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background-color: #fafafa;
   }
   
   .styled-table tbody tr:hover {
-    background-color: #eaf3ff;
+    background-color: #f0f8ff;
   }
   
-  .styled-table th {
-    text-transform: uppercase;
-    font-size: 0.85em;
-  }
-  
-  /* Para pantallas muy pequeñas, que no haya scroll horizontal */
-  .styled-table,
-  .styled-table thead,
-  .styled-table tbody,
-  .styled-table th,
-  .styled-table td,
-  .styled-table tr {
-    display: block;
-  }
-  
-  .styled-table thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-  }
-  
-  .styled-table tr {
-    margin-bottom: 15px;
-  }
-  
-  .styled-table td {
-    border: none;
-    position: relative;
-    padding-left: 50%;
-  }
-  
-  .styled-table td:before {
-    position: absolute;
-    left: 15px;
-    width: 40%;
-    white-space: nowrap;
-    font-weight: bold;
-  }
-  
-  .styled-table td:nth-of-type(1):before { content: "PPU BUS"; }
-  .styled-table td:nth-of-type(2):before { content: "TAREA"; }
-  .styled-table td:nth-of-type(3):before { content: "FECHA LÍMITE"; }
-  
-  /* Ajuste para la tabla "completed-records-table" (4 columnas) */
-  .completed-records-section td:nth-of-type(1):before { content: "PPU BUS"; }
-  .completed-records-section td:nth-of-type(2):before { content: "CLEANER"; }
-  .completed-records-section td:nth-of-type(3):before { content: "ASEO REALIZADO"; }
-  .completed-records-section td:nth-of-type(4):before { content: "FECHA"; }
-  
-  /* Ajuste para la tabla "pending-buses-table" (3 columnas) */
-  #pending-buses-table td:nth-of-type(1):before { content: "PPU BUS"; }
-  #pending-buses-table td:nth-of-type(2):before { content: "MOTIVO"; }
-  #pending-buses-table td:nth-of-type(3):before { content: "FECHA"; }
-  
-  /* La paginación en móvil se mantiene */
+  /* ---------------------------- */
+  /* SECCIÓN DE PAGINACIÓN       */
+  /* ---------------------------- */
   .pagination {
     display: flex;
     justify-content: center;
-    gap: 5px;
+    gap: 6px;
     margin-top: 10px;
   }
   
   .pagination button {
-    padding: 5px 10px;
-    border: none;
     background-color: var(--secondary-color);
     color: var(--white);
-    border-radius: 5px;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 10px;
     cursor: pointer;
-    transition: background-color 0.3s;
-    font-size: 0.9em;
+    font-size: 0.85rem;
+    transition: var(--transition);
   }
   
-  .pagination button.active,
-  .pagination button:hover {
+  .pagination button:hover,
+  .pagination button.active {
     background-color: var(--primary-color);
   }
   
-  /* -------------------- */
-  /* MODALES             */
-  /* -------------------- */
+  /* ---------------------------- */
+  /* SECCIÓN DE MODALES          */
+  /* ---------------------------- */
   .modal {
     display: none;
     position: fixed;
-    z-index: 999;
+    z-index: 5000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow-y: auto;
     background-color: var(--modal-bg-color);
+    overflow-y: auto;
     justify-content: center;
     align-items: center;
     padding: 20px;
@@ -323,82 +284,74 @@
   
   .modal-content {
     background-color: var(--white);
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 20px;
-    width: 90%;
-    max-width: 600px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: var(--box-shadow);
+    animation: fadeIn 0.3s forwards;
     position: relative;
-    animation: fadeIn 0.3s ease;
   }
   
   .modal-content h2 {
-    font-size: 1.3em;
+    font-size: 1.2rem;
     color: var(--primary-color);
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     text-align: center;
   }
   
   .close-btn {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 1.5em;
+    top: 12px;
+    right: 16px;
+    font-size: 1.5rem;
     color: #aaa;
     cursor: pointer;
-    transition: color 0.3s;
+    transition: var(--transition);
   }
   
   .close-btn:hover {
     color: var(--secondary-color);
   }
   
-  /* -------------------- */
-  /* CONTADORES          */
-  /* -------------------- */
+  /* ---------------------------- */
+  /* SECCIÓN DE CONTADORES       */
+  /* ---------------------------- */
   .counters-section {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
     gap: 20px;
-    padding: 10px;
     background-color: var(--accent-color);
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 15px;
+    box-shadow: var(--box-shadow);
   }
   
   .counters-section p {
-    font-size: 1em;
+    font-size: 0.95rem;
     font-weight: 500;
     text-align: center;
   }
   
-  /* -------------------- */
-  /* GRÁFICOS            */
-  /* -------------------- */
-  .charts-section {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  /* ---------------------------- */
+  /* TOAST CONTAINER (OPCIONAL)  */
+  /* ---------------------------- */
+  #toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
   }
   
-  .charts-section canvas {
-    width: 100% !important;
-    height: auto !important;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    background-color: #fff;
-    padding: 10px;
-    margin-top: 20px;
-  }
-  
-  /* -------------------- */
-  /* EFECTOS DE ANIMACIÓN */
-  /* -------------------- */
+  /* ---------------------------- */
+  /* EFECTOS DE ANIMACIÓN        */
+  /* ---------------------------- */
   @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(-10px);
+      transform: translateY(-8px);
     }
     to {
       opacity: 1;
@@ -406,91 +359,57 @@
     }
   }
   
-  /* -------------------- */
-  /* ALERTAS (SweetAlert2) */
-  /* -------------------- */
-  /* Ajustes de estilo para las alertas flotantes. */
-  .swal2-popup {
-    background-color: #ffffff !important;
-    border-radius: 12px !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
-  }
+  /* ---------------------------- */
+  /* RESPONSIVIDAD               */
+  /* ---------------------------- */
   
-  .swal2-title {
-    color: var(--secondary-color) !important;
-    font-size: 1.2em !important;
-    font-weight: bold !important;
-  }
-  
-  .swal2-html-container {
-    color: var(--text-color) !important;
-    font-size: 0.95em !important;
-  }
-  
-  /* Para los íconos de error, success, warning, etc. */
-  .swal2-icon {
-    border-radius: 50% !important;
-  }
-  
-  /* -------------------- */
-  /* RESPONSIVIDAD ADICIONAL */
-  /* -------------------- */
+  /* Para pantallas <= 768px (tablets medianas) */
   @media (max-width: 768px) {
-    .counters-section {
-      flex-direction: column;
-      align-items: center;
+    h2 {
+      font-size: 1.2rem;
     }
-    
-    .modal-content {
-      max-width: 90% !important;
-    }
-    
+  
     .btn-primary,
     .btn-secondary {
-      font-size: 0.95em;
-      padding: 10px;
+      font-size: 0.95rem;
     }
-    
-    /* Ajusta el font-size en tablas para pantallas medianas */
+  
     .styled-table th,
     .styled-table td {
-      font-size: 0.85em;
+      font-size: 0.85rem;
       padding: 10px;
     }
   }
   
+  /* Para pantallas <= 480px (smartphones) */
   @media (max-width: 480px) {
-    /* Ajusta aún más el tamaño de fuente en pantallas muy pequeñas */
+    .container {
+      padding: 15px;
+    }
+  
+    h2 {
+      font-size: 1.15rem;
+      margin-bottom: 10px;
+    }
+  
     .btn-primary,
     .btn-secondary {
-      font-size: 0.88em;
+      font-size: 0.88rem;
       padding: 10px;
     }
-    
+  
+    label {
+      font-size: 0.85rem;
+    }
+  
     .styled-table th,
     .styled-table td {
-      font-size: 0.8em;
+      font-size: 0.8rem;
       padding: 8px;
     }
-    
-    label {
-      font-size: 0.85em;
-    }
-    
-    h2 {
-      font-size: 1.3em;
-    }
-    
+  
     .counters-section p {
-      font-size: 0.9em;
-    }
-    
-    .swal2-title {
-      font-size: 1.1em !important;
-    }
-    
-    .swal2-html-container {
-      font-size: 0.88em !important;
+      font-size: 0.85rem;
     }
   }
   
