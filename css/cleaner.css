@@ -1,17 +1,17 @@
 /* =========================================================
-   cleaner.css - Versión Avanzada y Responsiva
-   Diseño Moderno y Futurista para Celulares
-   ========================================================= */
+   cleaner.css - Versión Avanzada, Profesional y Futurista
+   Enfoque en Responsividad Completa y Legibilidad
+========================================================= */
 
 /* --------------------------
-   VARIABLES DE COLOR
+   1. VARIABLES DE COLOR
 --------------------------- */
 :root {
-    --primary-color: #1e3d59;
-    --secondary-color: #162447;
-    --accent-color: #e0e1dd;
-    --background-color: #f8f8f8;
-    --text-color: #333;
+    --primary-color: #1e3d59;       /* Color principal (futurista oscuro) */
+    --secondary-color: #162447;     /* Color secundario (aún más oscuro) */
+    --accent-color: #e0e1dd;        /* Color de acento (tonos grises suaves) */
+    --background-color: #f7f9fc;    /* Fondo principal */
+    --text-color: #333;            /* Texto general */
     --white: #ffffff;
     --danger-color: #dc3545;
     --success-color: #28a745;
@@ -21,7 +21,7 @@
   }
   
   /* --------------------------
-     RESETEO Y ESTILOS BÁSICOS
+     2. RESETEO Y ESTILOS BÁSICOS
   --------------------------- */
   * {
     margin: 0;
@@ -38,7 +38,7 @@
     align-items: flex-start;
     min-height: 100vh;
     padding: 10px;
-    overflow-x: hidden; /* Evitar scroll horizontal */
+    overflow-x: hidden; /* Evita scroll horizontal */
   }
   
   /* Contenedor principal */
@@ -47,7 +47,7 @@
     max-width: 1200px;
     background-color: var(--white);
     border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     overflow: hidden;
     padding: 20px;
     display: flex;
@@ -56,16 +56,17 @@
   }
   
   /* --------------------------
-     TÍTULOS Y SECCIONES
+     3. TITULOS Y SECCIONES
   --------------------------- */
   h2 {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     color: var(--primary-color);
     border-bottom: 2px solid var(--primary-color);
     text-align: center;
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-    letter-spacing: 0.5px;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
   }
   
   section {
@@ -75,33 +76,33 @@
   }
   
   /* --------------------------
-     SECCIÓN DE USUARIO Y CONEXIÓN
+     4. SECCIÓN DE USUARIO Y CONEXIÓN
   --------------------------- */
   .user-status-section {
     background-color: var(--accent-color);
     padding: 15px;
     border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
   }
   
   .user-status-section:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
   }
   
   #connection-status-section p {
     font-size: 0.95rem;
+    font-weight: 500;
     display: flex;
     align-items: center;
     gap: 8px;
     color: var(--secondary-color);
-    font-weight: 500;
   }
   
   #connection-status {
     font-weight: bold;
-    color: var(--danger-color);
+    color: var(--danger-color); /* Rojo predeterminado */
     background-color: #f8d7da;
     padding: 4px 8px;
     border-radius: 5px;
@@ -119,7 +120,7 @@
   }
   
   /* --------------------------
-     FORMULARIOS
+     5. FORMULARIOS
   --------------------------- */
   form {
     display: flex;
@@ -133,9 +134,10 @@
     color: var(--primary-color);
   }
   
-  input, select {
+  input,
+  select {
     padding: 12px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     border: 1px solid #ccc;
     border-radius: 8px;
     outline: none;
@@ -146,20 +148,20 @@
   input:focus,
   select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 8px rgba(30, 61, 89, 0.2);
+    box-shadow: 0 0 8px rgba(30,61,89,0.2);
   }
   
   select {
     appearance: none;
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23ffffff" viewBox="0 0 140 140"><polygon points="70,105 105,35 35,35"/></svg>');
     background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 15px 15px;
-    padding-right: 35px;
+    background-position: right 12px center;
+    background-size: 14px 14px;
+    padding-right: 34px;
   }
   
   /* --------------------------
-     BOTONES
+     6. BOTONES (CON HOVER)
   --------------------------- */
   .btn-primary,
   .btn-secondary {
@@ -174,6 +176,7 @@
     transition: background-color 0.3s, transform 0.2s;
     width: 100%;
     text-align: center;
+    margin-top: 8px;
   }
   
   .btn-primary:hover,
@@ -187,14 +190,15 @@
   }
   
   /* --------------------------
-     TABLAS
+     7. TABLAS
   --------------------------- */
   .styled-table {
     width: 100%;
     border-collapse: collapse;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
   
   .styled-table thead {
@@ -218,7 +222,7 @@
   }
   
   .styled-table tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background-color: #fafafa;
   }
   
   .styled-table tbody tr:hover {
@@ -230,28 +234,24 @@
     font-size: 0.8rem;
   }
   
-  /* Control de overflow horizontal en pantallas muy pequeñas */
-  .assigned-tasks-section table,
-  .register-aseo-section table,
-  .completed-records-section table,
-  #pending-buses-table {
-    width: 100%;
-    display: block;
-    overflow-x: auto;
-    scrollbar-width: thin;
-    margin: 0 auto;
-  }
-  
-  .assigned-tasks-section table thead,
-  .completed-records-section table thead,
-  #pending-buses-table thead {
-    width: 100%;
+  /* Evitar que las tablas se "rompan" en pantallas pequeñas:
+     Se hace scroll-x en lugar de reestructurar la tabla por completo */
+  .styled-table {
     display: table;
     table-layout: fixed;
   }
+  .assigned-tasks-section,
+  .completed-records-section,
+  #pending-buses-modal .modal-content {
+    overflow-x: auto;
+  }
+  .styled-table th,
+  .styled-table td {
+    min-width: 110px; /* Ajusta para evitar superposición de texto */
+  }
   
   /* --------------------------
-     PAGINACIÓN
+     8. PAGINACIÓN
   --------------------------- */
   .pagination {
     display: flex;
@@ -271,13 +271,13 @@
     transition: background-color 0.3s;
   }
   
-  .pagination button:hover,
-  .pagination button.active {
+  .pagination button.active,
+  .pagination button:hover {
     background-color: var(--primary-color);
   }
   
   /* --------------------------
-     MODAL
+     9. MODAL
   --------------------------- */
   .modal {
     display: none;
@@ -308,8 +308,10 @@
   .modal-content h2 {
     font-size: 1.2rem;
     color: var(--primary-color);
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     text-align: center;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
   }
   
   .close-btn {
@@ -327,7 +329,7 @@
   }
   
   /* --------------------------
-     CONTADORES
+     10. CONTADORES
   --------------------------- */
   .counters-section {
     background-color: var(--accent-color);
@@ -349,7 +351,7 @@
   }
   
   /* --------------------------
-     SWEETALERT2 (ALERTAS)
+     11. ESTILOS SWEETALERT2 (ALERTAS)
   --------------------------- */
   .swal2-popup {
     background-color: #ffffff !important;
@@ -362,11 +364,12 @@
     font-size: 1.2rem !important;
     font-weight: bold !important;
     letter-spacing: 0.5px;
+    text-transform: uppercase;
   }
   
   .swal2-html-container {
     color: var(--text-color) !important;
-    font-size: 1rem !important;
+    font-size: 0.9rem !important;
   }
   
   .swal2-icon {
@@ -375,7 +378,7 @@
   }
   
   /* --------------------------
-     ANIMACIONES
+     12. ANIMACIONES
   --------------------------- */
   @keyframes fadeIn {
     from {
@@ -389,37 +392,41 @@
   }
   
   /* --------------------------
-     RESPONSIVIDAD
+     13. RESPONSIVIDAD
   --------------------------- */
-  /* Ajustes generales para tablet */
+  /* Ajustes generales para tablets */
   @media (max-width: 768px) {
     h2 {
-      font-size: 1.2rem;
-    }
-  
-    .counters-section {
-      flex-direction: column;
-      gap: 10px;
-    }
-  
-    .counters-section p {
-      font-size: 0.95rem;
+      font-size: 1.1rem;
+      padding-bottom: 5px;
     }
   
     .styled-table th,
     .styled-table td {
-      font-size: 0.85rem;
-      padding: 10px;
+      font-size: 0.8rem;
+      padding: 8px;
+      min-width: 90px;
     }
   
     .btn-primary,
     .btn-secondary {
-      font-size: 0.9rem;
-      padding: 10px;
+      font-size: 0.88rem;
     }
   
     label {
       font-size: 0.85rem;
+    }
+  
+    #connection-status-section p {
+      font-size: 0.88rem;
+    }
+  
+    .counters-section p {
+      font-size: 0.88rem;
+    }
+  
+    .modal-content {
+      max-width: 90% !important;
     }
   }
   
@@ -434,32 +441,40 @@
     }
   
     h2 {
-      font-size: 1.1rem;
+      font-size: 1rem;
+      margin-bottom: 8px;
     }
   
     label {
       font-size: 0.8rem;
     }
   
-    input, select {
-      font-size: 0.9rem;
+    input,
+    select {
+      font-size: 0.85rem;
       padding: 10px;
     }
   
     .btn-primary,
     .btn-secondary {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       padding: 8px;
     }
   
+    .counters-section {
+      flex-direction: column;
+      gap: 10px;
+    }
+  
     .counters-section p {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
   
     .styled-table th,
     .styled-table td {
-      font-size: 0.78rem;
-      padding: 8px;
+      font-size: 0.75rem;
+      padding: 6px;
+      min-width: 80px;
     }
   
     .pagination button {
@@ -469,6 +484,14 @@
   
     .modal-content {
       padding: 15px;
+    }
+  
+    .swal2-title {
+      font-size: 1rem !important;
+    }
+  
+    .swal2-html-container {
+      font-size: 0.85rem !important;
     }
   }
   
