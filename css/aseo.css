@@ -245,92 +245,91 @@ body {
     margin-right: 8px;
 }
 
-/* ===============================
-   CONTADORES Y GRÁFICOS (MEJORADO)
-=============================== */
+/* =======================================
+   SECCIÓN GENERAL DE GRÁFICOS CIRCULARES
+======================================= */
 
-/* Sección que contiene todos los gráficos y contadores */
+/* Contenedor principal de todos los gráficos */
 .charts-section {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
-    justify-content: space-between;
+    justify-content: center;
+    /* Centra los gráficos en la pantalla */
     margin-top: 20px;
-    /* Ajusta el espacio superior si lo deseas */
 }
 
-/* Contenedor principal para cada gráfico individual */
+/* Cada contenedor individual para el gráfico circular */
 .chart-container {
-    /* Fondo claro con sutiles sombras */
-    background-color: var(--white);
-    border-radius: 12px;
-    box-shadow: 0 6px 20px var(--shadow-color, rgba(0, 0, 0, 0.1));
+    /* Dimensiones fijas para asegurar el mismo porte y forma circular */
+    width: 300px;
+    height: 300px;
 
-    /* Suficiente padding y margen interno */
+    /* Mantiene un aspecto circular y bordes suaves */
+    border-radius: 50%;
+    background-color: var(--white, #ffffff);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+
+    /* Espacio interno para título o leyenda */
     padding: 20px;
-    flex: 1 1 30%;
-    max-width: 30%;
+    position: relative;
+    /* Para posicionar elementos internos si es necesario */
 
-    /* Para acomodar título, canvas y leyenda */
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-
-    /* Animaciones en hover */
+    /* Efecto hover para sensación futurista */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .chart-container:hover {
-    /* Efecto de elevación al pasar el cursor */
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px var(--shadow-color, rgba(0, 0, 0, 0.15));
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
 }
 
-/* Título del gráfico */
+/* Título centrado encima del gráfico */
 .chart-container h3 {
-    color: var(--primary-color, #1e3d59);
-    font-size: 1.3rem;
     text-align: center;
+    font-size: 1.1rem;
+    color: var(--primary-color, #1e3d59);
     text-transform: uppercase;
-    /* Opcional, si deseas un toque futurista */
+    /* Opcional, para toque futurista */
     letter-spacing: 0.5px;
     margin-bottom: 10px;
 }
 
-/* El canvas que representa el gráfico */
+/* El canvas de Chart.js o similar, forzado a ocupar todo el espacio circular */
 .chart-container canvas {
+    /* Ajuste total al contenedor, respetando la forma circular */
     width: 100% !important;
-    height: auto !important;
-    border-radius: 10px;
-    background-color: var(--accent-color, #f3f3f3);
-    /* Color suave de fondo */
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
-    margin: 0 auto;
-    /* Centrar internamente si deseas */
+    height: 100% !important;
+
+    /* Para no salirse del contenedor circular */
+    border-radius: 50%;
+
+    /* Sombras sutiles internas, si deseas un “inset” look */
+    background-color: var(--accent-color, #f4f4f4);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* ===============================
-     RESPONSIVIDAD
-  =============================== */
-@media (max-width: 992px) {
-
-    /* Ajusta a 100% cuando la pantalla es mediana */
+/* ---------------------------------------
+     RESPONSIVIDAD PARA PANTALLAS PEQUEÑAS
+  ---------------------------------------- */
+@media (max-width: 768px) {
     .chart-container {
-        flex: 1 1 45%;
-        max-width: 45%;
+        width: 250px;
+        height: 250px;
+        margin: 0 auto;
+        /* Centra en pantallas pequeñas */
     }
 }
 
-@media (max-width: 576px) {
-
-    /* En pantallas muy pequeñas, cada contenedor ocupa todo el ancho */
+@media (max-width: 480px) {
     .chart-container {
-        flex: 1 1 100%;
-        max-width: 100%;
+        width: 220px;
+        height: 220px;
+        padding: 15px;
     }
 
     .chart-container h3 {
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
 }
 
