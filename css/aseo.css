@@ -1,11 +1,8 @@
 /* Variables de color modernizadas */
 :root {
-    --primary-color: #4a90e2;
-    /* Azul brillante */
-    --secondary-color: #50e3c2;
-    /* Verde agua */
-    --accent-color: #f5a623;
-    /* Naranja brillante */
+    --primary-color: #4a90e2; /* Azul brillante */
+    --secondary-color: #50e3c2; /* Verde agua */
+    --accent-color: #f5a623; /* Naranja brillante */
     --light-gray: #f5f5f5;
     --dark-gray: #4a4a4a;
     --text-light: #ffffff;
@@ -102,8 +99,7 @@ body {
 }
 
 /* Formularios */
-.form-section,
-.tasks-assignment-section {
+.form-section, .tasks-assignment-section {
     background: var(--text-light);
     padding: 25px;
     border-radius: var(--border-radius);
@@ -118,8 +114,7 @@ body {
 
 
 
-.form-section h2,
-.tasks-assignment-section h2 {
+.form-section h2, .tasks-assignment-section h2 {
     color: var(--primary-color);
     font-size: 1.5rem;
     margin-bottom: 10px;
@@ -127,8 +122,7 @@ body {
     padding-left: 25px;
 }
 
-.form-section h2::before,
-.tasks-assignment-section h2::before {
+.form-section h2::before, .tasks-assignment-section h2::before {
     content: "";
     position: absolute;
     left: 0;
@@ -148,13 +142,11 @@ body {
 }
 
 .form-section h2::before {
-    content: "\f0c0";
-    /* Icono de Font Awesome (usuarios) */
+    content: "\f0c0"; /* Icono de Font Awesome (usuarios) */
 }
 
 .tasks-assignment-section h2::before {
-    content: "\f0ae";
-    /* Icono de Font Awesome (tareas) */
+    content: "\f0ae"; /* Icono de Font Awesome (tareas) */
 }
 
 /* Form Groups */
@@ -187,8 +179,7 @@ body {
     pointer-events: none;
 }
 
-.form-group input,
-.form-group select {
+.form-group input, .form-group select {
     padding: 12px 15px;
     font-size: 0.95rem;
     border: 1px solid #ccc;
@@ -197,8 +188,7 @@ body {
     background-color: #ffffff;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form-group input:focus, .form-group select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
     outline: none;
@@ -244,95 +234,91 @@ body {
 .btn-primary i {
     margin-right: 8px;
 }
+/* Mantén tus contenedores tal cual,
+   solo añadiendo las propiedades necesarias al canvas. */
 
-/* =======================================
-   SECCIÓN GENERAL DE GRÁFICOS CIRCULARES
-======================================= */
-
-/* Contenedor principal de todos los gráficos */
-.charts-section {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    /* Centra los gráficos en la pantalla */
-    margin-top: 20px;
-}
-
-/* Cada contenedor individual para el gráfico circular */
+/* --------------------------
+   Contenedores de Gráficos (Rectangulares)
+--------------------------- */
 .chart-container {
-    /* Dimensiones fijas para asegurar el mismo porte y forma circular */
-    width: 300px;
-    height: 300px;
-
-    /* Mantiene un aspecto circular y bordes suaves */
-    border-radius: 50%;
-    background-color: var(--white, #ffffff);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-
-    /* Espacio interno para título o leyenda */
+    background: var(--text-light, #f8f8f8);
     padding: 20px;
-    position: relative;
-    /* Para posicionar elementos internos si es necesario */
-
-    /* Efecto hover para sensación futurista */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.chart-container:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-}
-
-/* Título centrado encima del gráfico */
-.chart-container h3 {
-    text-align: center;
-    font-size: 1.1rem;
+    border-radius: var(--border-radius, 10px);
+    box-shadow: 0px 8px 20px var(--shadow-color, rgba(0, 0, 0, 0.1));
+    flex: 1 1 30%;
+    max-width: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    margin: 0 auto; /* Opcional, si deseas centrar el contenedor */
+  }
+  
+  .chart-container h3 {
     color: var(--primary-color, #1e3d59);
-    text-transform: uppercase;
-    /* Opcional, para toque futurista */
+    font-size: 1.3rem;
+    text-align: center;
     letter-spacing: 0.5px;
     margin-bottom: 10px;
-}
-
-/* El canvas de Chart.js o similar, forzado a ocupar todo el espacio circular */
-.chart-container canvas {
-    /* Ajuste total al contenedor, respetando la forma circular */
-    width: 100% !important;
-    height: 100% !important;
-
-    /* Para no salirse del contenedor circular */
+    text-transform: uppercase; /* Opcional, si quieres un estilo más futurista */
+  }
+  
+  /* --------------------------
+     Canvas del Gráfico (Circular)
+  --------------------------- */
+  .chart-container canvas {
+    /* Asegura que el canvas conserve un ratio 1:1 (cuadrado) */
+    aspect-ratio: 1 / 1; 
+    
+    /* Ajusta su tamaño máximo sin alterar el contenedor */
+    width: 100%;
+    max-width: 300px; /* Ajusta según tu gusto */
+    height: auto;
+    
+    /* Crea la forma circular */
     border-radius: 50%;
-
-    /* Sombras sutiles internas, si deseas un “inset” look */
-    background-color: var(--accent-color, #f4f4f4);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-/* ---------------------------------------
-     RESPONSIVIDAD PARA PANTALLAS PEQUEÑAS
-  ---------------------------------------- */
-@media (max-width: 768px) {
+    
+    /* Centra el canvas horizontalmente dentro del container */
+    margin: 0 auto;
+  
+    /* Pequeña sombra interna para un look más "profundo" */
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    
+    /* Si deseas un fondo distintivo en el gráfico */
+    background-color: var(--accent-color, #ffffff);
+  }
+  
+  /* Efecto hover para el contenedor */
+  .chart-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0px 12px 25px var(--shadow-color, rgba(0, 0, 0, 0.2));
+  }
+  
+  /* --------------------------
+     Responsividad
+  --------------------------- */
+  @media (max-width: 992px) {
     .chart-container {
-        width: 250px;
-        height: 250px;
-        margin: 0 auto;
-        /* Centra en pantallas pequeñas */
+      flex: 1 1 45%;
+      max-width: 45%;
     }
-}
-
-@media (max-width: 480px) {
+  }
+  
+  @media (max-width: 576px) {
     .chart-container {
-        width: 220px;
-        height: 220px;
-        padding: 15px;
+      flex: 1 1 100%;
+      max-width: 100%;
     }
-
+    
     .chart-container h3 {
-        font-size: 1rem;
+      font-size: 1.1rem;
     }
-}
-
+    
+    .chart-container canvas {
+      max-width: 250px; /* Ajusta un tamaño menor para pantallas muy pequeñas */
+    }
+  }
+  
 
 /* Contadores */
 .count-box {
@@ -400,8 +386,7 @@ body {
 }
 
 .table-section h2::before {
-    content: "\f0c0";
-    /* Icono de Font Awesome (usuarios) */
+    content: "\f0c0"; /* Icono de Font Awesome (usuarios) */
 }
 
 .styled-table {
@@ -418,8 +403,7 @@ body {
     color: var(--text-light);
 }
 
-.styled-table th,
-.styled-table td {
+.styled-table th, .styled-table td {
     padding: 12px 15px;
     font-size: 0.95rem;
     font-weight: 600;
@@ -476,19 +460,13 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-.container,
-.main-content,
-.form-section,
-.tasks-assignment-section,
-.chart-container,
-.table-section {
+.container, .main-content, .form-section, .tasks-assignment-section, .chart-container, .table-section {
     animation: fadeIn 0.6s ease-out;
 }
 
@@ -521,10 +499,7 @@ body {
 
 /* Responsividad Mejorada */
 @media screen and (max-width: 1024px) {
-
-    .form-section,
-    .tasks-assignment-section,
-    .chart-container {
+    .form-section, .tasks-assignment-section, .chart-container {
         flex: 1 1 48%;
         max-width: 48%;
     }
@@ -548,21 +523,16 @@ body {
         margin-bottom: 10px;
     }
 
-    .top-section,
-    .charts-section,
-    .tables-section {
+    .top-section, .charts-section, .tables-section {
         flex-direction: column;
     }
 
-    .form-section,
-    .tasks-assignment-section,
-    .chart-container {
+    .form-section, .tasks-assignment-section, .chart-container {
         flex: 1 1 100%;
         max-width: 100%;
     }
 
-    .styled-table th,
-    .styled-table td {
+    .styled-table th, .styled-table td {
         padding: 10px;
         font-size: 0.85rem;
     }
@@ -595,9 +565,7 @@ body {
         font-size: 0.9rem;
     }
 
-    .form-section h2,
-    .tasks-assignment-section h2,
-    .table-section h2 {
+    .form-section h2, .tasks-assignment-section h2, .table-section h2 {
         font-size: 1.3rem;
     }
 
@@ -609,8 +577,7 @@ body {
         font-size: 1.5rem;
     }
 
-    .styled-table th,
-    .styled-table td {
+    .styled-table th, .styled-table td {
         padding: 8px;
         font-size: 0.8rem;
     }
@@ -676,7 +643,6 @@ body {
         transform: translateY(-50px);
         opacity: 0;
     }
-
     to {
         transform: translateY(0);
         opacity: 1;
@@ -698,8 +664,7 @@ body {
 .toast {
     min-width: 250px;
     background-color: #ffffff;
-    border-left: 5px solid #4a90e2;
-    /* Color primario */
+    border-left: 5px solid #4a90e2; /* Color primario */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: 10px 15px;
     border-radius: 8px;
@@ -728,3 +693,5 @@ body {
 .toast .close-button:hover {
     color: #000000;
 }
+
+
