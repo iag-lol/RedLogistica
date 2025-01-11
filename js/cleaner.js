@@ -16,6 +16,7 @@ import {
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       console.log("Inicializando GAPI Client...");
+      // Inicializa el cliente de Google Sheets sin reautenticar a cada rato
       await initializeGapiClient();
   
       if (isUserAuthenticated()) {
@@ -25,8 +26,8 @@ import {
         // Cargar datos y configurar la plataforma
         await initializeCleanerData();
   
-        // Intervalo de actualización cada 5s
-        setInterval(updateAllChartsAndCounters, 5000);
+        // Ya NO se llama setInterval para reautenticar o recargar datos:
+        // El token se mantendrá si no expira; si expira, Google pedirá reautenticación.
       } else {
         console.warn("No se pudo autenticar con Google Sheets.");
         updateConnectionStatus(false);
@@ -40,7 +41,7 @@ import {
         await registerAseo();
       });
   
-      // **(1) Forzar PPU en mayúscula mientras se escribe**
+      // Forzar PPU en mayúsculas al escribir
       const busIdInput = document.getElementById("bus-id");
       if (busIdInput) {
         busIdInput.addEventListener("input", () => {
@@ -95,6 +96,7 @@ import {
    * Inicializa datos y configuración principal
    */
   async function initializeCleanerData() {
+    // Cargar tablas y gráficos
     await loadAssignedTasks();
     await loadCompletedRecords();
     initializeChartsAndCounters();
@@ -103,7 +105,7 @@ import {
   }
   
   /**
-   * Carga Tareas Asignadas desde aseo!A2:F sin vaciar toda la tabla
+   * Carga Tareas Asignadas desde aseo!A2:F
    */
   async function loadAssignedTasks() {
     const tasksTableBody = document.getElementById("assigned-tasks-table")?.querySelector("tbody");
@@ -129,7 +131,7 @@ import {
   
     const newTaskIds = new Set(userTasks.map(t => t[1]));
   
-    // Agregar SOLO nuevas tareas
+    // Agregar SOLO nuevas tareas que no existían antes
     userTasks.forEach(task => {
       const taskId = task[1];
       if (!lastTaskIds.has(taskId)) {
@@ -185,13 +187,13 @@ import {
       const completedId = row[1];
       if (!lastCompletedIds.has(completedId)) {
         const tr = document.createElement("tr");
-        // row[0] = PPU, row[1] = Cleaner, row[2] = Aseo, row[3] = Fecha
+        // row[0] = PPU, row[1] = Cleaner, row[2] = Aseo, row[3] = Fecha+Hora
         const ppu = row[0] ? row[0].trim().toUpperCase() : "N/A";
         const cleaner = row[1] ? row[1].trim().toUpperCase() : "N/A";
         const aseo = row[2] ? row[2].trim() : "N/A";
-        const fecha = row[3] ? row[3].trim() : "N/A";
+        const fechaHora = row[3] ? row[3].trim() : "N/A";
   
-        [ppu, cleaner, aseo, fecha].forEach(val => {
+        [ppu, cleaner, aseo, fechaHora].forEach(val => {
           const td = document.createElement("td");
           td.textContent = val;
           tr.appendChild(td);
@@ -209,12 +211,12 @@ import {
   }
   
   /**
-   * Registra un nuevo Aseo en aseo!I2:L
+   * Registra un nuevo Aseo en aseo!I2:L con DD-MM-AAAA HH:MM:SS
    */
   async function registerAseo() {
     const busIdInput = document.getElementById("bus-id");
     const aseoType = document.getElementById("aseo-type").value;
-    const dateValue = document.getElementById("date").value;
+    const dateValue = document.getElementById("date").value; // "AAAA-MM-DD"
   
     if (!busIdInput?.value || !aseoType || !dateValue) {
       Swal.fire({
@@ -235,18 +237,34 @@ import {
       return;
     }
   
-    // Insertamos en la hoja: [PPU BUS, CLEANER, ASEO, FECHA]
+    // Obtener fecha del input en formato AAAA-MM-DD
+    // Dividirla para rearmarla en DD-MM-AAAA
+    const [year, month, day] = dateValue.split("-");
+    const ddmmyyyy = `${day}-${month}-${year}`; // Formato DD-MM-AAAA
+  
+    // Obtener hora actual
+    const now = new Date();
+    const hour = String(now.getHours()).padStart(2, '0');
+    const minute = String(now.getMinutes()).padStart(2, '0');
+    const second = String(now.getSeconds()).padStart(2, '0');
+  
+    const time = `${hour}:${minute}:${second}`;
+  
+    // Fecha+Hora final: "DD-MM-AAAA HH:MM:SS"
+    const dateTime = `${ddmmyyyy} ${time}`;
+  
+    // Insertamos en la hoja: [PPU BUS, CLEANER, ASEO, FECHA+HORA]
     const values = [[
       busIdInput.value.trim().toUpperCase(),
       currentUser.trim().toUpperCase(),
       aseoType.trim(),
-      dateValue.trim()
+      dateTime
     ]];
   
     await appendData("aseo!I2:L", values);
     console.log("Aseo registrado:", values);
   
-    // **(3) Recargar ambas tablas** (completados y asignadas) para que se vean inmediatamente
+    // Refrescar tablas para ver resultados de inmediato
     await loadCompletedRecords();
     await loadAssignedTasks();
   
@@ -258,6 +276,7 @@ import {
       showConfirmButton: false
     });
   
+    // Limpiar formulario
     busIdInput.value = "";
     document.getElementById("aseo-type").selectedIndex = 0;
     document.getElementById("date").value = "";
@@ -265,6 +284,7 @@ import {
   
   /**
    * Muestra el modal y los buses pendientes desde cleaner!A2:C
+   * En un solo listado (sin paginación).
    */
   async function openPendingBusesModal() {
     const modal = document.getElementById("pending-buses-modal");
@@ -277,7 +297,7 @@ import {
     tableBody.innerHTML = "";
   
     try {
-      // (2) Ya no filtramos por usuario actual: mostraremos TODOS los datos de "cleaner!A2:C"
+      // Cargar todos los datos de "cleaner!A2:C" (no se filtra)
       const busesData = await loadSheetData("cleaner!A2:C") || [];
       console.log("Buses pendientes (cleaner!A2:C):", busesData);
   
@@ -290,13 +310,15 @@ import {
         tr.appendChild(td);
         tableBody.appendChild(tr);
       } else {
-        const newPending = new Set(busesData.map(r => r[1]?.trim().toUpperCase()));
+        // No paginamos, así que mostramos todo en un listado
+        // Revisamos si hay buses nuevos
+        const newPending = new Set(busesData.map(row => row[1]?.trim().toUpperCase()));
   
         busesData.forEach(row => {
-          // row[0] = Usuario, row[1] = PPU, row[2] = Motivo/Fecha
+          // row[0] = Usuario, row[1] = PPU, row[2] = Motivo
           const ppu = row[1] ? row[1].trim().toUpperCase() : "N/A";
           const motivo = row[2] ? row[2].trim() : "N/A";
-          const fecha = ""; // ajusta si tienes un 3er campo
+          const fecha = ""; // Ajusta si tienes un 4to campo
   
           if (!lastPendingBusIds.has(ppu)) {
             const tr = document.createElement("tr");
@@ -308,6 +330,7 @@ import {
               tr.appendChild(td);
             });
   
+            // Al hacer clic, pasa PPU al input y cierra
             tr.addEventListener("click", () => {
               document.getElementById("bus-id").value = ppu;
               closePendingBusesModal();
@@ -380,24 +403,15 @@ import {
   }
   
   /**
-   * Actualiza todo sin borrar los datos en tablas
-   */
-  async function updateAllChartsAndCounters() {
-    await loadAssignedTasks();
-    await loadCompletedRecords();
-    updateTaskChart();
-    updateAttendanceChart();
-    updateAseadoresChart();
-    updateCounts();
-  }
-  
-  /**
    * Paginación
    */
   function initializePagination() {
+    // Mantener paginación para tareas y registros, pero SIN paginar buses pendientes
     paginateTable(document.getElementById("assigned-tasks-table")?.querySelector("tbody"), "assignment-pagination");
     paginateTable(document.getElementById("completed-records-table")?.querySelector("tbody"), "completed-records-pagination");
-    paginateTable(document.getElementById("pending-buses-table")?.querySelector("tbody"), "pending-buses-pagination");
+    // Quitar la paginación de pending-buses, ya que lo pediste "en un solo listado"
+    // Si lo deseas quitar por completo:
+    document.getElementById("pending-buses-pagination").innerHTML = "";
   }
   
   function paginateTable(tableBody, paginationContainerId, rowsPerPage = 10) {
@@ -464,8 +478,10 @@ import {
     }
   
     if (pendingBody) {
+      // Si decides no paginar buses pendientes, no llamamos paginateTable.
       const pendingObserver = new MutationObserver(() => {
-        paginateTable(pendingBody, "pending-buses-pagination");
+        // Sin paginación, no hacemos nada o:
+        // paginateTable(pendingBody, "pending-buses-pagination"); // Comentado
       });
       pendingObserver.observe(pendingBody, observerOptions);
     }
@@ -582,7 +598,9 @@ import {
     assignedTasks.forEach(row => {
       if (!row[0]) return;
       const user = row[0].trim().toUpperCase();
-      if (user in taskCounts) taskCounts[user]++;
+      if (user in taskCounts) {
+        taskCounts[user]++;
+      }
     });
   
     taskChart.data.datasets[0].data = Object.values(taskCounts);
