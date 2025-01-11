@@ -69,11 +69,7 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
-  .user-status-section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  }
-  
+ 
   #connection-status-section p {
     font-size: 0.95em;
     font-weight: 500;
@@ -192,7 +188,7 @@
   
   .styled-table th, .styled-table td {
     padding: 12px;
-    font-size: 0.9em;
+    font-size: 0.5em;
     word-wrap: break-word;
     text-align: center;
   }
@@ -206,13 +202,10 @@
     background-color: #f9f9f9;
   }
   
-  .styled-table tbody tr:hover {
-    background-color: #eaf3ff;
-  }
-  
+ 
   .styled-table th {
     text-transform: uppercase;
-    font-size: 0.85em;
+    font-size: 0.70em;
   }
   
   /* Paginación */
