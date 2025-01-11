@@ -353,21 +353,33 @@ import {
   /**
    * Muestra el modal y los buses pendientes de cleaner!A2:C en un listado
    */
-  async function openPendingBusesModal() {
+ 
+
+  /**
+ * Abre el modal para mostrar los Buses Pendientes de la hoja "cleaner!A2:C".
+ * Se muestra en medio de la web (gracias a tu CSS .modal y .modal-content).
+ */
+async function openPendingBusesModal() {
     const modal = document.getElementById("pending-buses-modal");
     const tableBody = document.getElementById("pending-buses-table")?.querySelector("tbody");
-    if (!tableBody || !modal) {
-      console.warn("No existe la tabla de buses pendientes o el modal.");
+  
+    // Verificar que el modal y su tabla estén presentes en el DOM
+    if (!modal || !tableBody) {
+      console.warn("No existe el modal o la tabla de buses pendientes.");
       return;
     }
   
+    // Limpiar el cuerpo de la tabla antes de recargar datos
     tableBody.innerHTML = "";
   
     try {
+      // Cargar datos desde Google Sheets (rango: cleaner!A2:C)
       const busesData = await loadSheetData("cleaner!A2:C") || [];
       console.log("Buses pendientes (cleaner!A2:C):", busesData);
   
+      // Verificar si hay datos
       if (busesData.length === 0) {
+        // No hay buses pendientes
         const tr = document.createElement("tr");
         const td = document.createElement("td");
         td.colSpan = 3;
@@ -376,27 +388,32 @@ import {
         tr.appendChild(td);
         tableBody.appendChild(tr);
       } else {
-        // Un solo listado sin paginación
+        // Crear un set para detectar nuevas entradas (opcional)
         const newPending = new Set(busesData.map(row => row[1]?.trim().toUpperCase()));
   
+        // Generar filas para cada bus pendiente
         busesData.forEach(row => {
           const ppu = row[1] ? row[1].trim().toUpperCase() : "N/A";
           const motivo = row[2] ? row[2].trim() : "N/A";
           const fecha = ""; // Ajustar si hay un 4to campo
   
+          // Controlar si ya existía antes (opcional, según tu lógica)
           if (!lastPendingBusIds.has(ppu)) {
             const tr = document.createElement("tr");
             tr.style.cursor = "pointer";
   
+            // Crear celdas con datos (PPU, Motivo, Fecha)
             [ppu, motivo, fecha].forEach(val => {
               const td = document.createElement("td");
               td.textContent = val;
               tr.appendChild(td);
             });
   
+            // Al hacer click en la fila, pasar la PPU al input y cerrar modal
             tr.addEventListener("click", () => {
               document.getElementById("bus-id").value = ppu;
               closePendingBusesModal();
+              // Mostrar alerta flotante (toast) de SweetAlert2
               Swal.fire({
                 icon: 'success',
                 title: 'PPU Agregado',
@@ -414,17 +431,24 @@ import {
           }
         });
   
+        // Actualizar el set de buses pendientes
         lastPendingBusIds = newPending;
       }
   
-      modal.style.display = "flex";
+      // Mostrar modal centrado (CSS .modal hará el resto)
+      // En tu CSS, la clase .modal.is-visible puede ser usada para animaciones
+      // pero aquí simplemente mostramos con 'flex' (o puedes togglear is-visible).
+      modal.style.display = "flex"; 
+      // modal.classList.add("is-visible"); // si usas la clase auxiliar
     } catch (error) {
       console.error("Error al cargar buses pendientes:", error);
+  
+      // Mostrar un mensaje de error en la tabla
       tableBody.innerHTML = "";
       const tr = document.createElement("tr");
       const td = document.createElement("td");
       td.colSpan = 3;
-      td.textContent = "Error al cargar datos.";
+      td.textContent = "Error al cargar los datos.";
       td.style.textAlign = "center";
       tr.appendChild(td);
       tableBody.appendChild(tr);
@@ -432,12 +456,16 @@ import {
   }
   
   /**
-   * Cierra el modal de Buses Pendientes
+   * Cierra el modal de Buses Pendientes.
    */
   function closePendingBusesModal() {
     const modal = document.getElementById("pending-buses-modal");
-    if (modal) modal.style.display = "none";
+    if (!modal) return;
+    // Ocultar el modal (o remover la clase is-visible)
+    modal.style.display = "none";
+    // modal.classList.remove("is-visible"); // si usas clase auxiliar
   }
+  
   
   /**
    * Actualiza contadores en la interfaz
