@@ -8,37 +8,33 @@ import {
     isUserAuthenticated
   } from '/RedLogistica/api/googleSheets.js';
   
-  // Estados para evitar duplicados y controlar parpadeos
+  // Para controlar que no se borren o dupliquen datos repetidamente
   let lastTaskIds = new Set();
   let lastCompletedIds = new Set();
   let lastPendingBusIds = new Set();
   
   document.addEventListener("DOMContentLoaded", async () => {
     try {
-      console.log("Inicializando cliente GAPI...");
+      console.log("Inicializando GAPI Client...");
       await initializeGapiClient();
   
       if (isUserAuthenticated()) {
         console.log("Usuario autenticado con Google Sheets.");
         updateConnectionStatus(true);
-  
-        // Cargar datos y configurar la app
         await initializeCleanerData();
   
-        // Cada 5s se actualizarán los datos, pero sin vaciar completamente las tablas
-        setInterval(() => {
-          updateAllChartsAndCounters();
-        }, 5000);
+        // Actualiza datos cada 5 segundos sin borrar todo
+        setInterval(updateAllChartsAndCounters, 5000);
       } else {
         console.warn("No se pudo autenticar con Google Sheets.");
         updateConnectionStatus(false);
-        alert('Autenticación fallida. Verifica tus credenciales o conexión.');
+        alert('Autenticación fallida. Revisa credenciales o conexión.');
       }
   
       // Formulario de registro de Aseo
       const registerForm = document.getElementById("register-aseo-form");
-      registerForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
+      registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
         await registerAseo();
       });
   
@@ -46,11 +42,11 @@ import {
       const pendingBusesBtn = document.getElementById("pending-buses-btn");
       pendingBusesBtn.addEventListener("click", openPendingBusesModal);
   
-      // Cerrar el modal de Buses Pendientes
+      // Cerrar modal de Buses Pendientes
       const closeModalBtn = document.getElementById("close-modal");
       closeModalBtn.addEventListener("click", closePendingBusesModal);
   
-      // Cerrar modal si hacen clic fuera del contenido
+      // Cerrar modal si se hace clic fuera
       window.addEventListener("click", (event) => {
         const modal = document.getElementById("pending-buses-modal");
         if (event.target === modal) {
@@ -60,12 +56,12 @@ import {
   
     } catch (error) {
       console.error("Error al inicializar la aplicación:", error);
-      alert("Ocurrió un error al inicializar la aplicación. Revisa la consola para más detalles.");
+      alert("Error al inicializar. Revisa la consola para más detalles.");
     }
   });
   
   /**
-   * Actualiza el estado de conexión en la interfaz
+   * Actualiza el estado de conexión
    */
   function updateConnectionStatus(connected) {
     const connectionStatus = document.getElementById("connection-status");
@@ -86,7 +82,7 @@ import {
   }
   
   /**
-   * Inicializa la carga de datos y configuración de la app
+   * Inicializa los datos del cleaner
    */
   async function initializeCleanerData() {
     await loadAssignedTasks();
@@ -97,35 +93,33 @@ import {
   }
   
   /**
-   * Carga las tareas asignadas (aseo!A2:F) sin borrar completamente la tabla
+   * Carga las tareas asignadas (aseo!A2:F) sin vaciar completamente la tabla
    */
   async function loadAssignedTasks() {
     const tasksTableBody = document.getElementById("assigned-tasks-table").querySelector("tbody");
     const assignedTasks = await loadSheetData("aseo!A2:F") || [];
-    console.log("Tareas asignadas cargadas:", assignedTasks);
   
     const currentUser = localStorage.getItem("username");
     if (!currentUser) {
-      console.warn("No se encontró el nombre de usuario en localStorage.");
+      console.warn("No se encontró username en localStorage.");
       return;
     }
   
-    // Filtra las tareas del usuario actual
+    // Filtra las tareas de este usuario
     const userTasks = assignedTasks.filter(task => {
       if (!task[0]) return false;
       return task[0].trim().toUpperCase() === currentUser.trim().toUpperCase();
     });
   
-    // Creamos un nuevo set para comparar
+    // Identificamos nuevos IDs
     const newTaskIds = new Set(userTasks.map(task => task[1]));
   
-    // Agregar SOLO nuevas tareas que no existían antes
+    // Agregamos SOLO las tareas que no existían antes
     userTasks.forEach(task => {
       const taskId = task[1];
       if (!lastTaskIds.has(taskId)) {
         const tr = document.createElement("tr");
-  
-        // Asumiendo: task[1] => PPU BUS, task[2] => Tarea, task[3] => Fecha Límite
+        // Suponiendo: task[1] => PPU, task[2] => Tarea, task[3] => Fecha Límite
         const ppu = task[1] ? task[1].trim().toUpperCase() : "N/A";
         const tarea = task[2] || "N/A";
         const fecha = task[3] || "N/A";
@@ -140,7 +134,6 @@ import {
       }
     });
   
-    // Actualiza el set con las nuevas tareas
     lastTaskIds = newTaskIds;
   
     updateCounts();
@@ -148,32 +141,30 @@ import {
   }
   
   /**
-   * Carga los registros completados (aseo!I2:L) sin borrar completamente la tabla
+   * Carga los registros completados (aseo!I2:L) sin vaciar la tabla
    */
   async function loadCompletedRecords() {
     const recordsTableBody = document.getElementById("completed-records-table").querySelector("tbody");
     const completedRecords = await loadSheetData("aseo!I2:L") || [];
-    console.log("Registros completados cargados:", completedRecords);
   
     const currentUser = localStorage.getItem("username");
     if (!currentUser) {
-      console.warn("No se encontró el nombre de usuario en localStorage.");
+      console.warn("No se encontró username en localStorage.");
       return;
     }
   
-    // Filtra los registros del usuario actual
     const userCompleted = completedRecords.filter(record => {
       if (!record[1]) return false; // record[1] => Cleaner
       return record[1].trim().toUpperCase() === currentUser.trim().toUpperCase();
     });
   
-    const newCompleted = new Set(userCompleted.map(record => record[1]));
+    const newCompletedSet = new Set(userCompleted.map(r => r[1]));
   
     userCompleted.forEach(record => {
       const completedId = record[1];
       if (!lastCompletedIds.has(completedId)) {
         const tr = document.createElement("tr");
-        // Asumiendo: [PPU BUS, CLEANER, ASEO, FECHA]
+        // record[0]=PPU, record[1]=Cleaner, record[2]=Aseo, record[3]=Fecha
         const ppu = record[0] ? record[0].trim().toUpperCase() : "N/A";
         const cleaner = record[1] ? record[1].trim().toUpperCase() : "N/A";
         const aseo = record[2] ? record[2].trim() : "N/A";
@@ -189,7 +180,7 @@ import {
       }
     });
   
-    lastCompletedIds = newCompleted;
+    lastCompletedIds = newCompletedSet;
   
     updateCounts();
     updateAttendanceChart();
@@ -197,18 +188,18 @@ import {
   }
   
   /**
-   * Registra un aseo (aseo!I2:L)
+   * Registra un nuevo aseo en aseo!I2:L
    */
   async function registerAseo() {
     const busIdInput = document.getElementById("bus-id");
     const aseoType = document.getElementById("aseo-type").value;
-    const dateValue = document.getElementById("date").value;
+    const fechaValue = document.getElementById("date").value;
   
-    if (!busIdInput.value || !aseoType || !dateValue) {
+    if (!busIdInput.value || !aseoType || !fechaValue) {
       Swal.fire({
         icon: 'warning',
         title: 'Campos Incompletos',
-        text: 'Por favor, completa todos los campos antes de registrar el aseo.'
+        text: 'Completa todos los campos antes de registrar el aseo.'
       });
       return;
     }
@@ -218,29 +209,28 @@ import {
       Swal.fire({
         icon: 'error',
         title: 'Error de Usuario',
-        text: 'No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.'
+        text: 'No se encontró el usuario. Reintenta iniciar sesión.'
       });
       return;
     }
   
-    // Insertar en la hoja: [PPU BUS, CLEANER, ASEO, FECHA]
     const values = [[
       busIdInput.value.trim().toUpperCase(),
       currentUser.trim().toUpperCase(),
       aseoType.trim(),
-      dateValue.trim()
+      fechaValue.trim()
     ]];
   
     await appendData("aseo!I2:L", values);
     console.log("Aseo registrado:", values);
   
-    // Cargar nuevamente registros completados (sin borrar toda la tabla)
+    // Solo cargamos de nuevo registros completados
     await loadCompletedRecords();
   
     Swal.fire({
       icon: 'success',
       title: 'Registro Exitoso',
-      text: 'Se ha registrado el aseo correctamente.',
+      text: 'Aseo registrado correctamente.',
       timer: 2000,
       showConfirmButton: false
     });
@@ -251,21 +241,21 @@ import {
   }
   
   /**
-   * Muestra el modal y los buses pendientes (cleaner!A2:C)
+   * Abre el modal y muestra los buses pendientes (cleaner!A2:C)
    */
   async function openPendingBusesModal() {
     const modal = document.getElementById("pending-buses-modal");
     const tableBody = document.getElementById("pending-buses-table").querySelector("tbody");
-    tableBody.innerHTML = ""; // Limpia para que no haya duplicados
+    tableBody.innerHTML = "";
   
     try {
       const currentUser = localStorage.getItem("username");
       if (!currentUser) {
-        console.warn("No se encontró el nombre de usuario en localStorage.");
+        console.warn("No se encontró username en localStorage.");
         return;
       }
   
-      // Mostrar “Cargando...”
+      // Mensaje de carga
       const loadingRow = document.createElement("tr");
       const loadingTd = document.createElement("td");
       loadingTd.colSpan = 3;
@@ -277,16 +267,16 @@ import {
       const busesData = await loadSheetData("cleaner!A2:C") || [];
       console.log("Buses Pendientes (cleaner!A2:C):", busesData);
   
-      tableBody.innerHTML = ""; // Retira el “Cargando...”
+      tableBody.innerHTML = "";
   
-      // Filtra los buses del usuario actual
-      const userPendingBuses = busesData.filter(bus => {
-        // bus[0] => Nombre de usuario
-        if (!bus[0]) return false;
-        return bus[0].trim().toUpperCase() === currentUser.trim().toUpperCase();
+      // Filtrar buses del usuario
+      const userPending = busesData.filter(row => {
+        // row[0] => Nombre de Usuario
+        if (!row[0]) return false;
+        return row[0].trim().toUpperCase() === currentUser.trim().toUpperCase();
       });
   
-      if (userPendingBuses.length === 0) {
+      if (userPending.length === 0) {
         const tr = document.createElement("tr");
         const td = document.createElement("td");
         td.colSpan = 3;
@@ -295,13 +285,13 @@ import {
         tr.appendChild(td);
         tableBody.appendChild(tr);
       } else {
-        // Crea filas nuevas (sin borrar lastPendingBusIds)
-        const newPendingIds = new Set(userPendingBuses.map(row => row[1]));
+        const newPending = new Set(userPending.map(b => b[1])); // b[1] => PPU
   
-        userPendingBuses.forEach(row => {
-          const ppu = row[1] ? row[1].trim().toUpperCase() : "N/A";
-          const motivo = row[2] ? row[2].trim() : "N/A";
-          const fecha = ""; // O si tienes un campo extra en row[3], úsalo
+        userPending.forEach(bus => {
+          // bus[0]=Usuario, bus[1]=PPU, bus[2]=Motivo/Fecha
+          const ppu = bus[1] ? bus[1].trim().toUpperCase() : "N/A";
+          const motivo = bus[2] ? bus[2].trim() : "N/A";
+          const fecha = ""; // si tuvieras un 3er campo, ajusta aquí
   
           if (!lastPendingBusIds.has(ppu)) {
             const tr = document.createElement("tr");
@@ -319,7 +309,7 @@ import {
               Swal.fire({
                 icon: 'success',
                 title: 'PPU BUS Agregado',
-                text: `Bus ${ppu} agregado al registro.`,
+                text: `Bus ${ppu} agregado al formulario.`,
                 timer: 1500,
                 showConfirmButton: false,
                 position: 'top-end',
@@ -333,12 +323,12 @@ import {
           }
         });
   
-        lastPendingBusIds = newPendingIds;
+        lastPendingBusIds = newPending;
       }
   
       modal.style.display = "flex";
     } catch (error) {
-      console.error("Error al cargar Buses Pendientes:", error);
+      console.error("Error al cargar buses pendientes:", error);
       tableBody.innerHTML = "";
       const tr = document.createElement("tr");
       const td = document.createElement("td");
@@ -359,7 +349,7 @@ import {
   }
   
   /**
-   * Actualiza los contadores de Tareas y Aseos
+   * Actualiza los contadores
    */
   function updateCounts() {
     const assignedBody = document.getElementById("assigned-tasks-table").querySelector("tbody");
@@ -384,7 +374,7 @@ import {
   }
   
   /**
-   * Actualiza todos los datos, gráficos y contadores (sin borrar todo)
+   * Actualiza todo cada 5s
    */
   async function updateAllChartsAndCounters() {
     await loadAssignedTasks();
@@ -396,7 +386,7 @@ import {
   }
   
   /**
-   * Inicializa la paginación de tablas
+   * Paginación
    */
   function initializePagination() {
     paginateTable(document.getElementById("assigned-tasks-table").querySelector("tbody"), "assignment-pagination");
@@ -404,9 +394,6 @@ import {
     paginateTable(document.getElementById("pending-buses-table").querySelector("tbody"), "pending-buses-pagination");
   }
   
-  /**
-   * Función genérica de paginación
-   */
   function paginateTable(tableBody, paginationContainerId, rowsPerPage = 10) {
     const paginationContainer = document.getElementById(paginationContainerId);
     let currentPage = 1;
@@ -416,21 +403,22 @@ import {
       const totalPages = Math.ceil(rows.length / rowsPerPage);
   
       rows.forEach((row, index) => {
-        row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
+        row.style.display = (index >= (currentPage - 1)*rowsPerPage && index < currentPage*rowsPerPage) ? "" : "none";
       });
   
       paginationContainer.innerHTML = "";
       for (let i = 1; i <= totalPages; i++) {
-        const pageButton = document.createElement("button");
-        pageButton.textContent = i;
-        pageButton.classList.add("pagination-button");
-        if (i === currentPage) pageButton.classList.add("active");
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.classList.add("pagination-button");
+        if (i === currentPage) btn.classList.add("active");
   
-        pageButton.addEventListener("click", () => {
+        btn.addEventListener("click", () => {
           currentPage = i;
           renderTable();
         });
-        paginationContainer.appendChild(pageButton);
+  
+        paginationContainer.appendChild(btn);
       }
     }
   
@@ -438,7 +426,7 @@ import {
   }
   
   /**
-   * Observadores de tablas: actualiza paginación y gráficos sin vaciar la tabla
+   * Observadores de tablas para refrescar paginación
    */
   function setupTableObservers() {
     const observerOptions = { childList: true };
@@ -465,7 +453,7 @@ import {
   }
   
   /**
-   * Manejo de Gráficos con Chart.js
+   * Manejo de gráficos con Chart.js
    */
   let taskChart, attendanceChart, aseadoresChart;
   
@@ -482,7 +470,7 @@ import {
         datasets: [{
           label: "Tareas Asignadas",
           data: new Array(17).fill(0),
-          backgroundColor: "rgba(30, 61, 89, 0.7)"
+          backgroundColor: "rgba(30,61,89,0.7)"
         }]
       },
       options: {
@@ -505,7 +493,7 @@ import {
     attendanceChart = new Chart(attendanceCtx, {
       type: 'bar',
       data: {
-        labels: ["Barrido", "Trapeado", "Barrido y Trapeado","Buses por Inspección","Revisado por ICA","Programado por RTG","Programado por DTPM","Programado por APPLUS"],
+        labels: ["Barrido","Trapeado","Barrido y Trapeado","Buses por Inspección","Revisado por ICA","Programado por RTG","Programado por DTPM","Programado por APPLUS"],
         datasets: [{
           label: "Aseos Realizados",
           data: [0,0,0,0,0,0,0,0],
@@ -557,25 +545,22 @@ import {
   }
   
   /**
-   * Actualiza el gráfico de Tareas Asignadas
+   * Actualiza gráfico Tareas Asignadas
    */
   async function updateTaskChart() {
     const assignedTasks = await loadSheetData("aseo!A2:F") || [];
-    console.log("Actualizando gráfico Tareas Asignadas:", assignedTasks);
-  
     const taskCounts = {
-      "LAURA SOTO": 0, "GALINDO SAEZ": 0, "LAUREANO RAMIREZ": 0, "PAMELA ANDRADES": 0,
-      "HUGO CARRASCO": 0, "GLORIA ANGEL": 0, "DANIELA SOLORZA": 0, "SILVIA GONZALEZ": 0,
-      "SILVIA VILLALOBOS": 0, "MARISOL AGUIRRE": 0, "MARIA LAZCANO": 0, "ISAAC MAGUINA": 0,
-      "AXIS MAURICE": 0, "VITEL DESROSIERS": 0, "VERONICA ORTIZ": 0, "ROSA SMART": 0, "PATRICIA QUIRILAO": 0
+      "LAURA SOTO":0,"GALINDO SAEZ":0,"LAUREANO RAMIREZ":0,"PAMELA ANDRADES":0,"HUGO CARRASCO":0,
+      "GLORIA ANGEL":0,"DANIELA SOLORZA":0,"SILVIA GONZALEZ":0,"SILVIA VILLALOBOS":0,"MARISOL AGUIRRE":0,
+      "MARIA LAZCANO":0,"ISAAC MAGUINA":0,"AXIS MAURICE":0,"VITEL DESROSIERS":0,"VERONICA ORTIZ":0,
+      "ROSA SMART":0,"PATRICIA QUIRILAO":0
     };
   
     assignedTasks.forEach(row => {
-      // row[0] => Nombre Usuario
       if (!row[0]) return;
-      const cleanerName = row[0].trim().toUpperCase();
-      if (cleanerName in taskCounts) {
-        taskCounts[cleanerName]++;
+      const user = row[0].trim().toUpperCase();
+      if (user in taskCounts) {
+        taskCounts[user]++;
       }
     });
   
@@ -584,19 +569,17 @@ import {
   }
   
   /**
-   * Actualiza el gráfico de Aseos Realizados por Tipo
+   * Actualiza gráfico Aseos Realizados por Tipo
    */
   async function updateAttendanceChart() {
     const completedRecords = await loadSheetData("aseo!I2:L") || [];
-    console.log("Actualizando gráfico Aseos Realizados:", completedRecords);
-  
     const aseoCounts = {
-      "Barrido": 0, "Trapeado": 0, "Barrido y Trapeado": 0, "Buses por Inspección": 0,
-      "Revisado por ICA": 0, "Programado por RTG": 0, "Programado por DTPM": 0, "Programado por APPLUS": 0
+      "Barrido":0,"Trapeado":0,"Barrido y Trapeado":0,"Buses por Inspección":0,"Revisado por ICA":0,
+      "Programado por RTG":0,"Programado por DTPM":0,"Programado por APPLUS":0
     };
   
     completedRecords.forEach(row => {
-      if (!row[2]) return; // row[2] => Aseo Realizado
+      if (!row[2]) return;
       const aseoType = row[2].trim();
       if (aseoType in aseoCounts) {
         aseoCounts[aseoType]++;
@@ -608,21 +591,19 @@ import {
   }
   
   /**
-   * Actualiza el gráfico de registros de Aseadores
+   * Actualiza gráfico Registros de Aseadores
    */
   async function updateAseadoresChart() {
     const completedRecords = await loadSheetData("aseo!I2:L") || [];
-    console.log("Actualizando gráfico de Aseadores:", completedRecords);
-  
     const aseadoresCount = {
-      "LAURA SOTO": 0, "GALINDO SAEZ": 0, "LAUREANO RAMIREZ": 0, "PAMELA ANDRADES": 0,
-      "HUGO CARRASCO": 0, "GLORIA ANGEL": 0, "DANIELA SOLORZA": 0, "SILVIA GONZALEZ": 0,
-      "SILVIA VILLALOBOS": 0, "MARISOL AGUIRRE": 0, "MARIA LAZCANO": 0, "ISAAC MAGUINA": 0,
-      "AXIS MAURICE": 0, "VITEL DESROSIERS": 0, "VERONICA ORTIZ": 0, "ROSA SMART": 0, "PATRICIA QUIRILAO": 0
+      "LAURA SOTO":0,"GALINDO SAEZ":0,"LAUREANO RAMIREZ":0,"PAMELA ANDRADES":0,"HUGO CARRASCO":0,
+      "GLORIA ANGEL":0,"DANIELA SOLORZA":0,"SILVIA GONZALEZ":0,"SILVIA VILLALOBOS":0,"MARISOL AGUIRRE":0,
+      "MARIA LAZCANO":0,"ISAAC MAGUINA":0,"AXIS MAURICE":0,"VITEL DESROSIERS":0,"VERONICA ORTIZ":0,
+      "ROSA SMART":0,"PATRICIA QUIRILAO":0
     };
   
     completedRecords.forEach(row => {
-      if (!row[1]) return; // row[1] => Nombre de Usuario
+      if (!row[1]) return;
       const cleanerName = row[1].trim().toUpperCase();
       if (cleanerName in aseadoresCount) {
         aseadoresCount[cleanerName]++;
