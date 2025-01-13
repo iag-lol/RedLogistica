@@ -234,66 +234,122 @@ body {
 .btn-primary i {
     margin-right: 8px;
 }
-/* Mantén tus contenedores tal cual,
-   solo añadiendo las propiedades necesarias al canvas. */
 
-/* --------------------------
-   Contenedores de Gráficos (Rectangulares)
---------------------------- */
+
+
+
+/* Sección específica para agrupar y diseñar tus gráficos */
+.charts-section {
+    display: flex;
+    flex-wrap: wrap; /* Permite que salten de línea en pantallas pequeñas */
+    gap: 20px;
+    justify-content: space-between; /* Distribuye los gráficos equitativamente */
+    width: 100%;
+    margin-top: 20px; /* Espacio extra de separación */
+}
+
+/* Contenedor de cada gráfico */
 .chart-container {
-    background: var(--text-light, #f8f8f8);
-    padding: 20px;
-    border-radius: var(--border-radius, 10px);
-    box-shadow: 0px 8px 20px var(--shadow-color, rgba(0, 0, 0, 0.1));
     flex: 1 1 30%;
     max-width: 30%;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    align-items: center;
+    background: var(--text-light, #f8f8f8);
+    
+    /* Bordes redondeados */
+    border-radius: var(--border-radius, 10px);
+
+    /* Aquí añadimos un borde con gradiente para dar un toque futurista */
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+    overflow: hidden; /* Para el pseudo-elemento con gradiente */
+
+    box-shadow: 0px 8px 20px var(--shadow-color, rgba(0, 0, 0, 0.1));
+    padding: 20px;
+    margin: 0 auto; /* Centra el contenedor de ser necesario */
+
     transition: transform 0.3s, box-shadow 0.3s;
-    margin: 0 auto; /* Opcional, si deseas centrar el contenedor */
-  }
-  
-  .chart-container h3 {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* Pseudo-elemento para borde con gradiente “doble” */
+.chart-container::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+}
+
+/* Título de cada gráfico */
+.chart-container h3 {
     color: var(--primary-color, #1e3d59);
     font-size: 1.3rem;
     text-align: center;
     letter-spacing: 0.5px;
     margin-bottom: 10px;
-    text-transform: uppercase; /* Opcional, si quieres un estilo más futurista */
-  }
-  
-  /* --------------------------
-     Canvas del Gráfico (Circular)
-  --------------------------- */
-  .chart-container canvas {
-    /* Asegura que el canvas conserve un ratio 1:1 (cuadrado) */
-    aspect-ratio: 1 / 1; 
-    
-    /* Ajusta su tamaño máximo sin alterar el contenedor */
+    text-transform: uppercase;
+}
+
+/* Ajustes para el canvas (forma cuadrada) */
+.chart-container canvas {
+    /* Para asegurar la forma cuadrada */
+    aspect-ratio: 1/1;
+
     width: 100%;
-    max-width: 300px; /* Ajusta según tu gusto */
+    max-width: 300px; /* Ajusta a tu gusto */
     height: auto;
-    
-    /* Crea la forma circular */
-    border-radius: 50%;
-    
-    /* Centra el canvas horizontalmente dentro del container */
-    margin: 0 auto;
-  
-    /* Pequeña sombra interna para un look más "profundo" */
+
+    /* Bordes ligeramente redondeados */
+    border-radius: 15px;
+
+    /* Sombra interna para mayor profundidad */
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-    
-    /* Si deseas un fondo distintivo en el gráfico */
+
+    /* Color de fondo del canvas (opcional) */
     background-color: var(--accent-color, #ffffff);
-  }
-  
-  /* Efecto hover para el contenedor */
-  .chart-container:hover {
+    
+    margin: 0 auto;
+}
+
+/* Efecto hover para “elevar” */
+.chart-container:hover {
     transform: translateY(-4px);
     box-shadow: 0px 12px 25px var(--shadow-color, rgba(0, 0, 0, 0.2));
-  }
-  
+}
+
+/* Responsividad: Ajusta la distribución de los gráficos en pantallas más pequeñas */
+@media (max-width: 992px) {
+    .chart-container {
+        flex: 1 1 45%;
+        max-width: 45%;
+    }
+}
+
+@media (max-width: 576px) {
+    .chart-container {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+    .chart-container h3 {
+        font-size: 1.1rem;
+    }
+    .chart-container canvas {
+        max-width: 250px;
+    }
+}
+
+
+
+
+
+
   /* --------------------------
      Responsividad
   --------------------------- */
