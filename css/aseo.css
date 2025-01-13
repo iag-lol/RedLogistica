@@ -112,8 +112,6 @@ body {
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
-
-
 .form-section h2, .tasks-assignment-section h2 {
     color: var(--primary-color);
     font-size: 1.5rem;
@@ -235,46 +233,44 @@ body {
     margin-right: 8px;
 }
 
-
-
-
-/* Sección específica para agrupar y diseñar tus gráficos */
+/* --------------------------
+   Contenedores de Gráficos 
+--------------------------- */
+/* NUEVO: Ajustamos la sección que agrupa todos los gráficos */
 .charts-section {
-    display: flex;
-    flex-wrap: wrap; /* Permite que salten de línea en pantallas pequeñas */
-    gap: 20px;
-    justify-content: space-between; /* Distribuye los gráficos equitativamente */
+    display: flex;          /* Para colocarlos en la misma fila */
+    flex-wrap: wrap;        /* Permite que pasen a la siguiente línea si no caben */
+    gap: 20px;              /* Espacio uniforme entre gráficos */
+    justify-content: space-between;
     width: 100%;
-    margin-top: 20px; /* Espacio extra de separación */
+    margin-top: 20px;       /* Margen adicional (opcional) */
 }
 
-/* Contenedor de cada gráfico */
+/* NUEVO: Mejoras en el .chart-container para un estilo más futurista sin romper nada */
 .chart-container {
+    background: var(--text-light, #f8f8f8);
+    padding: 20px;
+    border-radius: var(--border-radius, 10px);
+    box-shadow: 0px 8px 20px var(--shadow-color, rgba(0, 0, 0, 0.1));
+    
+    /* Para acomodarse dentro del layout horizontal */
     flex: 1 1 30%;
     max-width: 30%;
+    
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: var(--text-light, #f8f8f8);
-    
-    /* Bordes redondeados */
-    border-radius: var(--border-radius, 10px);
-
-    /* Aquí añadimos un borde con gradiente para dar un toque futurista */
-    border: 2px solid transparent;
-    background-clip: padding-box;
-    position: relative;
-    overflow: hidden; /* Para el pseudo-elemento con gradiente */
-
-    box-shadow: 0px 8px 20px var(--shadow-color, rgba(0, 0, 0, 0.1));
-    padding: 20px;
-    margin: 0 auto; /* Centra el contenedor de ser necesario */
-
+    gap: 15px;
     transition: transform 0.3s, box-shadow 0.3s;
+    margin: 0 auto; /* Opcional, si quieres centrarlo cuando sea más pequeño */
     animation: fadeIn 0.6s ease-out;
+
+    /* Agregamos un borde con gradiente usando pseudo-elemento */
+    position: relative;
+    overflow: hidden; /* Para que el pseudo-elemento no sobresalga */
 }
 
-/* Pseudo-elemento para borde con gradiente “doble” */
+/* NUEVO: Pseudo-elemento para un borde con gradiente futurista */
 .chart-container::before {
     content: "";
     position: absolute;
@@ -287,94 +283,43 @@ body {
     background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
 }
 
-/* Título de cada gráfico */
+/* Título del gráfico */
 .chart-container h3 {
     color: var(--primary-color, #1e3d59);
     font-size: 1.3rem;
     text-align: center;
     letter-spacing: 0.5px;
     margin-bottom: 10px;
-    text-transform: uppercase;
+    text-transform: uppercase; /* Opcional para un estilo más "tech" */
 }
 
-/* Ajustes para el canvas (forma cuadrada) */
+/* --------------------------
+   Canvas del Gráfico (Cuadrado)
+--------------------------- */
 .chart-container canvas {
-    /* Para asegurar la forma cuadrada */
-    aspect-ratio: 1/1;
-
+    aspect-ratio: 1 / 1;  /* Fuerza forma cuadrada */
     width: 100%;
-    max-width: 300px; /* Ajusta a tu gusto */
+    max-width: 300px;     /* Ajusta según gusto */
     height: auto;
 
-    /* Bordes ligeramente redondeados */
+    /* Bordes redondeados suaves */
     border-radius: 15px;
 
-    /* Sombra interna para mayor profundidad */
+    /* Sombra interna */
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 
-    /* Color de fondo del canvas (opcional) */
+    /* Fondo (opcional, para destacar el gráfico) */
     background-color: var(--accent-color, #ffffff);
-    
+
+    /* Centrado dentro del contenedor */
     margin: 0 auto;
 }
 
-/* Efecto hover para “elevar” */
+/* Efecto hover */
 .chart-container:hover {
     transform: translateY(-4px);
     box-shadow: 0px 12px 25px var(--shadow-color, rgba(0, 0, 0, 0.2));
 }
-
-/* Responsividad: Ajusta la distribución de los gráficos en pantallas más pequeñas */
-@media (max-width: 992px) {
-    .chart-container {
-        flex: 1 1 45%;
-        max-width: 45%;
-    }
-}
-
-@media (max-width: 576px) {
-    .chart-container {
-        flex: 1 1 100%;
-        max-width: 100%;
-    }
-    .chart-container h3 {
-        font-size: 1.1rem;
-    }
-    .chart-container canvas {
-        max-width: 250px;
-    }
-}
-
-
-
-
-
-
-  /* --------------------------
-     Responsividad
-  --------------------------- */
-  @media (max-width: 992px) {
-    .chart-container {
-      flex: 1 1 45%;
-      max-width: 45%;
-    }
-  }
-  
-  @media (max-width: 576px) {
-    .chart-container {
-      flex: 1 1 100%;
-      max-width: 100%;
-    }
-    
-    .chart-container h3 {
-      font-size: 1.1rem;
-    }
-    
-    .chart-container canvas {
-      max-width: 250px; /* Ajusta un tamaño menor para pantallas muy pequeñas */
-    }
-  }
-  
 
 /* Contadores */
 .count-box {
@@ -394,7 +339,6 @@ body {
     transition: color 0.3s;
 }
 
-
 /* Tablas */
 .tables-section {
     display: flex;
@@ -411,8 +355,6 @@ body {
     width: 100%;
     transition: transform 0.3s, box-shadow 0.3s;
 }
-
-
 
 .table-section h2 {
     color: var(--primary-color);
@@ -470,8 +412,6 @@ body {
 .styled-table tbody tr {
     transition: background-color 0.3s, transform 0.3s;
 }
-
-
 
 .styled-table tbody tr:nth-child(even) {
     background-color: #f9f9f9;
@@ -550,8 +490,6 @@ body {
     pointer-events: none;
     z-index: 10;
 }
-
-
 
 /* Responsividad Mejorada */
 @media screen and (max-width: 1024px) {
@@ -749,5 +687,3 @@ body {
 .toast .close-button:hover {
     color: #000000;
 }
-
-
