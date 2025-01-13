@@ -1,3 +1,17 @@
+/**** MODIFICACIÓN: Función para verificar si un registro es menor a 1 minuto de antigüedad ****/
+function isRecordFresh(dateString) {
+    if (!dateString) return false; 
+    // Intentar parsear la fecha/hora
+    const recordTime = new Date(dateString);
+    if (isNaN(recordTime.getTime())) return false; // Si no es una fecha válida, no es "fresco"
+
+    const now = new Date();
+    const diffMs = now - recordTime; // Diferencia en milisegundos
+    // Retorna true si han pasado menos de 60 segundos
+    return diffMs < 60 * 1000;
+}
+
+
 // Configuración de Google API
 const CLIENT_ID = '749139679919-3bc57iab4hj1qv7uh6r7s9tn6lp8r389.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDwUO5PpwoNbVbWfKViTEQO8Lnpkl12D5c';
@@ -98,111 +112,10 @@ function initializeOAuth() {
 }
 
 
-
-/**** CONFIGURACIONES GLOBALES ****/
-// Número máximo de filas por página
-const ROWS_PER_PAGE = 10;
-
-// Variables para la paginación
+/**** CONFIGURACIONES GLOBALES PARA PAGINACIÓN ****/
+const ROWS_PER_PAGE = 10;  // Máximo 10 filas a mostrar
 let currentPage = 1;
-let dailyAseoData = [];
-
-/**
- * Carga los datos, invierte el orden para que el último registro
- * sea el primero, y luego inicializa la tabla y la paginación.
- * @param {Array} data - Arreglo de objetos con las columnas { ppu, cleaner, aseo, fecha }
- */
-function loadDailyAseoData(data) {
-  // 1) Invertimos el arreglo para que el último registro sea el primero
-  dailyAseoData = data.slice().reverse();
-
-  // 2) Reiniciamos la página actual a 1
-  currentPage = 1;
-
-  // 3) Renderizamos la tabla y la paginación
-  renderAseoTable();
-  setupAseoPagination();
-}
-
-/**
- * Genera el cuerpo de la tabla para la página actual
- */
-function renderAseoTable() {
-  // Buscamos el <tbody> de la tabla donde pondremos las filas
-  const tbody = document.querySelector("#daily-aseo-table tbody");
-  tbody.innerHTML = ""; // Limpiamos el contenido anterior
-
-  // Calculamos el índice inicial y final para esta página
-  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
-  const endIndex = startIndex + ROWS_PER_PAGE;
-
-  // Extraemos los datos de la página actual
-  const paginatedData = dailyAseoData.slice(startIndex, endIndex);
-
-  // Creamos cada fila y la insertamos en la tabla
-  paginatedData.forEach((item) => {
-    const row = document.createElement("tr");
-
-    // Columna PPU BUS
-    const ppuCell = document.createElement("td");
-    ppuCell.textContent = item.ppu || "-";
-    row.appendChild(ppuCell);
-
-    // Columna CLEANER
-    const cleanerCell = document.createElement("td");
-    cleanerCell.textContent = item.cleaner || "-";
-    row.appendChild(cleanerCell);
-
-    // Columna ASEO REALIZADO
-    const aseoCell = document.createElement("td");
-    aseoCell.textContent = item.aseo || "-";
-    row.appendChild(aseoCell);
-
-    // Columna FECHA
-    const fechaCell = document.createElement("td");
-    fechaCell.textContent = item.fecha || "-";
-    row.appendChild(fechaCell);
-
-    // Insertamos la fila en el <tbody>
-    tbody.appendChild(row);
-  });
-}
-
-/**
- * Configura los botones de paginación según la cantidad de datos
- */
-function setupAseoPagination() {
-  // Buscamos el contenedor de botones
-  const paginationContainer = document.querySelector("#daily-aseo-pagination");
-  paginationContainer.innerHTML = "";
-
-  // Calculamos cuántas páginas se necesitan
-  const totalPages = Math.ceil(dailyAseoData.length / ROWS_PER_PAGE);
-
-  // Creamos un botón por cada página
-  for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    btn.classList.add("pagination-button");
-
-    // Si es la página actual, la marcamos como "activa"
-    if (i === currentPage) {
-      btn.classList.add("active");
-    }
-
-    // Al hacer clic, cambiamos la página y volvemos a renderizar
-    btn.addEventListener("click", () => {
-      currentPage = i;
-      renderAseoTable();
-      setupAseoPagination();
-    });
-
-    // Agregamos el botón al contenedor
-    paginationContainer.appendChild(btn);
-  }
-}
-
-
+let dailyAseoData = []; // Si se requiriera almacenamiento local de datos de aseo
 
 
 // -------------------------------
@@ -216,7 +129,7 @@ async function loadTablesData() {
 
     try {
         await loadAssignmentData();
-        await loadDailyAseoData();
+        await loadDailyAseoData(); // Carga datos de aseo (ver más abajo)
         console.log("Datos cargados en las tablas.");
     } catch (error) {
         console.error("Error al cargar los datos de las tablas:", error);
@@ -246,14 +159,19 @@ async function loadAssignmentData() {
 // -------------------------------
 async function loadDailyAseoData() {
     try {
-        const dailyAseoData = await loadSheetData('aseo!I2:L'); // Ajusta el rango según tus datos
-        dailyAseoData.forEach(row => {
+        const dailyAseoRows = await loadSheetData('aseo!I2:L'); // Ajusta el rango según tus datos
+        dailyAseoRows.forEach(row => {
             const uniqueId = `${row[0]}|${row[1]}|${row[2]}|${row[3]}`; // Crear un ID único
             if (!existingAseoRecords.has(uniqueId)) {
                 existingAseoRecords.add(uniqueId);
-                addRowToDailyAseoTable(row);
-                // Mostrar alerta para el nuevo registro
-                showAseoToast(row[1], row[2], row[0]);
+                
+                // MODIFICACIÓN: Insertar la fila al principio para que el último aparezca primero
+                addRowToDailyAseoTable(row, true);
+
+                // NUEVO: Mostrar alerta solo si el registro es más reciente de 1 min
+                if (isRecordFresh(row[3])) {
+                    showAseoToast(row[1], row[2], row[0]);
+                }
             }
         });
     } catch (error) {
@@ -401,7 +319,11 @@ function showAseoToast(cleanerName, aseoType, busPPU) {
 async function addAseoTask(busId, aseadorName, estado, fecha) {
     const values = [[busId, aseadorName, estado, fecha]];
     await appendData('aseo!I2:L', values);
-    addRowToDailyAseoTable([busId, aseadorName, estado, fecha]);
+    // Insertar en tabla local y toast
+    addRowToDailyAseoTable([busId, aseadorName, estado, fecha], true);
+    if (isRecordFresh(fecha)) {
+        showAseoToast(aseadorName, estado, busId);
+    }
 }
 
 // -------------------------------
@@ -463,16 +385,24 @@ function addRowToAssignmentTable(rowData) {
 }
 
 // -------------------------------
+// MODIFICACIÓN: 
 // Función para añadir una fila a la tabla de ingresos de aseo en la interfaz
+// con el último dato al inicio (tr, firstChild).
 // -------------------------------
-function addRowToDailyAseoTable(rowData) {
+function addRowToDailyAseoTable(rowData, putOnTop = false) {
     const tr = document.createElement('tr');
     rowData.forEach(cellData => {
         const td = document.createElement('td');
         td.textContent = cellData;
         tr.appendChild(td);
     });
-    dailyAseoTableBody.appendChild(tr);
+    if (putOnTop) {
+        // Inserta la nueva fila al principio, para que aparezca primero
+        dailyAseoTableBody.insertBefore(tr, dailyAseoTableBody.firstChild);
+    } else {
+        // Comportamiento normal, al final
+        dailyAseoTableBody.appendChild(tr);
+    }
 }
 
 // -------------------------------
@@ -491,11 +421,12 @@ function initializeChartsAndCounters() {
         let currentPage = 1;
 
         function renderTable() {
-            // Oculta todas las filas
+            // Oculta todas las filas y solo muestra 10
             Array.from(tableBody.rows).forEach((row, index) => {
-                row.style.display = (index >= (currentPage - 1) * ROWS_PER_PAGE && index < currentPage * ROWS_PER_PAGE) ? "" : "none";
+                row.style.display = (index >= (currentPage - 1) * ROWS_PER_PAGE && index < currentPage * ROWS_PER_PAGE)
+                                    ? "" 
+                                    : "none";
             });
-
             updatePaginationControls();
         }
 
@@ -684,7 +615,7 @@ function initializeChartsAndCounters() {
 
             // Contar la frecuencia de cada aseador en la columna correspondiente
             dailyAseoData.forEach(row => {
-                const aseadorName = row[1].trim(); // Suponiendo que el nombre del aseador está en la segunda columna (índice 1)
+                const aseadorName = row[1] ? row[1].trim() : "";
                 if (aseadoresCount.hasOwnProperty(aseadorName)) {
                     aseadoresCount[aseadorName]++;
                 }
@@ -715,14 +646,6 @@ function initializeChartsAndCounters() {
             console.error("Error en la actualización automática:", error);
         }
     }, 5000); // 5000 ms = 5 segundos
-
-    // Función para actualizar los contadores
-    function updateCounts() {
-        const totalTasksCount = document.getElementById("total-tasks-count");
-        const totalAttendanceCount = document.getElementById("total-attendance-count");
-        totalTasksCount.textContent = assignmentTableBody.rows.length;
-        totalAttendanceCount.textContent = dailyAseoTableBody.rows.length;
-    }
 
     // Observador para detectar cambios en las tablas y actualizar contadores y gráficos
     const observer = new MutationObserver(() => {
