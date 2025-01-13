@@ -97,6 +97,114 @@ function initializeOAuth() {
     }
 }
 
+
+
+/**** CONFIGURACIONES GLOBALES ****/
+// Número máximo de filas por página
+const ROWS_PER_PAGE = 10;
+
+// Variables para la paginación
+let currentPage = 1;
+let dailyAseoData = [];
+
+/**
+ * Carga los datos, invierte el orden para que el último registro
+ * sea el primero, y luego inicializa la tabla y la paginación.
+ * @param {Array} data - Arreglo de objetos con las columnas { ppu, cleaner, aseo, fecha }
+ */
+function loadDailyAseoData(data) {
+  // 1) Invertimos el arreglo para que el último registro sea el primero
+  dailyAseoData = data.slice().reverse();
+
+  // 2) Reiniciamos la página actual a 1
+  currentPage = 1;
+
+  // 3) Renderizamos la tabla y la paginación
+  renderAseoTable();
+  setupAseoPagination();
+}
+
+/**
+ * Genera el cuerpo de la tabla para la página actual
+ */
+function renderAseoTable() {
+  // Buscamos el <tbody> de la tabla donde pondremos las filas
+  const tbody = document.querySelector("#daily-aseo-table tbody");
+  tbody.innerHTML = ""; // Limpiamos el contenido anterior
+
+  // Calculamos el índice inicial y final para esta página
+  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+  const endIndex = startIndex + ROWS_PER_PAGE;
+
+  // Extraemos los datos de la página actual
+  const paginatedData = dailyAseoData.slice(startIndex, endIndex);
+
+  // Creamos cada fila y la insertamos en la tabla
+  paginatedData.forEach((item) => {
+    const row = document.createElement("tr");
+
+    // Columna PPU BUS
+    const ppuCell = document.createElement("td");
+    ppuCell.textContent = item.ppu || "-";
+    row.appendChild(ppuCell);
+
+    // Columna CLEANER
+    const cleanerCell = document.createElement("td");
+    cleanerCell.textContent = item.cleaner || "-";
+    row.appendChild(cleanerCell);
+
+    // Columna ASEO REALIZADO
+    const aseoCell = document.createElement("td");
+    aseoCell.textContent = item.aseo || "-";
+    row.appendChild(aseoCell);
+
+    // Columna FECHA
+    const fechaCell = document.createElement("td");
+    fechaCell.textContent = item.fecha || "-";
+    row.appendChild(fechaCell);
+
+    // Insertamos la fila en el <tbody>
+    tbody.appendChild(row);
+  });
+}
+
+/**
+ * Configura los botones de paginación según la cantidad de datos
+ */
+function setupAseoPagination() {
+  // Buscamos el contenedor de botones
+  const paginationContainer = document.querySelector("#daily-aseo-pagination");
+  paginationContainer.innerHTML = "";
+
+  // Calculamos cuántas páginas se necesitan
+  const totalPages = Math.ceil(dailyAseoData.length / ROWS_PER_PAGE);
+
+  // Creamos un botón por cada página
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.classList.add("pagination-button");
+
+    // Si es la página actual, la marcamos como "activa"
+    if (i === currentPage) {
+      btn.classList.add("active");
+    }
+
+    // Al hacer clic, cambiamos la página y volvemos a renderizar
+    btn.addEventListener("click", () => {
+      currentPage = i;
+      renderAseoTable();
+      setupAseoPagination();
+    });
+
+    // Agregamos el botón al contenedor
+    paginationContainer.appendChild(btn);
+  }
+}
+
+
+
+
 // -------------------------------
 // Función para cargar los datos de las tablas desde Google Sheets
 // -------------------------------
