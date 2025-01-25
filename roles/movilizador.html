@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Movilización</title>
+    <!-- Enlaces a estilos CSS -->
+    <link rel="stylesheet" href="/RedLogistica/css/movilizador.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-yH6eVltW9pLRCZBwX4wQ8vgxLh6V8pPfJJfrJ8qk3hFUcIw9q3H4FGhHEjW4OSqFjKb8MY5SSyEdh9URmNQxqw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google API -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <!-- Script de la aplicación -->
+    <script src="/RedLogistica/js/movilizador.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="status-card">
+            <p><strong>Estado:</strong> <span id="conexion-estado">Desconectado</span></p>
+            <p><strong>Movilizador:</strong> <span id="nombre-movilizador">-</span></p>
+            <p><strong>Terminal:</strong> <span id="terminal">-</span></p>
+        </div>
+        <h1>Registro de Movilización</h1>
+    </header>
+
+    <main>
+        <!-- Tabla de tareas asignadas -->
+        <section class="assigned-tasks-section">
+            <h2>Tareas Asignadas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>PPU</th>
+                        <th>Tarea Asignada</th>
+                        <th>Urgencia</th>
+                    </tr>
+                </thead>
+                <tbody id="tareas-asignadas-tabla">
+                    <!-- Aquí se insertarán las tareas asignadas dinámicamente -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Formulario de ingreso -->
+        <section class="form-section">
+            <form id="movilizador-form">
+                <div class="form-group">
+                    <label for="ppu">PPU:</label>
+                    <input type="text" id="ppu" name="ppu" placeholder="Ej: AB123CD" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tarea">Tarea:</label>
+                    <select id="tarea" name="tarea" required>
+                        <option value="">Seleccione una tarea</option>
+                        <option value="Lavado Carroceria">Lavado Carrocería</option>
+                        <option value="Lavado Carroceria y Petroleado">Lavado Carrocería y Petroleado</option>
+                        <option value="Movimiento RTG">Movimiento RTG</option>
+                        <option value="Movimiento Terminales">Movimiento Terminales</option>
+                        <option value="Movimiento Taller Externo">Movimiento Taller Externo</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="observacion">Observación:</label>
+                    <textarea id="observacion" name="observacion" placeholder="Opcional"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="fecha">Fecha:</label>
+                    <input type="datetime-local" id="fecha" name="fecha" required>
+                </div>
+
+                <button type="submit">Registrar</button>
+            </form>
+        </section>
+
+        <!-- Tabla de registros -->
+        <section class="table-section">
+            <h2>Registros Realizados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>PPU</th>
+                        <th>Movilizador</th>
+                        <th>Tarea Realizada</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="registros-tabla">
+                    <!-- Aquí se insertarán los registros dinámicamente -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Contadores -->
+        <section class="counters-section">
+            <div class="counter">
+                <h3>Tareas Asignadas</h3>
+                <p id="contador-tareas-asignadas">0</p>
+            </div>
+            <div class="counter">
+                <h3>Trabajos Hechos</h3>
+                <p id="contador-trabajos-hechos">0</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 - Sistema de Gestión de Transporte</p>
+    </footer>
+</body>
+</html>
