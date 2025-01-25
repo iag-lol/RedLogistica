@@ -214,7 +214,7 @@ export function redirectToRolePage(role) {
     const baseUrl = '/RedLogistica/roles/';
     const rolePages = {
         'Supervisor': 'supervisor.html',
-        'Planillero': 'planillero.html',
+        'Movilizador': 'movilizador.html',
         'Cleaner': 'cleaner.html',
         'Aseo': 'aseo.html',
         'Bodeguero': 'bodega.html', // Añadido para redirigir a bodega.html
