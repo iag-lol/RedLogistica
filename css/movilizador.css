@@ -1,275 +1,346 @@
-/* Estilos avanzados, elegantes y responsivos para Movilizador */
-
-/* VARIABLES DE COLOR */
-:root {
-    --primary-color: #224e9d;
-    --secondary-color: #1a3a73;
-    --accent-color: #f0f4ff;
-    --background-color: #f9f9f9;
-    --text-color: #333;
-    --white: #fff;
-    --danger-color: #e74c3c;
-    --success-color: #2ecc71;
-    --warning-color: #f39c12;
-    --shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-}
-
-/* GENERAL */
-* {
+/* ===========================
+   VARIABLES PRINCIPALES
+   =========================== */
+   :root {
+    /* Colores */
+    --color-fondo: #101010;           /* Fondo base oscuro */
+    --color-secundario: #1f1f1f;      /* Fondo secundario */
+    --color-accento: #2EE4CE;         /* Color acento */
+    --color-texto: #f0f0f0;           /* Texto claro */
+    --color-heading: #ffffff;         /* Encabezados */
+    --color-borde: #2c2c2c;           /* Bordes y líneas divisorias */
+    --color-placeholder: #cccccc;     /* Placeholder inputs */
+  
+    /* Fuentes */
+    --font-body: 'Roboto', sans-serif;
+    --font-size-base: 16px;
+    --font-weight-base: 400;
+  
+    /* Espaciados */
+    --spacing-small: 0.5rem;
+    --spacing-medium: 1rem;
+    --spacing-large: 2rem;
+  
+    /* Sombras y transiciones */
+    --transition-base: 0.3s ease;
+    --box-shadow-base: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* ===========================
+     RESETEO BÁSICO
+     =========================== */
+  * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Roboto', sans-serif;
-}
-
-body {
-    background-color: var(--background-color);
-    color: var(--text-color);
-    line-height: 1.6;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem;
-}
-
-/* HEADER */
-header {
+  }
+  
+  html {
+    font-size: var(--font-size-base);
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    line-height: 1.5;
+    margin: 0;
+    overflow-x: hidden; /* Evita desbordes horizontales */
+  }
+  
+  /* ===========================
+     ESTILOS GENERALES
+     =========================== */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-heading);
+    margin-bottom: var(--spacing-medium);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  p, span, label, th, td {
+    font-weight: var(--font-weight-base);
+  }
+  
+  /* Para mantener coherencia de enlace si en algún momento se utilizan anchors */
+  a {
+    color: var(--color-accento);
+    text-decoration: none;
+    transition: color var(--transition-base);
+  }
+  a:hover {
+    color: #24b9a3; /* Tonalidad un poco más oscura o clara */
+  }
+  
+  /* ===========================
+     ENCABEZADO
+     =========================== */
+  header {
+    background: var(--color-secundario);
+    padding: var(--spacing-medium);
     text-align: center;
-    margin-bottom: 2rem;
-    background-color: var(--white);
-    padding: 1.5rem 2rem;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    width: 100%;
-    max-width: 1200px;
-    animation: fadeIn 0.6s ease;
-}
-
-.status-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: var(--white);
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    flex-wrap: wrap;
-}
-
-.status-card p {
-    font-size: 1.2rem;
-    margin: 0.5rem;
-}
-
-.status-card span {
-    font-weight: bold;
-    font-size: 1.4rem;
-}
-
-/* MAIN SECTIONS */
-main {
-    width: 100%;
-    max-width: 1200px;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    animation: fadeIn 0.7s ease;
-}
-
-section {
-    background: var(--white);
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: var(--shadow);
-}
-
-h2 {
+    box-shadow: var(--box-shadow-base);
+    position: sticky;
+    top: 0;
+    z-index: 999;
+  }
+  
+  header h1 {
+    margin-top: var(--spacing-small);
     font-size: 1.8rem;
-    margin-bottom: 1rem;
-    color: var(--primary-color);
-    text-align: center;
-    border-bottom: 2px solid var(--accent-color);
-    padding-bottom: 0.5rem;
-}
-
-/* TABLAS */
-table {
+    letter-spacing: 2px;
+    color: var(--color-accento);
+  }
+  
+  /* Tarjeta de estado */
+  .status-card {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--spacing-small);
+    padding: var(--spacing-small);
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: var(--spacing-small);
+  }
+  
+  .status-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #ddd;
+  }
+  
+  /* ===========================
+     CONTENEDOR PRINCIPAL
+     =========================== */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-medium);
+  }
+  
+  /* ===========================
+     SECCIÓN: TAREAS ASIGNADAS
+     =========================== */
+  .assigned-tasks-section {
+    margin-bottom: var(--spacing-large);
+  }
+  
+  .assigned-tasks-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: var(--spacing-medium);
+    color: var(--color-accento);
+  }
+  
+  /* ===========================
+     TABLAS GENÉRICAS
+     =========================== */
+  table {
     width: 100%;
     border-collapse: collapse;
+    background-color: var(--color-secundario);
+    margin-bottom: var(--spacing-medium);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: var(--shadow);
-    margin-top: 1rem;
-}
-
-table thead {
-    background: var(--primary-color);
-    color: var(--white);
-    text-transform: uppercase;
-    font-size: 0.9rem;
-}
-
-table th, table td {
-    padding: 1rem;
+  }
+  
+  table thead {
+    background-color: var(--color-borde);
+  }
+  
+  table th, 
+  table td {
+    padding: var(--spacing-small);
     text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-table tr:nth-child(even) {
-    background: #f4f4f4;
-}
-
-/* FORMULARIO */
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--primary-color);
-    margin-bottom: 0.5rem;
-}
-
-input, select, textarea {
-    padding: 1rem;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--color-borde);
+    color: var(--color-texto);
+  }
+  
+  table tr:hover {
+    background-color: rgba(46, 228, 206, 0.1);
+  }
+  
+  table th {
+    font-weight: 600;
     text-transform: uppercase;
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 10px rgba(34, 78, 157, 0.3);
-    outline: none;
-}
-
-textarea {
-    resize: vertical;
-}
-
-button {
-    padding: 1rem;
-    background: var(--primary-color);
-    color: var(--white);
-    border: none;
+  }
+  
+  /* ===========================
+     SECCIÓN: FORMULARIO
+     =========================== */
+  .form-section {
+    margin-bottom: var(--spacing-large);
+  }
+  
+  .form-section h2 {
+    margin-bottom: var(--spacing-medium);
+    color: var(--color-accento);
+  }
+  
+  #movilizador-form {
+    background-color: var(--color-secundario);
+    padding: var(--spacing-medium);
     border-radius: 8px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-button:hover {
-    background: var(--secondary-color);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* CONTADORES */
-.counters-section {
+    box-shadow: var(--box-shadow-base);
+  }
+  
+  .form-group {
     display: flex;
-    justify-content: space-around;
-    gap: 2rem;
-    text-align: center;
-    padding: 1rem;
-}
-
-.counter {
-    background: var(--accent-color);
-    border: 2px solid var(--primary-color);
-    border-radius: 16px;
-    padding: 1.5rem;
-    flex: 1;
-    box-shadow: var(--shadow);
-    transition: transform 0.3s ease;
-}
-
-.counter:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-}
-
-.counter h3 {
+    flex-direction: column;
+    margin-bottom: var(--spacing-medium);
+  }
+  
+  .form-group label {
+    margin-bottom: var(--spacing-small);
+    font-weight: 600;
+    color: var(--color-accento);
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background-color: #1c1c1c;
+    color: var(--color-texto);
+    border: 1px solid var(--color-borde);
+    border-radius: 4px;
+    padding: var(--spacing-small);
+    font-size: 0.9rem;
+    font-family: var(--font-body);
+    transition: border-color var(--transition-base);
+  }
+  
+  .form-group input::placeholder,
+  .form-group textarea::placeholder {
+    color: var(--color-placeholder);
+  }
+  
+  /* 
+     IMPORTANTE:
+     El input #ppu se debe mostrar en MAYÚSCULAS. 
+  */
+  #ppu {
+    text-transform: uppercase; 
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--color-accento);
+    outline: none;
+  }
+  
+  button[type="submit"] {
+    background: var(--color-accento);
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 0.8rem 1.2rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: 600;
+    transition: background var(--transition-base);
+  }
+  
+  button[type="submit"]:hover {
+    background: #24b9a3;
+  }
+  
+  /* ===========================
+     SECCIÓN: TABLA DE REGISTROS
+     =========================== */
+  .table-section {
+    margin-bottom: var(--spacing-large);
+  }
+  
+  .table-section h2 {
     font-size: 1.4rem;
-    color: var(--primary-color);
-    margin-bottom: 0.5rem;
-}
-
-.counter p {
-    font-size: 2rem;
-    font-weight: bold;
-}
-
-/* FOOTER */
-footer {
+    margin-bottom: var(--spacing-medium);
+    color: var(--color-accento);
+  }
+  
+  /* ===========================
+     SECCIÓN: CONTADORES
+     =========================== */
+  .counters-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-large);
+    justify-content: center;
+    margin-bottom: var(--spacing-large);
+  }
+  
+  .counter {
+    background-color: var(--color-secundario);
+    flex: 1 1 200px;
     text-align: center;
-    padding: 1rem;
-    background: var(--primary-color);
-    color: var(--white);
-    margin-top: 2rem;
+    padding: var(--spacing-medium);
     border-radius: 8px;
-    width: 100%;
-}
-
-/* ANIMACIONES */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
+    box-shadow: var(--box-shadow-base);
+    margin: var(--spacing-small);
+  }
+  
+  .counter h3 {
+    color: var(--color-accento);
+    margin-bottom: var(--spacing-small);
+  }
+  
+  .counter p {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--color-texto);
+  }
+  
+  /* ===========================
+     PIE DE PÁGINA
+     =========================== */
+  footer {
+    text-align: center;
+    padding: var(--spacing-medium);
+    background-color: var(--color-secundario);
+    box-shadow: var(--box-shadow-base);
+    position: sticky;
+    bottom: 0;
+  }
+  
+  footer p {
+    font-size: 0.85rem;
+    color: #ccc;
+  }
+  
+  /* ===========================
+     RESPONSIVE DESIGN
+     =========================== */
+  /* Ajustes para pantallas pequeñas */
+  @media (max-width: 768px) {
+    header h1 {
+      font-size: 1.4rem;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* RESPONSIVIDAD */
-@media (max-width: 768px) {
+  
     .status-card {
-        flex-direction: column;
-        gap: 1rem;
+      flex-direction: column;
+      align-items: center;
     }
-
+  
     .counters-section {
-        flex-direction: column;
-        gap: 1rem;
+      flex-direction: column;
+      align-items: center;
     }
-
-    h2 {
-        font-size: 1.5rem;
+  
+    table th,
+    table td {
+      font-size: 0.8rem;
     }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 0.5rem;
+  }
+  
+  @media (max-width: 480px) {
+    main {
+      padding: var(--spacing-small);
     }
-
-    header {
-        padding: 1rem;
-    }
-
-    form {
-        gap: 1rem;
-    }
-
-    button {
-        font-size: 1rem;
-        padding: 0.8rem;
-    }
-
+  
     .counter p {
-        font-size: 1.8rem;
+      font-size: 1.2rem;
     }
-}
+  }
+  
