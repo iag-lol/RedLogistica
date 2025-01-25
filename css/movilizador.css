@@ -1,4 +1,4 @@
-/* Estilos avanzados para Movilizador */
+/* Estilos avanzados y responsivos para Movilizador */
 
 /* VARIABLES DE COLOR */
 :root {
@@ -10,6 +10,7 @@
     --danger-color: #e74c3c;
     --success-color: #2ecc71;
     --warning-color: #f39c12;
+    --header-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* GENERAL */
@@ -24,40 +25,39 @@ body {
     background-color: #f9f9f9;
     color: var(--text-color);
     line-height: 1.6;
-    display: flex;
-    justify-content: center;
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
+/* HEADER */
 header {
-    margin-bottom: 1rem;
     text-align: center;
+    margin-bottom: 1rem;
+    background-color: var(--white);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    box-shadow: var(--header-shadow);
+    animation: fadeIn 0.6s ease;
 }
 
-/* TARJETA DEL HEADER */
 .status-card {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: var(--white);
-    border-radius: 16px;
     padding: 1.5rem;
-    max-width: 600px;
+    border-radius: 12px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    animation: fadeIn 0.5s ease;
-}
-
-.status-card:hover {
-    transform: scale(1.02);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
 }
 
 .status-card p {
+    margin: 0.5rem;
     font-size: 1.2rem;
-    font-weight: 500;
-    margin: 0;
+    font-weight: bold;
 }
 
 .status-card span {
@@ -66,12 +66,76 @@ header {
     font-weight: bold;
 }
 
-/* FORMULARIOS */
+/* MAIN SECTIONS */
+main {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    animation: fadeIn 0.7s ease;
+}
+
+section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+    text-align: center;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 0.5rem;
+}
+
+/* TABLAS */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+}
+
+table thead {
+    background: var(--primary-color);
+    color: var(--white);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+table th, table td {
+    padding: 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table tr:nth-child(even) {
+    background: #f4f4f4;
+}
+
+/* FORMULARIO */
 form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    animation: fadeIn 0.6s ease;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
 }
 
 input, select, textarea {
@@ -80,7 +144,7 @@ input, select, textarea {
     border-radius: 8px;
     font-size: 1rem;
     transition: all 0.3s;
-    text-transform: uppercase; /* Convierte texto a mayúsculas automáticamente */
+    text-transform: uppercase;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -89,13 +153,17 @@ input:focus, select:focus, textarea:focus {
     outline: none;
 }
 
+textarea {
+    resize: vertical;
+}
+
 button {
     padding: 0.8rem;
     background: var(--primary-color);
     color: var(--white);
     border: none;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
@@ -105,30 +173,6 @@ button:hover {
     background: var(--secondary-color);
     transform: translateY(-2px);
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* ALERTAS FUTURAS */
-.alert {
-    padding: 1rem;
-    border-radius: 8px;
-    font-size: 1rem;
-    margin: 1rem 0;
-    animation: slideIn 0.5s ease;
-}
-
-.alert-success {
-    background-color: var(--success-color);
-    color: var(--white);
-}
-
-.alert-danger {
-    background-color: var(--danger-color);
-    color: var(--white);
-}
-
-.alert-warning {
-    background-color: var(--warning-color);
-    color: var(--white);
 }
 
 /* CONTADORES */
@@ -144,9 +188,10 @@ button:hover {
     background: var(--accent-color);
     border: 2px solid var(--primary-color);
     border-radius: 16px;
-    padding: 1rem;
+    padding: 1.5rem;
     flex: 1;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
 }
 
 .counter:hover {
@@ -155,13 +200,23 @@ button:hover {
 }
 
 .counter h3 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     color: var(--primary-color);
 }
 
 .counter p {
     font-size: 2rem;
     font-weight: bold;
+}
+
+/* FOOTER */
+footer {
+    text-align: center;
+    padding: 1rem;
+    background: var(--primary-color);
+    color: var(--white);
+    margin-top: 2rem;
+    border-radius: 8px;
 }
 
 /* ANIMACIONES */
@@ -176,17 +231,6 @@ button:hover {
     }
 }
 
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
 /* RESPONSIVIDAD */
 @media (max-width: 768px) {
     .status-card {
@@ -197,5 +241,40 @@ button:hover {
     .counters-section {
         flex-direction: column;
         gap: 1rem;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+
+    button {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 0.5rem;
+    }
+
+    header {
+        padding: 0.5rem;
+    }
+
+    .status-card {
+        padding: 1rem;
+    }
+
+    form {
+        gap: 1rem;
+    }
+
+    button {
+        font-size: 0.9rem;
+        padding: 0.7rem;
+    }
+
+    .counters-section {
+        gap: 0.5rem;
     }
 }
