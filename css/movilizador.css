@@ -2,14 +2,14 @@
    VARIABLES PRINCIPALES
    =========================== */
    :root {
-    /* Colores */
-    --color-fondo: #101010;           /* Fondo base oscuro */
-    --color-secundario: #1f1f1f;      /* Fondo secundario */
-    --color-accento: #2EE4CE;         /* Color acento */
-    --color-texto: #f0f0f0;           /* Texto claro */
-    --color-heading: #ffffff;         /* Encabezados */
-    --color-borde: #2c2c2c;           /* Bordes y líneas divisorias */
-    --color-placeholder: #cccccc;     /* Placeholder inputs */
+    /* Colores claros */
+    --color-fondo: #f2f2f2;          /* Fondo base claro */
+    --color-secundario: #ffffff;     /* Fondo secundario blanco */
+    --color-accento: #2EE4CE;        /* Color acento futurista */
+    --color-texto: #2e2e2e;          /* Texto oscuro */
+    --color-heading: #1a1a1a;        /* Encabezados */
+    --color-borde: #d2d2d2;          /* Bordes y líneas divisorias */
+    --color-placeholder: #777777;    /* Placeholder inputs */
   
     /* Fuentes */
     --font-body: 'Roboto', sans-serif;
@@ -23,7 +23,7 @@
   
     /* Sombras y transiciones */
     --transition-base: 0.3s ease;
-    --box-shadow-base: 0 4px 10px rgba(0, 0, 0, 0.3);
+    --box-shadow-base: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
   
   /* ===========================
@@ -63,7 +63,6 @@
     font-weight: var(--font-weight-base);
   }
   
-  /* Para mantener coherencia de enlace si en algún momento se utilizan anchors */
   a {
     color: var(--color-accento);
     text-decoration: none;
@@ -100,7 +99,7 @@
     justify-content: center;
     gap: var(--spacing-small);
     padding: var(--spacing-small);
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(0, 0, 0, 0.05);
     border-radius: 8px;
     margin-bottom: var(--spacing-small);
   }
@@ -108,7 +107,7 @@
   .status-card p {
     margin: 0;
     font-size: 0.9rem;
-    color: #ddd;
+    color: #444;
   }
   
   /* ===========================
@@ -149,7 +148,7 @@
     background-color: var(--color-borde);
   }
   
-  table th, 
+  table th,
   table td {
     padding: var(--spacing-small);
     text-align: left;
@@ -201,7 +200,7 @@
   .form-group input,
   .form-group select,
   .form-group textarea {
-    background-color: #1c1c1c;
+    background-color: #f7f7f7;
     color: var(--color-texto);
     border: 1px solid var(--color-borde);
     border-radius: 4px;
@@ -216,10 +215,7 @@
     color: var(--color-placeholder);
   }
   
-  /* 
-     IMPORTANTE:
-     El input #ppu se debe mostrar en MAYÚSCULAS. 
-  */
+  /* IMPORTANTE: El input #ppu se debe mostrar en MAYÚSCULAS. */
   #ppu {
     text-transform: uppercase; 
   }
@@ -287,7 +283,7 @@
   }
   
   .counter p {
-    font-size: 1.5rem;
+    font-size: 2.5rem; /* Aumentamos el tamaño del número */
     font-weight: bold;
     color: var(--color-texto);
   }
@@ -306,13 +302,12 @@
   
   footer p {
     font-size: 0.85rem;
-    color: #ccc;
+    color: #666;
   }
   
   /* ===========================
      RESPONSIVE DESIGN
      =========================== */
-  /* Ajustes para pantallas pequeñas */
   @media (max-width: 768px) {
     header h1 {
       font-size: 1.4rem;
@@ -340,7 +335,7 @@
     }
   
     .counter p {
-      font-size: 1.2rem;
+      font-size: 2rem; /* Ajuste en pantallas muy pequeñas */
     }
   }
   
