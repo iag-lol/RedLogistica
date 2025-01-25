@@ -52,8 +52,8 @@ function redirectToRolePage(role) {
         case 'Supervisor':
             window.location.href = `${baseUrl}supervisor.html`;
             break;
-        case 'Planillero':
-            window.location.href = `${baseUrl}planillero.html`;
+        case 'Movilizador':
+            window.location.href = `${baseUrl}movilizador.html`;
             break;
         case 'Cleaner':
             window.location.href = `${baseUrl}cleaner.html`;
