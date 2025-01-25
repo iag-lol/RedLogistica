@@ -9,12 +9,12 @@ import {
     initializeGapiClient,
     loadSheetData,
     appendData,
-    updateSheetData,
     isUserAuthenticated
   } from '/RedLogistica/api/googleSheets.js';
   
-  // Para evitar registrar tareas duplicadas:
+  // Variables globales
   let lastAssignedIds = new Set();
+  let flotaPPUCache = [];
   
   /**
    * ============ EVENTO PRINCIPAL ============
@@ -23,297 +23,189 @@ import {
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       console.log("Iniciando cliente de Google API para Movilizador...");
-      await initializeGapiClient(); // Inicializa la API (solo se hace 1 vez)
+      await initializeGapiClient(); // Inicializa la API
   
-      // 1. Verificar si el usuario está autenticado (token guardado)
+      // Verificar si el usuario está autenticado
       if (isUserAuthenticated()) {
         console.log("Usuario autenticado para Google Sheets.");
         updateConnectionStatus(true);
-  
-        // 2. Cargar datos iniciales
         await initializeMovilizadorData();
   
-        // 3. Refrescar datos de manera periódica sin pedir token otra vez
+        // Refrescar datos periódicamente
         setInterval(async () => {
           await realTimeUpdate();
-        }, 10000); // cada 10 segundos, por ejemplo
-  
+        }, 10000);
       } else {
         console.warn("No hay autenticación válida en Google Sheets.");
         updateConnectionStatus(false);
-        alert("Fallo en autenticación: por favor revisa tus credenciales o la conexión.");
+        showAlert("Fallo en autenticación", "Por favor revisa tus credenciales o la conexión.", "error");
       }
   
-      // 4. Manejar evento de envío de formulario para registrar una movilización
+      // Configurar eventos del formulario
       const movilizadorForm = document.getElementById("movilizador-form");
       if (movilizadorForm) {
         movilizadorForm.addEventListener("submit", async (e) => {
           e.preventDefault();
           await registerMovilizacion();
         });
-      } else {
-        console.warn("No se encontró el formulario con ID 'movilizador-form'.");
       }
   
-      // 5. Forzar que el input PPU siempre esté en mayúsculas
+      // Autorrellenar el campo PPU según los datos de la hoja "flota"
       const ppuInput = document.getElementById("ppu");
       if (ppuInput) {
         ppuInput.addEventListener("input", () => {
           ppuInput.value = ppuInput.value.toUpperCase();
         });
-      }
   
+        await preloadFlotaPPUs(ppuInput);
+      }
     } catch (error) {
       console.error("Error al iniciar la aplicación Movilizador:", error);
-      alert("Error de inicialización (ver consola para detalles).");
+      showAlert("Error de inicialización", "Revisa la consola para más detalles.", "error");
     }
   });
   
   /* ===========================================================
+   * FUNCIÓN: Mostrar Alertas Estilizadas
+   * =========================================================== */
+  function showAlert(title, message, type = "info") {
+    const alertContainer = document.getElementById("alert-container");
+    if (!alertContainer) return;
+  
+    const alertDiv = document.createElement("div");
+    alertDiv.className = `alert alert-${type}`;
+    alertDiv.innerHTML = `<strong>${title}</strong>: ${message}`;
+  
+    alertContainer.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 5000); // Desaparecer en 5 segundos
+  }
+  
+  /* ===========================================================
    * FUNCIÓN: Actualiza el estado de Conexión en la Interfaz
-   * Muestra si se está CONECTADO o DESCONECTADO en algún elemento.
    * =========================================================== */
   function updateConnectionStatus(isConnected) {
     const conexionSpan = document.getElementById("conexion-estado");
     const movilizadorSpan = document.getElementById("nombre-movilizador");
     const terminalSpan = document.getElementById("terminal");
   
-    // Opcional: obtén valores guardados en localStorage
     const username = localStorage.getItem("username") || "Desconocido";
     const terminalName = localStorage.getItem("terminal") || "-";
   
     if (conexionSpan) {
-      if (isConnected) {
-        conexionSpan.textContent = "Conectado";
-        conexionSpan.classList.add("connected");
-        conexionSpan.classList.remove("disconnected");
-      } else {
-        conexionSpan.textContent = "Desconectado";
-        conexionSpan.classList.remove("connected");
-        conexionSpan.classList.add("disconnected");
-      }
+      conexionSpan.textContent = isConnected ? "Conectado" : "Desconectado";
+      conexionSpan.className = isConnected ? "connected" : "disconnected";
     }
-  
-    if (movilizadorSpan) {
-      movilizadorSpan.textContent = username.toUpperCase();
-    }
-  
-    if (terminalSpan) {
-      terminalSpan.textContent = terminalName.toUpperCase();
-    }
+    if (movilizadorSpan) movilizadorSpan.textContent = username.toUpperCase();
+    if (terminalSpan) terminalSpan.textContent = terminalName.toUpperCase();
   }
   
   /* ===========================================================
    * FUNCIÓN: Inicializa la Data del Movilizador
-   * Carga tablas, contadores, etc., una sola vez al inicio.
    * =========================================================== */
   async function initializeMovilizadorData() {
-    // Cargar la tabla de “Tareas Asignadas”
-    await loadAssignedTasks();
-  
-    // Cargar registros realizados
-    await loadCompletedRecords();
-  
-    // Opcional: Inicializa gráficos, contadores, etc., si existiesen.
+    await preloadFlotaPPUs(); // Precargar datos de "flota"
+    await loadAssignedTasks(); // Cargar tareas asignadas
+    await loadCompletedRecords(); // Cargar registros realizados
     updateCounts();
   }
   
   /* ===========================================================
-   * FUNCIÓN: Refresca datos en “tiempo real” sin reautenticar
-   * Puedes ajustar la lógica según tu necesidad
+   * FUNCIÓN: Precachear PPUs desde la hoja "flota"
    * =========================================================== */
-  async function realTimeUpdate() {
-    console.log("RealTimeUpdate -> Cargando tablas y datos en segundo plano...");
-    await loadAssignedTasks();
-    await loadCompletedRecords();
-    updateCounts();
-  }
+  async function preloadFlotaPPUs(ppuInput) {
+    try {
+      console.log("Cargando PPUs desde la hoja 'flota'...");
+      flotaPPUCache = await loadSheetData("flota!B2:B") || [];
+      console.log("PPUs precargadas:", flotaPPUCache);
   
-  /* ===========================================================
-   * FUNCIÓN: Carga Tareas Asignadas desde la hoja “movilizador”
-   * Rango de ejemplo: 'movilizador!H2:J' (tú ajustas columnas)
-   * y las muestra en la tabla con ID 'tareas-asignadas-tabla'.
-   * =========================================================== */
-  async function loadAssignedTasks() {
-    const tareasBody = document.getElementById("tareas-asignadas-tabla");
-    if (!tareasBody) {
-      console.warn("No se encontró la tabla 'tareas-asignadas-tabla'.");
-      return;
+      if (ppuInput && flotaPPUCache.length) {
+        const datalist = document.createElement("datalist");
+        datalist.id = "ppu-options";
+  
+        flotaPPUCache.forEach(row => {
+          const option = document.createElement("option");
+          option.value = row[0]?.trim().toUpperCase();
+          datalist.appendChild(option);
+        });
+  
+        document.body.appendChild(datalist);
+        ppuInput.setAttribute("list", "ppu-options");
+      }
+    } catch (error) {
+      console.error("Error al precargar PPUs:", error);
     }
-  
-    // Llamada a la API para obtener datos (rango ejemplo: “H2:J”)
-    // Ajusta según las columnas reales donde guardes "PPU - Tarea - Urgencia", etc.
-    const tareasAsignadas = await loadSheetData("movilizador!H2:J") || [];
-    console.log("Tareas Asignadas:", tareasAsignadas);
-  
-    // Creamos un set de IDs (por ejemplo, la PPU) para detectar si hay nuevas
-    const newAssignedIds = new Set(tareasAsignadas.map(row => row[0]?.trim()));
-  
-    // Limpiar la tabla para volver a llenar
-    tareasBody.innerHTML = "";
-  
-    // Llenar la tabla
-    tareasAsignadas.forEach(row => {
-      // row[0] => PPU
-      // row[1] => Tarea
-      // row[2] => Urgencia
-      if (!row[0]) return;
-  
-      const ppu = row[0].trim().toUpperCase() || "N/A";
-      const tarea = row[1] || "N/A";
-      const urgencia = row[2] || "N/A";
-  
-      const tr = document.createElement("tr");
-      [ppu, tarea, urgencia].forEach((valor) => {
-        const td = document.createElement("td");
-        td.textContent = valor;
-        tr.appendChild(td);
-      });
-  
-      tareasBody.appendChild(tr);
-    });
-  
-    // Detectar si hay nuevas asignaciones
-    if (newAssignedIds.size > lastAssignedIds.size) {
-      alertNuevasTareas();
-    }
-    lastAssignedIds = newAssignedIds;
   }
   
   /* ===========================================================
-   * FUNCIÓN: Muestra alerta de nuevas tareas asignadas
-   * (puedes usar tu librería de notificaciones preferida)
-   * =========================================================== */
-  function alertNuevasTareas() {
-    console.log("Nuevas tareas asignadas detectadas.");
-    // Ejemplo de alerta:
-    // Podrías usar SweetAlert2 o un toast. Aquí algo simple:
-    alert("Tienes nuevas tareas asignadas.");
-  }
-  
-  /* ===========================================================
-   * FUNCIÓN: Carga Registros Realizados (Ej: 'movilizador!N2:R')
-   * y los muestra en la tabla con ID 'registros-tabla'.
-   * =========================================================== */
-  async function loadCompletedRecords() {
-    const registrosBody = document.getElementById("registros-tabla");
-    if (!registrosBody) {
-      console.warn("No se encontró la tabla 'registros-tabla'.");
-      return;
-    }
-  
-    // Ajusta el rango a la sección donde guardas los registros realizados
-    // Ejemplo: "movilizador!N2:R" con las columnas PPU, Movilizador, Tarea, Fecha, Hora
-    const registros = await loadSheetData("movilizador!N2:R") || [];
-    console.log("Registros Realizados:", registros);
-  
-    // Limpiar la tabla
-    registrosBody.innerHTML = "";
-  
-    registros.forEach(row => {
-      // row[0] = PPU
-      // row[1] = Movilizador
-      // row[2] = Tarea
-      // row[3] = Fecha
-      // row[4] = Hora
-      const ppu = row[0]?.trim().toUpperCase() || "N/A";
-      const movilizador = row[1]?.trim() || "N/A";
-      const tarea = row[2]?.trim() || "N/A";
-      const fecha = row[3] || "N/A";
-      const hora = row[4] || "N/A";
-  
-      const tr = document.createElement("tr");
-      [ppu, movilizador, tarea, fecha, hora].forEach(valor => {
-        const td = document.createElement("td");
-        td.textContent = valor;
-        tr.appendChild(td);
-      });
-  
-      registrosBody.appendChild(tr);
-    });
-  }
-  
-  /* ===========================================================
-   * FUNCIÓN: Registra una nueva Movilización en la hoja
-   * Usando las columnas: B (PPU), C (Movilizador), D (Tarea),
-   * E (Observación), F (Fecha+Hora). Ajusta a tu gusto.
+   * FUNCIÓN: Registrar Movilización
    * =========================================================== */
   async function registerMovilizacion() {
     try {
-      // 1. Tomar valores del formulario
       const ppuInput = document.getElementById("ppu");
       const tareaSelect = document.getElementById("tarea");
       const obsTextarea = document.getElementById("observacion");
       const fechaInput = document.getElementById("fecha");
   
       if (!ppuInput.value || !tareaSelect.value || !fechaInput.value) {
-        alert("Por favor, completa todos los campos requeridos.");
+        showAlert("Formulario incompleto", "Por favor, completa todos los campos requeridos.", "warning");
         return;
       }
   
-      // 2. Obtener el nombre del usuario (movilizador) guardado
-      const userName = localStorage.getItem("username") || "SIN-NOMBRE";
-      const movilizadorName = userName.trim().toUpperCase();
-  
-      // 3. Formatear fecha y hora
-      //    El input type=datetime-local retorna algo como "YYYY-MM-DDTHH:MM"
-      //    Podemos separarlo y guardarlo como "DD-MM-YYYY HH:MM"
-      const dateTimeValue = fechaInput.value; // 2025-01-25T15:45
-      const [fecha, hora] = dateTimeValue.split("T"); // ["2025-01-25", "15:45"]
+      const username = localStorage.getItem("username") || "SIN-NOMBRE";
+      const dateTimeValue = fechaInput.value;
+      const [fecha, hora] = dateTimeValue.split("T");
       const [yyyy, mm, dd] = fecha.split("-");
       const fechaFormateada = `${dd}-${mm}-${yyyy}`;
       const horaFormateada = hora || "00:00";
   
-      // 4. Armar la fila para Google Sheets
-      //    B = PPU, C = Movilizador, D = Tarea, E = Observación, F = Fecha+Hora
       const nuevaFila = [
         ppuInput.value.trim().toUpperCase(),
-        movilizadorName,
+        username.trim().toUpperCase(),
         tareaSelect.value.trim(),
         obsTextarea.value.trim() || "-",
         `${fechaFormateada} ${horaFormateada}`
       ];
   
-      // 5. Guardar la fila en la Hoja (movilizador!B2:F)
       await appendData("movilizador!B2:F", [nuevaFila]);
   
-      // 6. Confirmación visual
-      console.log("Registro de Movilización exitoso:", nuevaFila);
-      alert("¡Registro de Movilización guardado con éxito!");
+      showAlert("Registro exitoso", "La movilización se registró correctamente.", "success");
   
-      // 7. Limpiar el formulario
-      ppuInput.value = "";
-      tareaSelect.selectedIndex = 0;
-      obsTextarea.value = "";
-      fechaInput.value = "";
-  
-      // 8. Refrescar tablas para ver los cambios en tiempo real
+      // Actualizar tablas y contadores
       await loadAssignedTasks();
       await loadCompletedRecords();
       updateCounts();
   
+      // Limpiar el formulario
+      ppuInput.value = "";
+      tareaSelect.selectedIndex = 0;
+      obsTextarea.value = "";
+      fechaInput.value = "";
     } catch (error) {
-      console.error("Error registrando Movilización:", error);
-      alert("Ocurrió un error al registrar la Movilización. Ver consola para más detalles.");
+      console.error("Error registrando movilización:", error);
+      showAlert("Error al registrar", "Ocurrió un problema al guardar los datos.", "error");
     }
   }
   
   /* ===========================================================
-   * FUNCIÓN: Actualiza contadores (Tareas vs. Registros)
-   * Basado en el número de filas en cada tabla.
+   * FUNCIÓN: Refresca datos en tiempo real
+   * =========================================================== */
+  async function realTimeUpdate() {
+    console.log("Actualizando datos en tiempo real...");
+    await loadAssignedTasks();
+    await loadCompletedRecords();
+    updateCounts();
+  }
+  
+  /* ===========================================================
+   * FUNCIÓN: Actualizar contadores
    * =========================================================== */
   function updateCounts() {
     const tareasBody = document.getElementById("tareas-asignadas-tabla");
     const registrosBody = document.getElementById("registros-tabla");
-  
     const tareasCount = document.getElementById("contador-tareas-asignadas");
     const trabajosCount = document.getElementById("contador-trabajos-hechos");
   
-    if (tareasBody && tareasCount) {
-      tareasCount.textContent = tareasBody.rows.length;
-    }
-    if (registrosBody && trabajosCount) {
-      trabajosCount.textContent = registrosBody.rows.length;
-    }
+    if (tareasBody && tareasCount) tareasCount.textContent = tareasBody.rows.length;
+    if (registrosBody && trabajosCount) trabajosCount.textContent = registrosBody.rows.length;
   }
   
