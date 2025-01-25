@@ -9,6 +9,7 @@ import {
     initializeGapiClient,
     loadSheetData,
     appendData,
+    updateSheetData,
     isUserAuthenticated
   } from '/RedLogistica/api/googleSheets.js';
   
@@ -184,6 +185,58 @@ import {
       console.error("Error registrando movilización:", error);
       showAlert("Error al registrar", "Ocurrió un problema al guardar los datos.", "error");
     }
+  }
+  
+  /* ===========================================================
+   * FUNCIÓN: Cargar Tareas Asignadas desde la Hoja
+   * =========================================================== */
+  async function loadAssignedTasks() {
+    const tareasBody = document.getElementById("tareas-asignadas-tabla");
+    if (!tareasBody) {
+      console.warn("No se encontró la tabla 'tareas-asignadas-tabla'.");
+      return;
+    }
+  
+    const tareasAsignadas = await loadSheetData("movilizador!H2:J") || [];
+    console.log("Tareas Asignadas:", tareasAsignadas);
+  
+    tareasBody.innerHTML = "";
+  
+    tareasAsignadas.forEach(row => {
+      const tr = document.createElement("tr");
+      row.forEach(valor => {
+        const td = document.createElement("td");
+        td.textContent = valor || "-";
+        tr.appendChild(td);
+      });
+      tareasBody.appendChild(tr);
+    });
+  }
+  
+  /* ===========================================================
+   * FUNCIÓN: Cargar Registros Realizados
+   * =========================================================== */
+  async function loadCompletedRecords() {
+    const registrosBody = document.getElementById("registros-tabla");
+    if (!registrosBody) {
+      console.warn("No se encontró la tabla 'registros-tabla'.");
+      return;
+    }
+  
+    const registros = await loadSheetData("movilizador!N2:R") || [];
+    console.log("Registros Realizados:", registros);
+  
+    registrosBody.innerHTML = "";
+  
+    registros.forEach(row => {
+      const tr = document.createElement("tr");
+      row.forEach(valor => {
+        const td = document.createElement("td");
+        td.textContent = valor || "-";
+        tr.appendChild(td);
+      });
+      registrosBody.appendChild(tr);
+    });
   }
   
   /* ===========================================================
